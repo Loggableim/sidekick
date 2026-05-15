@@ -1,0 +1,27 @@
+# Rust build output
+target/
+
+# IDE
+.vscode/
+.idea/
+
+# Windows thumbnails
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Environment
+.env
+*.local
+
+# Distribution
+dist/
+
+# Keep vendor clean (submodule content, not its .git)
+vendor/hermes-webui/.git/
+vendor/hermes-webui/.gitignore

@@ -49,6 +49,7 @@
   // ---------- Status Map (Deutsch) ----------
   const STATUS_LABELS = {
     idle: 'Nicht gestartet',
+    stopped: 'Nicht gestartet',
     starting: 'Backend startet…',
     running: 'Backend läuft',
     stopping: 'Stoppe…',
@@ -58,6 +59,7 @@
 
   const STATUS_BADGE_CLASSES = {
     idle: 'badge-idle',
+    stopped: 'badge-idle',
     starting: 'badge-starting',
     running: 'badge-running',
     error: 'badge-error',
@@ -243,12 +245,11 @@
   // ---------- Utility Actions ----------
 
   async function openLogs() {
-    addLog('[AKTION] Öffne Logs…');
-    try {
-      await invoke('open_logs', {});
-    } catch (err) {
-      console.warn('[Sidekick] open_logs nicht verfügbar:', err);
-      addLog('[DEV] open_logs (simuliert)');
+    addLog('[AKTION] Zeige Logs…');
+    // Wenn kein separates Log-Fenster, einfach ins Log-Panel scrollen
+    var logPanel = document.getElementById('log-panel');
+    if (logPanel) {
+      logPanel.scrollIntoView({ behavior: 'smooth' });
     }
   }
 
@@ -270,9 +271,9 @@
 
     if (isTauri) {
       try {
-        await invoke('open_in_browser', { url: url });
+        await invoke('open_browser', { port: port });
       } catch (err) {
-        console.warn('[Sidekick] open_in_browser nicht verfügbar:', err);
+        console.warn('[Sidekick] open_browser nicht verfügbar:', err);
         // Fallback: window.open
         window.open(url, '_blank');
       }
@@ -287,13 +288,13 @@
   async function loadSettings() {
     addLog('[SETTINGS] Lade Einstellungen…');
     try {
-      var settings = await invoke('load_settings', {});
+      var settings = await invoke('get_settings', {});
       if (settings) {
         applySettings(settings);
         addLog('[SETTINGS] Einstellungen geladen');
       }
     } catch (err) {
-      console.warn('[Sidekick] load_settings nicht verfügbar, verwende Standardwerte:', err);
+      console.warn('[Sidekick] get_settings nicht verfügbar, verwende Standardwerte:', err);
       applySettings({
         port: 8787,
         autostart: true,
@@ -307,7 +308,7 @@
     var settings = collectSettings();
     addLog('[SETTINGS] Speichere Einstellungen…');
     try {
-      await invoke('save_settings', { settings: settings });
+      await invoke('save_settings', { settingsData: settings });
       addLog('[SETTINGS] Einstellungen gespeichert');
     } catch (err) {
       console.warn('[Sidekick] save_settings nicht verfügbar:', err);
@@ -317,16 +318,17 @@
 
   function collectSettings() {
     return {
-      port: parseInt(document.getElementById('port').value, 10) || 8787,
-      autostart: document.getElementById('autostart').checked,
+      hermes_path: document.getElementById('hermes-path').value || './vendor/hermes-webui',
       python_path: document.getElementById('python-path').value || 'python',
-      hermes_path: document.getElementById('hermes-path').value || './vendor/hermes-webui'
+      preferred_port: parseInt(document.getElementById('port').value, 10) || 8787,
+      auto_start: document.getElementById('autostart').checked,
+      auto_restart: false
     };
   }
 
   function applySettings(s) {
-    if (s.port !== undefined) document.getElementById('port').value = s.port;
-    if (s.autostart !== undefined) document.getElementById('autostart').checked = s.autostart;
+    if (s.preferred_port !== undefined) document.getElementById('port').value = s.preferred_port;
+    if (s.auto_start !== undefined) document.getElementById('autostart').checked = s.auto_start;
     if (s.python_path !== undefined) document.getElementById('python-path').value = s.python_path;
     if (s.hermes_path !== undefined) document.getElementById('hermes-path').value = s.hermes_path;
   }
@@ -337,25 +339,21 @@
     try {
       var status = await invoke('get_status', {});
       if (status) {
-        var newStatus = status.status || status;
+        // get_status gibt einen String zurueck: "starting", "running", "stopped", "error"
+        var newStatus = typeof status === 'string' ? status : (status.status || 'idle');
         if (newStatus !== currentStatus) {
           updateStatus(newStatus);
         }
 
         // Wenn Running, lade WebUI falls nicht geladen
         if (newStatus === 'running' && webviewFrame.classList.contains('hidden')) {
-          var port = status.port || document.getElementById('port').value || 8787;
+          var port = document.getElementById('port').value || 8787;
           loadHermesWebUI(port);
         }
 
         // Wenn nicht mehr running, entlade WebUI
         if (newStatus !== 'running' && newStatus !== 'restarting' && !webviewFrame.classList.contains('hidden')) {
           unloadHermesWebUI();
-        }
-
-        // Letzten Fehler anzeigen
-        if (status.last_error) {
-          showError(status.last_error);
         }
       }
     } catch (err) {

@@ -14,11 +14,10 @@ Sidekick wandelt das bestehende [Hermes WebUI](https://github.com/nesquena/herme
 sidekick/
 ├── src-tauri/           # Tauri 2 Rust-App
 │   ├── src/
-│   │   ├── main.rs      # App-Einstieg
-│   │   ├── supervisor.rs # Hermes-WebUI-Child-Prozess-Manager
+│   │   ├── main.rs      # App-Einstieg + Tauri-Commands
+│   │   ├── supervisor.rs # Hermes-WebUI-Child-Prozess-Manager + Logs
 │   │   ├── ports.rs     # Port-Auswahl/Fallback
 │   │   ├── health.rs    # Healthcheck-Polling
-│   │   ├── logs.rs      # Log-Management
 │   │   └── settings.rs  # Persistente Settings
 │   └── tauri.conf.json
 ├── app/                 # Control-UI (eingebettet in WebView)
@@ -32,14 +31,18 @@ sidekick/
 │   └── requirements.lock.txt
 ├── scripts/             # Dev/Build-Skripte
 │   ├── dev_start.ps1
-│   └── build_windows.ps1
+│   ├── build_windows.ps1
+│   └── package_windows.ps1
 ├── docs/                # Dokumentation
 │   ├── WINDOWS_APP.md
 │   ├── ARCHITECTURE.md
-│   └── TROUBLESHOOTING.md
+│   ├── HERMES_INTEGRATION.md
+│   ├── ENV_REFERENCE.md
+│   ├── QA_REPORT.md
+│   ├── TROUBLESHOOTING.md
+│   └── WINDOWS_STARTUP_STRATEGY.md
 └── README.md
 ```
-
 ### Prinzipien
 
 - **Hermes WebUI bleibt Upstream/Vendor** — minimale Änderungen, eigenes Projekt drumherum
