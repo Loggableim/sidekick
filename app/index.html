@@ -13,6 +13,7 @@
       <div class="header-left">
         <h1>Sidekick</h1>
         <span class="version">v0.1.0</span>
+        <span id="mode-badge" class="badge badge-info">REAL IPC</span>
       </div>
       <div class="header-right">
         <span class="status-label">Hermes Status</span>
@@ -20,7 +21,7 @@
       </div>
     </header>
 
-    <!-- STATUS -->
+    <!-- STATUS / ERROR -->
     <section id="status-bar">
       <div id="error-display" class="error-display hidden">
         <span class="error-label">Letzter Fehler:</span>
@@ -33,6 +34,11 @@
     <div id="main-layout">
       <!-- LEFT: Controls & Settings -->
       <aside id="sidebar">
+        <!-- MODE INDICATOR -->
+        <div id="mode-card" class="card mode-real">
+          <span id="mode-text">Modus: Echter Tauri IPC</span>
+        </div>
+
         <!-- ACTIONS -->
         <div id="actions" class="card">
           <h2>Aktionen</h2>
@@ -55,6 +61,26 @@
               </svg>
               Hermes stoppen
             </button>
+            <button id="btn-webui-open" class="btn btn-accent" onclick="openHermesWebUI()">
+              <svg class="btn-icon-svg" viewBox="0 0 24 24" width="16" height="16">
+                <path d="M19 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 14H5V6h14v12z" fill="currentColor"/>
+                <path d="M7 10h10v2H7zm0 4h6v2H7z" fill="currentColor"/>
+              </svg>
+              WebUI öffnen
+            </button>
+            <button id="btn-webui-focus" class="btn btn-outline" onclick="focusHermesWebUI()">
+              <svg class="btn-icon-svg" viewBox="0 0 24 24" width="16" height="16">
+                <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm-7 4c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7-7-3.13-7-7z" fill="currentColor"/>
+              </svg>
+              WebUI fokussieren
+            </button>
+            <button id="btn-browser" class="btn btn-outline" onclick="openBrowser()">
+              <svg class="btn-icon-svg" viewBox="0 0 24 24" width="16" height="16">
+                <path d="M19 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 14H5V6h14v12z" fill="currentColor"/>
+                <path d="M7 10h10v2H7zm0 4h6v2H7z" fill="currentColor"/>
+              </svg>
+              Im Browser öffnen
+            </button>
             <button id="btn-logs" class="btn btn-outline" onclick="openLogs()">
               <svg class="btn-icon-svg" viewBox="0 0 24 24" width="16" height="16">
                 <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z" fill="currentColor"/>
@@ -67,13 +93,30 @@
               </svg>
               AppData öffnen
             </button>
-            <button id="btn-browser" class="btn btn-outline" onclick="openBrowser()">
-              <svg class="btn-icon-svg" viewBox="0 0 24 24" width="16" height="16">
-                <path d="M19 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 14H5V6h14v12z" fill="currentColor"/>
-                <path d="M7 10h10v2H7zm0 4h6v2H7z" fill="currentColor"/>
-              </svg>
-              Im Browser öffnen
-            </button>
+          </div>
+        </div>
+
+        <!-- WEBUI STATUS CARD (ersetzt iframe) -->
+        <div id="webui-status-card" class="card">
+          <h2>Hermes WebUI</h2>
+          <div class="webui-status-content">
+            <div class="webui-info-row">
+              <span class="webui-label">Status:</span>
+              <span id="webview-status" class="badge badge-idle">Nicht geladen</span>
+            </div>
+            <div class="webui-info-row">
+              <span class="webui-label">URL:</span>
+              <span id="webui-url" class="webui-url-text">http://127.0.0.1:8787</span>
+            </div>
+            <div id="webui-error-card" class="webui-error hidden">
+              <p class="webui-error-msg" id="webui-error-text"></p>
+            </div>
+            <div class="webui-actions">
+              <button class="btn btn-sm btn-accent" onclick="openHermesWebUI()">WebUI öffnen</button>
+              <button class="btn btn-sm btn-outline" onclick="focusHermesWebUI()">Fokussieren</button>
+              <button class="btn btn-sm btn-outline" onclick="openBrowser()">Im Browser</button>
+              <button class="btn btn-sm btn-outline" onclick="openLogs()">Logs</button>
+            </div>
           </div>
         </div>
 
@@ -98,36 +141,34 @@
             <label for="hermes-path">Hermes-Pfad</label>
             <input type="text" id="hermes-path" class="input-field" placeholder="./vendor/hermes-webui">
           </div>
+          <div class="setting-row">
+            <label for="webui-mode">WebUI öffnen als:</label>
+            <select id="webui-mode" class="input-field">
+              <option value="window">Separates Tauri-Fenster</option>
+              <option value="browser">Externer Browser</option>
+              <option value="disabled">Deaktiviert</option>
+            </select>
+          </div>
           <button class="btn btn-primary btn-sm" onclick="saveSettings()">Einstellungen speichern</button>
         </div>
       </aside>
 
-      <!-- RIGHT: Logs + WebView -->
+      <!-- RIGHT: Logs -->
       <main id="content">
         <!-- LOG PANEL -->
         <div id="log-panel" class="card">
           <div class="card-header">
             <h2>Logs</h2>
-            <button id="btn-clear-logs" class="btn btn-sm btn-outline" onclick="clearLogs()">Leeren</button>
+            <div class="card-header-actions">
+              <button id="btn-filter-dev" class="btn btn-sm btn-filter active" onclick="toggleFilter('DEV')">DEV</button>
+              <button id="btn-filter-status" class="btn btn-sm btn-filter active" onclick="toggleFilter('STATUS')">STATUS</button>
+              <button id="btn-filter-webui" class="btn btn-sm btn-filter active" onclick="toggleFilter('WEBUI')">WEBUI</button>
+              <button id="btn-filter-error" class="btn btn-sm btn-filter active" onclick="toggleFilter('FEHLER')">ERROR</button>
+              <button id="btn-copy-logs" class="btn btn-sm btn-outline" onclick="copyLogs()">Kopieren</button>
+              <button id="btn-clear-logs" class="btn btn-sm btn-outline" onclick="clearLogs()">Leeren</button>
+            </div>
           </div>
           <textarea id="log-output" class="log-textarea" readonly wrap="off" placeholder="Logs werden hier angezeigt..."></textarea>
-        </div>
-
-        <!-- WEBVIEW EMBED -->
-        <div id="webview-panel" class="card">
-          <div class="card-header">
-            <h2>Hermes WebUI</h2>
-            <span id="webview-status" class="badge badge-idle">Nicht geladen</span>
-          </div>
-          <div id="webview-container">
-            <div id="webview-placeholder" class="webview-placeholder">
-              <svg viewBox="0 0 24 24" width="48" height="48" class="placeholder-icon">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" fill="currentColor"/>
-              </svg>
-              <p>Hermes WebUI wird geladen, sobald das Backend bereit ist.</p>
-            </div>
-            <iframe id="webview-frame" class="webview-frame hidden" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" loading="lazy"></iframe>
-          </div>
         </div>
       </main>
     </div>

@@ -1,13 +1,13 @@
 // Sidekick — Tauri 2 Desktop App
 // Windows-Desktop-App mit WebView2, die Hermes WebUI als Sidecar startet.
 
-// Module declarations
 mod supervisor;
 mod settings;
 mod ports;
 
 use std::process::Command;
 use std::path::Path;
+use tauri::Manager;
 
 // ---------------------------------------------------------------------------
 // Tauri 2 Commands
@@ -32,7 +32,6 @@ fn restart_hermes() -> Result<String, String> {
 }
 
 /// Gibt den aktuellen Status des Hermes-Prozesses zurück.
-/// Rückgabe: "starting", "running", "error" oder "stopped"
 #[tauri::command]
 fn get_status() -> String {
     supervisor::get_status()
@@ -50,28 +49,66 @@ fn open_appdata() -> Result<(), String> {
     let appdata = std::env::var("APPDATA")
         .map_err(|_| "APPDATA-Umgebungsvariable nicht gefunden".to_string())?;
     let path = Path::new(&appdata).join("Sidekick");
-
-    // Ordner erstellen falls nicht vorhanden
     let _ = std::fs::create_dir_all(&path);
-
     Command::new("explorer")
         .arg(path.to_str().ok_or("Ungültiger Pfad")?)
         .spawn()
         .map_err(|e| format!("Explorer konnte nicht gestartet werden: {}", e))?;
-
     Ok(())
 }
 
 /// Öffnet die Hermes WebUI im Standard-Browser.
 #[tauri::command]
-fn open_browser(port: u16) -> Result<(), String> {
+fn open_external_browser(port: u16) -> Result<(), String> {
     let url = format!("http://localhost:{}", port);
-
     Command::new("cmd")
         .args(["/c", "start", "", &url])
         .spawn()
         .map_err(|e| format!("Browser konnte nicht geöffnet werden: {}", e))?;
+    Ok(())
+}
 
+/// Öffnet Hermes WebUI in einem eigenen nativen Tauri WebviewWindow.
+/// Wenn bereits ein Fenster mit Label "hermes-webui" existiert, wird es
+/// fokussiert statt ein neues zu öffnen.
+#[tauri::command]
+fn open_hermes_window(app: tauri::AppHandle, port: u16) -> Result<(), String> {
+    let status = supervisor::get_status();
+    if status != supervisor::STATUS_RUNNING {
+        return Err("Hermes WebUI ist nicht gestartet".to_string());
+    }
+
+    let url = format!("http://127.0.0.1:{}/", port);
+    let parsed_url = url.parse::<tauri::Url>()
+        .map_err(|e| format!("Ungültige URL: {}", e))?;
+
+    // Prüfen ob Fenster bereits existiert -> fokussieren
+    if let Some(window) = app.get_webview_window("hermes-webui") {
+        window.set_focus().map_err(|e| format!("Fokussieren fehlgeschlagen: {}", e))?;
+        return Ok(());
+    }
+
+    // Neues WebviewWindow erstellen
+    tauri::WebviewWindowBuilder::new(
+        &app,
+        "hermes-webui",
+        tauri::WebviewUrl::External(parsed_url),
+    )
+    .title("Hermes WebUI")
+    .inner_size(1200.0, 800.0)
+    .resizable(true)
+    .build()
+    .map_err(|e| format!("WebviewWindow konnte nicht erstellt werden: {}", e))?;
+
+    Ok(())
+}
+
+/// Schliesst das Hermes WebUI-Fenster, falls es offen ist.
+#[tauri::command]
+fn close_hermes_window(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("hermes-webui") {
+        window.close().map_err(|e| format!("Schliessen fehlgeschlagen: {}", e))?;
+    }
     Ok(())
 }
 
@@ -93,6 +130,11 @@ fn save_settings(settings_data: settings::Settings) -> Result<(), String> {
 
 fn main() {
     tauri::Builder::default()
+        .setup(|_app| {
+            // AppData-Verzeichnisse beim Start anlegen
+            let _ = settings::ensure_dirs();
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             start_hermes,
             stop_hermes,
@@ -100,7 +142,9 @@ fn main() {
             get_status,
             get_logs,
             open_appdata,
-            open_browser,
+            open_external_browser,
+            open_hermes_window,
+            close_hermes_window,
             get_settings,
             save_settings,
         ])

@@ -1,42 +1,25 @@
 /* ============================================================
    Sidekick - Control-UI JavaScript
-   Tauri IPC + Fallback für Dev-Modus
+   Tauri IPC + Demo-Modus Fallback
    ============================================================ */
-
 (function () {
   'use strict';
 
-  // ---------- Tauri API Helper ----------
+  // ---------- Tauri API Erkennung ----------
   const tauri = window.__TAURI__ || null;
   const isTauri = !!tauri;
-
-  /**
-   * Ruft einen Tauri-Befehl per IPC auf.
-   * Fallback: console.log im Dev-Modus.
-   */
-  async function invoke(cmd, args) {
-    args = args || {};
-    if (isTauri && tauri.invoke) {
-      try {
-        return await tauri.invoke(cmd, args);
-      } catch (err) {
-        console.error('[Sidekick] Tauri invoke error:', cmd, err);
-        addLog('[FEHLER] Tauri IPC-Fehler: ' + err);
-        throw err;
-      }
-    }
-    // Dev-Modus Fallback
-    console.log('[Sidekick] invoke (dev):', cmd, args);
-    addLog('[DEV] invoke: ' + cmd + ' ' + JSON.stringify(args));
-    return null;
-  }
+  const MODE = isTauri ? 'REAL' : 'DEMO';
 
   // ---------- DOM References ----------
   const statusBadge = document.getElementById('status-badge');
+  const modeBadge = document.getElementById('mode-badge');
+  const modeText = document.getElementById('mode-text');
+  const modeCard = document.getElementById('mode-card');
   const logOutput = document.getElementById('log-output');
-  const webviewFrame = document.getElementById('webview-frame');
-  const webviewPlaceholder = document.getElementById('webview-placeholder');
   const webviewStatus = document.getElementById('webview-status');
+  const webuiUrl = document.getElementById('webui-url');
+  const webuiErrorCard = document.getElementById('webui-error-card');
+  const webuiErrorText = document.getElementById('webui-error-text');
   const errorDisplay = document.getElementById('error-display');
   const errorText = document.getElementById('error-text');
 
@@ -45,8 +28,27 @@
   let pollInterval = null;
   let logBuffer = [];
   const MAX_LOG_LINES = 500;
+  let logFilters = { DEV: true, STATUS: true, WEBUI: true, FEHLER: true };
 
-  // ---------- Status Map (Deutsch) ----------
+  // ---------- Mode Display ----------
+  function initModeDisplay() {
+    if (MODE === 'REAL') {
+      modeBadge.textContent = 'REAL IPC';
+      modeBadge.className = 'badge badge-running';
+      modeText.textContent = 'Modus: Echter Tauri IPC';
+      modeCard.className = 'card mode-real';
+      addLog('[MODE] Echter Tauri IPC Modus');
+    } else {
+      modeBadge.textContent = 'DEMO';
+      modeBadge.className = 'badge badge-warning';
+      modeText.textContent = 'Modus: Browser-Demo (kein Tauri IPC)';
+      modeCard.className = 'card mode-demo';
+      addLog('[MODE] [DEMO] Browser-Demo Modus — Aktionen werden nur simuliert');
+      addLog('[MODE] [DEMO] Öffne die App via Tauri-Fenster für echten IPC');
+    }
+  }
+
+  // ---------- Status Map ----------
   const STATUS_LABELS = {
     idle: 'Nicht gestartet',
     stopped: 'Nicht gestartet',
@@ -67,11 +69,24 @@
     stopping: 'badge-idle'
   };
 
+  // ---------- Tauri IPC invoke ----------
+  async function invoke(cmd, args) {
+    args = args || {};
+    if (MODE === 'REAL' && tauri && tauri.invoke) {
+      try {
+        return await tauri.invoke(cmd, args);
+      } catch (err) {
+        addLog('[FEHLER] Tauri IPC-Fehler bei ' + cmd + ': ' + (err.message || err));
+        throw err;
+      }
+    }
+    // Demo-Modus Fallback
+    addLog('[DEV] invoke (DEMO): ' + cmd + ' ' + JSON.stringify(args));
+    return null;
+  }
+
   // ---------- UI Update Functions ----------
 
-  /**
-   * Aktualisiert den Status-Badge.
-   */
   function updateStatus(status) {
     currentStatus = status;
     const label = STATUS_LABELS[status] || status;
@@ -80,46 +95,24 @@
     statusBadge.textContent = label;
     statusBadge.className = 'badge ' + cls;
 
-    // Buttons je nach Status aktivieren/deaktivieren
+    updateButtons(status);
+    addLog((MODE === 'DEMO' ? '[DEV] [STATUS] ' : '[STATUS] ') + label);
+  }
+
+  function updateButtons(status) {
     const btnStart = document.getElementById('btn-start');
     const btnStop = document.getElementById('btn-stop');
     const btnRestart = document.getElementById('btn-restart');
+    const btnWebuiOpen = document.getElementById('btn-webui-open');
+    const btnWebuiFocus = document.getElementById('btn-webui-focus');
 
-    switch (status) {
-      case 'idle':
-      case 'error':
-        btnStart.disabled = false;
-        btnStop.disabled = true;
-        btnRestart.disabled = true;
-        break;
-      case 'starting':
-      case 'stopping':
-        btnStart.disabled = true;
-        btnStop.disabled = true;
-        btnRestart.disabled = true;
-        break;
-      case 'running':
-        btnStart.disabled = true;
-        btnStop.disabled = false;
-        btnRestart.disabled = false;
-        break;
-      case 'restarting':
-        btnStart.disabled = true;
-        btnStop.disabled = true;
-        btnRestart.disabled = true;
-        break;
-      default:
-        btnStart.disabled = false;
-        btnStop.disabled = true;
-        btnRestart.disabled = true;
-    }
-
-    addLog('[STATUS] ' + label);
+    btnStart.disabled = (status === 'starting' || status === 'running' || status === 'stopping');
+    btnStop.disabled = (status !== 'running');
+    btnRestart.disabled = (status === 'starting' || status === 'stopping' || status === 'restarting');
+    btnWebuiOpen.disabled = (status !== 'running');
+    btnWebuiFocus.disabled = (status !== 'running');
   }
 
-  /**
-   * Zeigt den letzten Fehler an.
-   */
   function showError(msg) {
     if (!msg) {
       errorDisplay.classList.add('hidden');
@@ -127,102 +120,125 @@
     }
     errorText.textContent = msg;
     errorDisplay.classList.remove('hidden');
-    errorDisplay.classList.add('slide-down');
     addLog('[FEHLER] ' + msg);
   }
 
-  /**
-   * Fügt einen Log-Eintrag hinzu.
-   */
+  function showWebUIError(msg) {
+    webuiErrorCard.classList.remove('hidden');
+    webuiErrorText.textContent = msg;
+    webviewStatus.textContent = 'Fehler';
+    webviewStatus.className = 'badge badge-error';
+    addLog('[WEBUI] Fehler: ' + msg);
+  }
+
+  function hideWebUIError() {
+    webuiErrorCard.classList.add('hidden');
+  }
+
   function addLog(message) {
     var now = new Date();
     var timestamp =
       String(now.getHours()).padStart(2, '0') + ':' +
       String(now.getMinutes()).padStart(2, '0') + ':' +
       String(now.getSeconds()).padStart(2, '0');
-    var entry = '[' + timestamp + '] ' + message;
+    var prefix = '';
+    if (message.startsWith('[DEV]')) prefix = '[DEV]';
+    else if (message.startsWith('[STATUS]') || message.startsWith('[AKTION') || message.startsWith('[POLL]')) prefix = '[STATUS]';
+    else if (message.startsWith('[WEBUI]')) prefix = '[WEBUI]';
+    else if (message.startsWith('[FEHLER]')) prefix = '[FEHLER]';
+    else if (message.startsWith('[SETTINGS]')) prefix = '[STATUS]';
+    else if (message.startsWith('[MODE]')) prefix = '[STATUS]';
 
-    logBuffer.push(entry);
-    if (logBuffer.length > MAX_LOG_LINES) {
+    var entry = '[' + timestamp + '] ' + message;
+    logBuffer.push({ raw: entry, prefix: prefix });
+
+    // Alte Einträge entfernen
+    while (logBuffer.length > MAX_LOG_LINES) {
       logBuffer.shift();
     }
 
-    logOutput.value = logBuffer.join('\n');
-    // Auto-scroll to bottom
+    renderLogs();
+    // Auto-scroll
     logOutput.scrollTop = logOutput.scrollHeight;
   }
 
-  /**
-   * Leert das Log-Panel.
-   */
+  function renderLogs() {
+    var filtered = logBuffer.filter(function(entry) {
+      if (entry.prefix === '[DEV]' && !logFilters.DEV) return false;
+      if (entry.prefix === '[STATUS]' && !logFilters.STATUS) return false;
+      if (entry.prefix === '[WEBUI]' && !logFilters.WEBUI) return false;
+      if (entry.prefix === '[FEHLER]' && !logFilters.FEHLER) return false;
+      return true;
+    });
+    logOutput.value = filtered.map(function(e) { return e.raw; }).join('\n');
+  }
+
+  function toggleFilter(prefix) {
+    logFilters[prefix] = !logFilters[prefix];
+    var btn = document.getElementById('btn-filter-' + prefix.toLowerCase());
+    if (btn) {
+      btn.classList.toggle('active');
+    }
+    renderLogs();
+  }
+
+  window.toggleFilter = toggleFilter;
+
   function clearLogs() {
     logBuffer = [];
     logOutput.value = '';
     addLog('Logs geleert');
   }
 
-  /**
-   * Lädt Hermes WebUI in den iframe.
-   */
-  function loadHermesWebUI(port) {
-    var url = 'http://127.0.0.1:' + (port || 8787) + '/';
-    addLog('[WEBUI] Lade Hermes WebUI: ' + url);
-
-    webviewFrame.src = url;
-    webviewFrame.classList.remove('hidden');
-    webviewPlaceholder.style.display = 'none';
-    webviewStatus.textContent = 'Geladen';
-    webviewStatus.className = 'badge badge-running';
-
-    // Lade-Ereignis überwachen
-    webviewFrame.onload = function () {
-      addLog('[WEBUI] Hermes WebUI geladen');
-      webviewStatus.textContent = 'Geladen';
-      webviewStatus.className = 'badge badge-running';
-    };
-
-    webviewFrame.onerror = function () {
-      addLog('[WEBUI] Fehler beim Laden');
-      webviewStatus.textContent = 'Fehler';
-      webviewStatus.className = 'badge badge-error';
-    };
-  }
-
-  /**
-   * Entfernt die WebUI aus dem iframe.
-   */
-  function unloadHermesWebUI() {
-    webviewFrame.src = '';
-    webviewFrame.classList.add('hidden');
-    webviewPlaceholder.style.display = 'flex';
-    webviewStatus.textContent = 'Nicht geladen';
-    webviewStatus.className = 'badge badge-idle';
-    addLog('[WEBUI] Hermes WebUI entladen');
+  function copyLogs() {
+    logOutput.select();
+    document.execCommand('copy');
+    addLog('[STATUS] Logs kopiert');
   }
 
   // ---------- Hermes Actions ----------
 
   async function startHermes() {
-    addLog('[AKTION] Hermes wird gestartet…');
+    addLog(MODE === 'DEMO' ? '[DEV] [AKTION] Hermes starten (simuliert)' : '[AKTION] Hermes wird gestartet…');
     updateStatus('starting');
     showError(null);
+    hideWebUIError();
+    if (MODE === 'DEMO') {
+      setTimeout(function() { updateStatus('running'); }, 2000);
+      setTimeout(function() {
+        webviewStatus.textContent = 'Bereit';
+        webviewStatus.className = 'badge badge-running';
+      }, 2500);
+      return;
+    }
     try {
       var result = await invoke('start_hermes', {});
-      addLog('[AKTION] Hermes gestartet: ' + JSON.stringify(result));
+      addLog('[AKTION] ' + result);
+      webviewStatus.textContent = 'Bereit';
+      webviewStatus.className = 'badge badge-running';
+      webuiUrl.textContent = 'http://127.0.0.1:' + (document.getElementById('port').value || 8787);
     } catch (err) {
       updateStatus('error');
-      showError('Fehler beim Starten: ' + (err.message || err));
+      var msg = err.message || err;
+      showError('Fehler beim Starten: ' + msg);
+      webviewStatus.textContent = 'Fehler';
+      webviewStatus.className = 'badge badge-error';
     }
   }
 
   async function stopHermes() {
-    addLog('[AKTION] Hermes wird gestoppt…');
+    addLog(MODE === 'DEMO' ? '[DEV] [AKTION] Hermes stoppen (simuliert)' : '[AKTION] Hermes wird gestoppt…');
     updateStatus('stopping');
+    if (MODE === 'DEMO') {
+      setTimeout(function() { updateStatus('idle'); }, 1000);
+      return;
+    }
     try {
-      var result = await invoke('stop_hermes', {});
-      addLog('[AKTION] Hermes gestoppt: ' + JSON.stringify(result));
-      unloadHermesWebUI();
+      await invoke('stop_hermes', {});
       updateStatus('idle');
+      webviewStatus.textContent = 'Nicht geladen';
+      webviewStatus.className = 'badge badge-idle';
+      hideWebUIError();
     } catch (err) {
       updateStatus('error');
       showError('Fehler beim Stoppen: ' + (err.message || err));
@@ -230,15 +246,74 @@
   }
 
   async function restartHermes() {
-    addLog('[AKTION] Hermes wird neu gestartet…');
+    addLog(MODE === 'DEMO' ? '[DEV] [AKTION] Hermes neu starten (simuliert)' : '[AKTION] Hermes wird neu gestartet…');
     updateStatus('restarting');
-    unloadHermesWebUI();
+    showError(null);
+    hideWebUIError();
+    if (MODE === 'DEMO') {
+      var self = this;
+      setTimeout(function() { updateStatus('running'); }, 3000);
+      return;
+    }
     try {
       var result = await invoke('restart_hermes', {});
-      addLog('[AKTION] Hermes neu gestartet: ' + JSON.stringify(result));
+      addLog('[AKTION] ' + result);
+      webviewStatus.textContent = 'Bereit';
+      webviewStatus.className = 'badge badge-running';
     } catch (err) {
       updateStatus('error');
       showError('Fehler beim Neustart: ' + (err.message || err));
+    }
+  }
+
+  async function openHermesWebUI() {
+    var port = document.getElementById('port').value || 8787;
+    var webuiMode = document.getElementById('webui-mode').value;
+    addLog('[WEBUI] Öffne Hermes WebUI (Modus: ' + webuiMode + ')');
+
+    if (MODE === 'DEMO') {
+      window.open('http://127.0.0.1:' + port + '/', '_blank');
+      addLog('[DEV] [WEBUI] Browser geöffnet (Demo-Modus)');
+      return;
+    }
+
+    if (webuiMode === 'browser') {
+      try {
+        await invoke('open_external_browser', { port: parseInt(port, 10) });
+      } catch (err) {
+        showWebUIError('Browser öffnen fehlgeschlagen: ' + (err.message || err));
+      }
+    } else if (webuiMode === 'disabled') {
+      showWebUIError('WebUI öffnen ist in den Einstellungen deaktiviert');
+    } else {
+      // Default: separates Tauri-Fenster
+      try {
+        await invoke('open_hermes_window', { port: parseInt(port, 10) });
+        addLog('[WEBUI] Hermes WebUI in eigenem Fenster geöffnet');
+        webviewStatus.textContent = 'Eigenes Fenster';
+        webviewStatus.className = 'badge badge-running';
+        hideWebUIError();
+      } catch (err) {
+        showWebUIError('WebUI-Fenster konnte nicht geöffnet werden: ' + (err.message || err));
+      }
+    }
+  }
+
+  async function focusHermesWebUI() {
+    if (MODE === 'DEMO') {
+      addLog('[DEV] [WEBUI] Fokussieren (Demo)');
+      return;
+    }
+    var port = document.getElementById('port').value || 8787;
+    try {
+      await invoke('open_hermes_window', { port: parseInt(port, 10) });
+      addLog('[WEBUI] WebUI-Fenster fokussiert');
+    } catch (err) {
+      if ((err.message || err).indexOf('nicht gestartet') !== -1) {
+        showWebUIError('Hermes WebUI ist nicht gestartet. Starte zuerst das Backend.');
+      } else {
+        showWebUIError('Fenster fokussieren fehlgeschlagen: ' + (err.message || err));
+      }
     }
   }
 
@@ -246,20 +321,20 @@
 
   async function openLogs() {
     addLog('[AKTION] Zeige Logs…');
-    // Wenn kein separates Log-Fenster, einfach ins Log-Panel scrollen
     var logPanel = document.getElementById('log-panel');
-    if (logPanel) {
-      logPanel.scrollIntoView({ behavior: 'smooth' });
-    }
+    if (logPanel) logPanel.scrollIntoView({ behavior: 'smooth' });
   }
 
   async function openAppData() {
-    addLog('[AKTION] Öffne AppData…');
+    if (MODE === 'DEMO') {
+      addLog('[DEV] AppData öffnen (Demo — ohne Tauri IPC nicht möglich)');
+      return;
+    }
     try {
       await invoke('open_appdata', {});
+      addLog('[AKTION] AppData-Ordner geöffnet');
     } catch (err) {
-      console.warn('[Sidekick] open_appdata nicht verfügbar:', err);
-      addLog('[DEV] open_appdata (simuliert)');
+      addLog('[FEHLER] AppData öffnen fehlgeschlagen: ' + (err.message || err));
     }
   }
 
@@ -269,17 +344,15 @@
     var url = 'http://127.0.0.1:' + port + '/';
     addLog('[AKTION] Öffne im Browser: ' + url);
 
-    if (isTauri) {
+    if (MODE === 'REAL') {
       try {
-        await invoke('open_browser', { port: port });
+        await invoke('open_external_browser', { port: port });
       } catch (err) {
-        console.warn('[Sidekick] open_browser nicht verfügbar:', err);
-        // Fallback: window.open
         window.open(url, '_blank');
       }
     } else {
       window.open(url, '_blank');
-      addLog('[DEV] Browser geöffnet (Dev-Modus)');
+      addLog('[DEV] Browser geöffnet (Demo-Modus)');
     }
   }
 
@@ -287,32 +360,31 @@
 
   async function loadSettings() {
     addLog('[SETTINGS] Lade Einstellungen…');
+    if (MODE === 'DEMO') {
+      addLog('[DEV] [SETTINGS] Demo: Standardwerte geladen');
+      return;
+    }
     try {
       var settings = await invoke('get_settings', {});
-      if (settings) {
-        applySettings(settings);
-        addLog('[SETTINGS] Einstellungen geladen');
-      }
+      if (settings) applySettings(settings);
+      addLog('[SETTINGS] Einstellungen geladen');
     } catch (err) {
-      console.warn('[Sidekick] get_settings nicht verfügbar, verwende Standardwerte:', err);
-      applySettings({
-        port: 8787,
-        autostart: true,
-        python_path: 'python',
-        hermes_path: './vendor/hermes-webui'
-      });
+      addLog('[DEV] [SETTINGS] Konnte nicht laden, verwende Standardwerte');
     }
   }
 
   async function saveSettings() {
     var settings = collectSettings();
     addLog('[SETTINGS] Speichere Einstellungen…');
+    if (MODE === 'DEMO') {
+      addLog('[DEV] [SETTINGS] Gespeichert (Demo): ' + JSON.stringify(settings));
+      return;
+    }
     try {
       await invoke('save_settings', { settingsData: settings });
       addLog('[SETTINGS] Einstellungen gespeichert');
     } catch (err) {
-      console.warn('[Sidekick] save_settings nicht verfügbar:', err);
-      addLog('[DEV] Einstellungen gespeichert (Dev-Modus): ' + JSON.stringify(settings));
+      addLog('[FEHLER] Speichern fehlgeschlagen: ' + (err.message || err));
     }
   }
 
@@ -331,33 +403,30 @@
     if (s.auto_start !== undefined) document.getElementById('autostart').checked = s.auto_start;
     if (s.python_path !== undefined) document.getElementById('python-path').value = s.python_path;
     if (s.hermes_path !== undefined) document.getElementById('hermes-path').value = s.hermes_path;
+    webuiUrl.textContent = 'http://127.0.0.1:' + (s.preferred_port || 8787);
   }
 
   // ---------- Status Polling ----------
 
   async function pollStatus() {
+    if (MODE === 'DEMO') {
+      // Demo: nichts tun, Demo-Timer läuft
+      return;
+    }
     try {
       var status = await invoke('get_status', {});
       if (status) {
-        // get_status gibt einen String zurueck: "starting", "running", "stopped", "error"
         var newStatus = typeof status === 'string' ? status : (status.status || 'idle');
         if (newStatus !== currentStatus) {
           updateStatus(newStatus);
         }
-
-        // Wenn Running, lade WebUI falls nicht geladen
-        if (newStatus === 'running' && webviewFrame.classList.contains('hidden')) {
-          var port = document.getElementById('port').value || 8787;
-          loadHermesWebUI(port);
-        }
-
-        // Wenn nicht mehr running, entlade WebUI
-        if (newStatus !== 'running' && newStatus !== 'restarting' && !webviewFrame.classList.contains('hidden')) {
-          unloadHermesWebUI();
+        if (newStatus === 'running') {
+          webviewStatus.textContent = 'Bereit';
+          webviewStatus.className = 'badge badge-running';
+          hideWebUIError();
         }
       }
     } catch (err) {
-      // Kein dauerhaftes Fehler-logg im Poll
       if (currentStatus === 'running') {
         updateStatus('error');
         showError('Verbindung zum Backend verloren');
@@ -369,7 +438,6 @@
     if (pollInterval) return;
     pollInterval = setInterval(pollStatus, 2000);
     addLog('[POLL] Status-Polling gestartet (alle 2s)');
-    // Direkt ersten Poll ausführen
     pollStatus();
   }
 
@@ -388,12 +456,10 @@
 
   // ---------- Keyboard Shortcuts ----------
   document.addEventListener('keydown', function (e) {
-    // Strg+L = Logs leeren
     if (e.ctrlKey && e.key === 'l') {
       e.preventDefault();
       clearLogs();
     }
-    // Strg+Enter = Hermes starten
     if (e.ctrlKey && e.key === 'Enter') {
       e.preventDefault();
       if (currentStatus === 'idle' || currentStatus === 'error') {
@@ -404,45 +470,41 @@
 
   // ---------- Initialization ----------
   function init() {
+    initModeDisplay();
     addLog('Sidekick Control-UI initialisiert');
-    addLog('Tauri-API: ' + (isTauri ? 'verfügbar' : 'nicht verfügbar (Dev-Modus)'));
-
-    if (!isTauri) {
-      addLog('[DEV] Demo-Modus: Aktionen werden nur simuliert');
-      // Demo: Status nach 3s auf "starting" setzen
-      setTimeout(function () {
-        updateStatus('starting');
-      }, 3000);
-      // Demo: nach 6s auf "running"
-      setTimeout(function () {
-        updateStatus('running');
-        loadHermesWebUI(8787);
-      }, 6000);
-    }
 
     // Settings laden
     loadSettings();
 
-    // Polling starten
+    // Polling starten (nur im REAL-Modus)
     startPolling();
+
+    if (MODE === 'DEMO') {
+      addLog('[DEV] ===== DEMO-MODUS =====');
+      addLog('[DEV] Öffne die App via Tauri-Fenster für echten IPC.');
+      addLog('[DEV] Release-Binary: F:\\finalbrowser\\src-tauri\\target\\release\\sidekick.exe');
+      addLog('[DEV] ======================');
+    }
   }
 
-  // ---------- Expose Globals (für onclick in HTML) ----------
+  // ---------- Expose Globals ----------
   window.startHermes = startHermes;
   window.stopHermes = stopHermes;
   window.restartHermes = restartHermes;
+  window.openHermesWebUI = openHermesWebUI;
+  window.focusHermesWebUI = focusHermesWebUI;
   window.openLogs = openLogs;
   window.openAppData = openAppData;
   window.openBrowser = openBrowser;
-  window.loadHermesWebUI = loadHermesWebUI;
-  window.updateStatus = updateStatus;
-  window.addLog = addLog;
-  window.clearLogs = clearLogs;
   window.loadSettings = loadSettings;
   window.saveSettings = saveSettings;
+  window.clearLogs = clearLogs;
+  window.copyLogs = copyLogs;
   window.pollStatus = pollStatus;
+  window.updateStatus = updateStatus;
+  window.addLog = addLog;
 
-  // DOM ready start
+  // Start
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

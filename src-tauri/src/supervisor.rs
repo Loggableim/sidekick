@@ -45,6 +45,7 @@ const KILL_GRACEFUL_TIMEOUT_SECS: u64 = 3;
 
 pub const STATUS_STOPPED: &str = "stopped";
 pub const STATUS_STARTING: &str = "starting";
+pub const STATUS_STOPPING: &str = "stopping";
 pub const STATUS_RUNNING: &str = "running";
 pub const STATUS_ERROR: &str = "error";
 
@@ -356,15 +357,21 @@ pub fn stop_hermes() -> Result<String, String> {
 
     append_log(&logs, format!("Stoppe Hermes WebUI (PID: {})...", pid));
 
-    // Status auf stopped setzen
-    guard.status = STATUS_STOPPED.to_string();
-    guard.port = 0;
+    // Status auf stopping setzen (UI sieht den Übergang)
+    guard.status = STATUS_STOPPING.to_string();
 
-    // Lock freigeben damit Reader-Threads weiterlaufen können
+    // Lock freigeben damit Reader-Threads und UI-Polling weiterlaufen können
     drop(guard);
 
     // ── 3. Sanftes Kill ─────────────────────────────────────────────────
     let graceful = try_graceful_kill(&mut child, pid);
+
+    // Nach Kill: Status auf stopped setzen
+    {
+        let mut g = supervisor().lock().unwrap_or_else(|e| e.into_inner());
+        g.status = STATUS_STOPPED.to_string();
+        g.port = 0;
+    }
 
     if !graceful {
         // ── 4. Hartes Kill ──────────────────────────────────────────────
@@ -380,8 +387,6 @@ pub fn stop_hermes() -> Result<String, String> {
         }
 
         force_kill_process(pid);
-
-        // Final warten (taskkill /F ist asynchron)
         let _ = child.wait();
     }
 
