@@ -1,11 +1,10 @@
 // Sidekick — Tauri 2 Desktop App
 // Windows-Desktop-App mit WebView2, die Hermes WebUI als Sidecar startet.
 
-// Module declarations — implemented in separate files (will be created later)
+// Module declarations
 mod supervisor;
 mod settings;
 mod ports;
-mod health;
 
 use std::process::Command;
 use std::path::Path;

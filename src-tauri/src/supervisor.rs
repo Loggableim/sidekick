@@ -188,6 +188,33 @@ fn force_kill_process(pid: u32) {
 }
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/// Wartet darauf, dass ein TCP-Port geöffnet wird.
+///
+/// Versucht alle 500ms eine TCP-Verbindung zu `127.0.0.1:{port}` herzustellen
+/// (mit kurzem Timeout). Gibt `true` zurück sobald der Port antwortet.
+/// Nach `timeout` wird `false` zurückgegeben.
+///
+/// Keine externen Crates nötig — verwendet `std::net::TcpStream`.
+fn wait_for_port(port: u16, timeout: Duration) -> bool {
+    let start = std::time::Instant::now();
+    let poll_interval = Duration::from_millis(500);
+    let addr: std::net::SocketAddr = format!("127.0.0.1:{}", port)
+        .parse()
+        .expect("Ungültige Adresse");
+
+    while start.elapsed() < timeout {
+        if std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(2)).is_ok() {
+            return true;
+        }
+        thread::sleep(poll_interval);
+    }
+    false
+}
+
+// ---------------------------------------------------------------------------
 // Öffentliche API — Kernfunktionen mit Parametern
 // ---------------------------------------------------------------------------
 
@@ -268,22 +295,31 @@ pub fn start_hermes_with(
     let stderr = child.stderr.take();
     spawn_output_readers(stdout, stderr, logs.clone());
 
-    let pid = child.id();
-    let port_log = guard.port;
+    let _pid = child.id();
+    let _port_log = guard.port;
 
-    // ── 7. Erfolg vermerken ─────────────────────────────────────────────
+    // ── 7. Auf Port-Öffnung warten ─────────────────────────────────────
     append_log(
         &logs,
-        format!(
-            "Hermes WebUI gestartet (PID: {}, Port: {}, Python: {})",
-            pid, port_log, python_path
-        ),
+        format!("Warte auf Hermes WebUI (Port {}, max 15s)...", port),
     );
 
-    guard.child = Some(child);
-    guard.status = STATUS_RUNNING.to_string();
+    let port_ready = wait_for_port(port, Duration::from_secs(15));
 
-    Ok(format!("Hermes WebUI gestartet auf Port {}", port_log))
+    if port_ready {
+        append_log(&logs, format!("Hermes WebUI antwortet auf Port {}", port));
+        guard.child = Some(child);
+        guard.status = STATUS_RUNNING.to_string();
+        Ok(format!("Hermes WebUI gestartet auf Port {}", port))
+    } else {
+        // Server läuft nicht richtig — aufräumen
+        let _ = child.kill();
+        let _ = child.wait();
+        guard.child = None;
+        guard.status = STATUS_ERROR.to_string();
+        append_log(&logs, "Hermes WebUI konnte nicht rechtzeitig gestartet werden (Timeout)".to_string());
+        Err("Hermes WebUI antwortet nicht – Timeout beim Warten auf Port".to_string())
+    }
 }
 
 /// Stoppt den Hermes WebUI Prozess.
