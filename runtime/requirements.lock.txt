@@ -1,0 +1,4 @@
+# Sidekick – Python-Abhängigkeiten (gepinnt)
+# Generiert aus vendor/hermes-webui/requirements.txt
+# pyyaml>=6.0
+pyyaml>=6.0
