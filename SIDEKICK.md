@@ -169,7 +169,7 @@ control dashboard.
 | Messaging app access | Yes (24+ platforms, incl. iMessage/WeChat/LINE) | Yes (many platforms) |
 | Web UI | Chat UI + control dashboard | Full three-panel chat UI |
 | Self-hosted | Yes | Yes |
-| Open source | Yes (MIT) | Yes |
+| License | MIT open source | Source-available; non-commercial free |
 | Self-improving skills | Partial (AI can generate; not the default loop) | Yes (automatic, first-class) |
 | Browser / computer control | Yes (native Chrome CDP) | Via shell / tools |
 | Voice wake words | Yes (macOS/iOS) | No |
@@ -235,7 +235,7 @@ Claude Code to handle the heavy lifting and fold the result back into its own me
 | Web UI | Yes (claude.ai/code, Anthropic-hosted) | Yes (self-hosted) |
 | Provider-agnostic | No (Claude models only) | Yes (any provider) |
 | Self-hosted scheduling | No | Yes |
-| Open source | No | Yes |
+| License | Proprietary | Source-available; non-commercial free |
 | Background/cloud agent mode | Yes (cloud-scheduled) | Yes (self-hosted cron) |
 | Runs as sub-agent of Sidekick | Yes | N/A |
 | Memory inspectability | Partial (CLAUDE.md readable; auto-memory less so) | Yes (markdown files) |
@@ -263,7 +263,7 @@ reach the cross-session, cross-surface continuity Sidekick has.
 | Web UI | No (CLI + desktop app) | Yes (self-hosted) |
 | Provider-agnostic | Yes (12+ providers) | Yes |
 | Self-hosted | Yes | Yes |
-| Open source | Yes (Apache 2.0) | Yes |
+| License | Apache 2.0 open source | Source-available; non-commercial free |
 | Background/cloud agent mode | Yes (Codex Cloud) | Yes (self-hosted cron) |
 | Self-improving skills | No | Yes |
 
@@ -288,7 +288,7 @@ community background plugin exists. No automatic cross-session semantic memory.
 | Mobile access | No | Yes |
 | Skills / plugins | Yes (30+ community plugins) | Yes (auto-generated, first-party) |
 | Provider-agnostic | Yes (75+ providers) | Yes |
-| Open source | Yes | Yes |
+| License | Open source | Source-available; non-commercial free |
 | Self-hosted autonomous execution | No | Yes |
 
 ### vs. Cursor
@@ -323,7 +323,7 @@ IDE integration, Cursor's recent evolution is significant.
 | Self-hosted | No | No | No | Yes |
 | Self-hosted autonomous execution | No | No | No | Yes |
 | Provider-agnostic | Partial | Partial | No (GitHub models) | Yes |
-| Open source | No | No | No | Yes |
+| License | Proprietary | Proprietary | Proprietary | Source-available; non-commercial free |
 | Memory inspectability | Partial | Yes (stored locally) | Limited | Yes (markdown files) |
 
 ### vs. Claude.ai and ChatGPT
@@ -362,7 +362,7 @@ disqualifying constraint.
 | Web UI | Yes (Anthropic-hosted) | Yes (OpenAI-hosted) | Yes (self-hosted) |
 | Self-hosted | No | No | Yes |
 | Provider-agnostic | No | No | Yes |
-| Open source | No | No | Yes |
+| License | Proprietary | Proprietary | Source-available; non-commercial free |
 | Self-hosted autonomous execution | No | No | Yes |
 | Memory inspectability | Limited | Limited | Yes (markdown files) |
 
@@ -480,7 +480,7 @@ profiles with separate memory, separate skills, and separate history.
 | Self-hosted autonomous execution | Yes | No | No | No | No | No | No | No | Yes |
 | Background/cloud agent mode | Yes | Yes (cloud) | Yes (Codex Cloud) | No | Yes (cloud VMs) | Yes (Coding Agent) | Yes (Cowork VM) | Yes (Agent Mode) | Yes (self-hosted) |
 | Memory inspectability | Limited | Partial | Partial | Partial | Partial | Limited | Limited | Limited | Yes (markdown files) |
-| Open source | Yes (MIT) | No | Yes (Apache 2.0) | Yes | No | No | No | No | Yes |
+| License | MIT open source | Proprietary | Apache 2.0 open source | Open source | Proprietary | Proprietary | Proprietary | Proprietary | Source-available; non-commercial free |
 | Always-on autonomous execution | Yes | No | No | No | No | No | No | No | Yes |
 
 † Claude Code: CLAUDE.md / MEMORY.md project context plus auto-memory since v2.1.59+; no automatic cross-project accumulation

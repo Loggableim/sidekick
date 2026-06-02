@@ -79,12 +79,12 @@ What makes it different from other agentic tools:
 | Self-improving skills | Partial | No | No | No | Yes |
 | Python / ML ecosystem | No (Node.js) | No | No | No | Yes |
 | Provider-agnostic | Yes | No (Claude only) | Yes | Yes | Yes |
-| Open source | Yes (MIT) | No | Yes | Yes | Yes |
+| License | Open source | Proprietary | Open source | Open source | Source-available; non-commercial free |
 
 † Claude Code has CLAUDE.md / MEMORY.md project context and rolling auto-memory, but not full automatic cross-session recall  
 ‡ Claude Code has cloud-managed scheduling (Anthropic infrastructure) and session-scoped `/loop`; no self-hosted cron
 
-**The closest competitor is OpenClaw** — both are always-on, self-hosted, open-source agents
+**The closest competitor is OpenClaw** — both are always-on, self-hosted agents
 with memory, cron, and messaging. The key differences: Sidekick writes and saves its own skills
 automatically as a core behavior (OpenClaw's skill system centers on a community marketplace);
 Sidekick is more stable across updates (OpenClaw has documented release regressions and ClawHub
@@ -95,13 +95,17 @@ ecosystem. See [SIDEKICK.md](SIDEKICK.md) for the full side-by-side.
 
 ## Quick start
 
-Run the repo bootstrap:
+Clone the Sidekick repo and run the bootstrap:
 
 ```bash
-git clone https://github.com/nesquena/hermes-webui.git hermes-webui
-cd hermes-webui
+git clone https://github.com/Loggableim/sidekick.git sidekick
+cd sidekick
 python3 bootstrap.py
 ```
+
+Fresh installs create a clean `nova` Space automatically. It starts isolated with
+no attached project directory; connect a code folder later from **Spaces → Project
+directory** when you want Nova to work on files.
 
 Or keep using the shell launcher:
 
@@ -131,7 +135,7 @@ The bootstrap will:
 
 > Native Windows is not supported for this bootstrap yet. Use Linux, macOS, or WSL2.
 > For Windows / WSL auto-start at login, see [`docs/wsl-autostart.md`](docs/wsl-autostart.md).
-> A community-maintained native Windows guide is tracked in [#1952](https://github.com/nesquena/hermes-webui/issues/1952).
+> Native Windows support is tracked separately; use WSL2 for the documented first install path today.
 
 If provider setup is still incomplete after install, the onboarding wizard will point you to finish it with `hermes model` instead of trying to replicate the full CLI setup in-browser.
 For a step-by-step walkthrough of the wizard, provider choices, local model server Base URLs, and safe re-runs, see [`docs/onboarding.md`](docs/onboarding.md).
@@ -149,8 +153,8 @@ For a comprehensive setup guide covering all 3 compose files, common failure mod
 The simplest setup: one WebUI container that runs the agent in-process.
 
 ```bash
-git clone https://github.com/nesquena/hermes-webui
-cd hermes-webui
+git clone https://github.com/Loggableim/sidekick.git sidekick
+cd sidekick
 cp .env.docker.example .env
 # Edit .env if your host UID isn't 1000 (e.g. macOS where UIDs start at 501)
 docker compose up -d
@@ -169,27 +173,29 @@ docker compose up -d --force-recreate
 ### Manual `docker run` (no compose)
 
 ```bash
-docker pull ghcr.io/nesquena/hermes-webui:latest
+docker pull ghcr.io/loggableim/sidekick:latest
 docker run -d \
   -e WANTED_UID=$(id -u) -e WANTED_GID=$(id -g) \
+  -e HERMES_WEBUI_DEFAULT_SPACE=nova \
   -v ~/.hermes:/home/hermeswebui/.hermes \
   -e HERMES_WEBUI_STATE_DIR=/home/hermeswebui/.hermes/webui \
   -v ~/workspace:/workspace \
   -p 127.0.0.1:8787:8787 \
-  ghcr.io/nesquena/hermes-webui:latest
+  ghcr.io/loggableim/sidekick:latest
 ```
 
 ### Build locally
 
 ```bash
-docker build -t hermes-webui .
+docker build -t sidekick .
 docker run -d \
   -e WANTED_UID=$(id -u) -e WANTED_GID=$(id -g) \
+  -e HERMES_WEBUI_DEFAULT_SPACE=nova \
   -v ~/.hermes:/home/hermeswebui/.hermes \
   -e HERMES_WEBUI_STATE_DIR=/home/hermeswebui/.hermes/webui \
   -v ~/workspace:/workspace \
   -p 127.0.0.1:8787:8787 \
-  hermes-webui
+  sidekick
 ```
 
 ### Multi-container setups
@@ -652,8 +658,16 @@ A comprehensive CSRF / SSRF / XSS / env-race-condition audit that shipped in v0.
 **[@TaraTheStar](https://github.com/TaraTheStar)** — Bot name + thinking blocks + login refactor (PRs #132, #176, #181)
 Configurable assistant display name, thinking/reasoning block display, and a login page refactor.
 
+## License
+
+Sidekick is free for personal, educational, research, and other non-commercial use.
+Commercial use, SaaS hosting, paid internal deployments, resale, and managed-service
+use require a separate written commercial license. Contact `vertrag@lastbrowser.com`.
+
+See [`LICENSE`](LICENSE) for the exact terms.
+
 ## Repo
 
 ```
-git@github.com:nesquena/hermes-webui.git
+https://github.com/Loggableim/sidekick.git
 ```

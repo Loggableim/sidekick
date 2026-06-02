@@ -7,7 +7,7 @@ Agents are roles INSIDE a space — no more global profiles.
 Directory layout::
 
     HERMES_HOME/spaces/
-      default/
+      nova/                     → fresh-install default Sidekick space
         space.yaml              → model, provider, color, project_dir
         agents/
           default/
@@ -55,6 +55,11 @@ _OLD_ROOT: Path = Path(
 ).expanduser().resolve()
 
 _AGENT_SLUG_RE = None  # lazy import
+
+DEFAULT_SPACE_SLUG = (os.getenv("HERMES_WEBUI_DEFAULT_SPACE", "nova").strip().lower() or "nova")
+DEFAULT_SPACE_NAME = (os.getenv("HERMES_WEBUI_DEFAULT_SPACE_NAME", "Nova").strip() or "Nova")
+LEGACY_DEFAULT_SPACE_SLUG = "default"
+PROTECTED_SPACE_SLUGS = {DEFAULT_SPACE_SLUG, LEGACY_DEFAULT_SPACE_SLUG}
 
 # ── Exceptions ──────────────────────────────────────────────────────────────
 
@@ -177,8 +182,10 @@ class Space:
         """Return project_dir from config, or None if not set/invalid."""
         pdir = self.load_config().get("project_dir", "").strip()
         if not pdir:
-            # Default space = software root directory
-            if self.slug == "default":
+            # Legacy compatibility: the old "default" space historically pointed
+            # at the software root. The fresh-install default is now "nova" and
+            # intentionally stays naked unless the user sets a project_dir.
+            if self.slug == LEGACY_DEFAULT_SPACE_SLUG:
                 from api.config import REPO_ROOT
                 return str(REPO_ROOT)
             return None
@@ -317,12 +324,22 @@ def _scan_fs_for_spaces() -> list[Space]:
                 _soft_migrate_workspace(space, old_config)
             spaces.append(space)
 
-    # Ensure at least "default" exists
+    # Fresh install: create a naked Nova space. Existing installs keep their
+    # previously scanned spaces (including legacy "default" or user-renamed ones)
+    # and are not force-migrated.
     if not spaces:
-        space = Space("default", "Default")
+        space = Space(DEFAULT_SPACE_SLUG, DEFAULT_SPACE_NAME)
         space.root.mkdir(parents=True, exist_ok=True)
         space.memory_dir.mkdir(parents=True, exist_ok=True)
         space.ensure_agent("default", create_soul=True)
+        cfg = space.load_config()
+        cfg.update({
+            "name": DEFAULT_SPACE_NAME,
+            "description": "Fresh Sidekick space for Nova. Add a project directory when you want to attach files.",
+            "emoji": "✨",
+            "color": "#7c5cfc",
+        })
+        space.save_config(cfg)
         spaces.append(space)
 
     return spaces
@@ -393,10 +410,10 @@ def create_space(slug: str, name: str = "", color: str = "") -> Space:
 
 
 def delete_space(slug: str) -> bool:
-    """Remove a space entirely. 'default' is protected."""
+    """Remove a space entirely. The fresh default and legacy default are protected."""
     slug = slug.strip().lower()
-    if slug == "default":
-        logger.warning("refusing to delete the default space")
+    if slug in PROTECTED_SPACE_SLUGS:
+        logger.warning("refusing to delete protected default space %s", slug)
         return False
     candidates = []
     for root in (SPACES_ROOT, _OLD_ROOT):
@@ -480,7 +497,7 @@ def resolve_active_space() -> Space:
     """Resolve the active space (never returns None)."""
     slug = get_active_space_slug()
     if not slug:
-        slug = os.getenv("HERMES_WEBUI_ACTIVE_WORKSPACE", "").strip().lower() or "default"
+        slug = os.getenv("HERMES_WEBUI_ACTIVE_WORKSPACE", "").strip().lower() or DEFAULT_SPACE_SLUG
     return get_or_create_space(slug)
 
 

@@ -378,7 +378,7 @@ else
     echo "!! To fix: mount the agent source volume into the container:"
     echo "!!   -v /path/to/hermes-agent:/home/hermeswebui/.hermes/hermes-agent"
     echo "!! Or see the two-container compose example:"
-    echo "!!   https://github.com/nesquena/hermes-webui/blob/master/docker-compose.two-container.yml"
+    echo "!!   https://github.com/Loggableim/sidekick/blob/main/docker-compose.two-container.yml"
     echo ""
   fi
   touch /app/venv/.deps_installed
@@ -386,8 +386,8 @@ fi
 
 ensure_hindsight_client_docker_dependency
 
-echo ""; echo "== Running hermes-webui"
-cd /app; python server.py || error_exit "hermes-webui failed or exited with an error"
+echo ""; echo "== Running Sidekick"
+cd /app; python server.py || error_exit "Sidekick failed or exited with an error"
 
 # we should never be here because the server should be running indefinitely, but if we are, we exit safely
 ok_exit "Clean exit"

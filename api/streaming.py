@@ -2115,7 +2115,7 @@ def _run_agent_streaming(
     # MCP discovery moved to AFTER the per-profile HERMES_HOME mutation below
     # (was here at v0.51.30) — the previous placement always read the default
     # profile's mcp_servers because os.environ['HERMES_HOME'] hadn't been
-    # rewritten yet.  See https://github.com/nesquena/hermes-webui/issues/1968.
+    # rewritten yet.  See https://github.com/Loggableim/sidekick/issues/1968.
 
     # Sprint 10: create a cancel event for this stream
     cancel_event = threading.Event()

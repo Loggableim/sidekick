@@ -3,7 +3,7 @@
 - **Status:** Proposed
 - **Author:** @Michaelyklam
 - **Created:** 2026-05-11
-- **Tracking issue:** [#1925](https://github.com/nesquena/hermes-webui/issues/1925)
+- **Tracking issue:** [#1925](https://github.com/Loggableim/sidekick/issues/1925)
 
 ## Problem
 
@@ -285,7 +285,7 @@ The first implementation milestone is not "basic chat streams through a new
 endpoint." The first meaningful milestone is:
 
 1. Start a non-trivial chat run from WebUI through the Sidekick-owned path.
-2. Restart only `hermes-webui` while the run is active.
+2. Restart only `sidekick` while the run is active.
 3. Reload or reopen the browser session.
 4. Rediscover the same `run_id` from Sidekick using `session_id` or last known run
    metadata.

@@ -10,7 +10,7 @@ Each Space (= workspace) has its own:
 Directory layout::
 
     HERMES_HOME/workspaces/
-      default/
+      nova/                     → fresh-install default Sidekick space
         workspace.yaml
         sessions/
         kanban.db
@@ -30,6 +30,8 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 # ── Root directory for all workspaces ─────────────────────────────────────────
+DEFAULT_WORKSPACE_SLUG = (os.getenv("HERMES_WEBUI_DEFAULT_SPACE", "nova").strip().lower() or "nova")
+
 WORKSPACES_ROOT = (
     Path(
         os.getenv(
@@ -144,7 +146,9 @@ class Workspace:
         """Return the project_dir from config, or None if not set/invalid."""
         pdir = self.load_config().get("project_dir", "").strip()
         if not pdir:
-            # Default workspace = software root directory
+            # Legacy compatibility: the old "default" workspace historically
+            # pointed at the software root. The fresh-install default is now
+            # "nova" and intentionally stays naked unless project_dir is set.
             if self.slug == "default":
                 from api.config import REPO_ROOT
                 return str(REPO_ROOT)
@@ -206,9 +210,10 @@ def get_all_workspaces() -> list[Workspace]:
                 ws = Workspace(slug, name)
                 workspaces.append(ws)
 
-    # Ensure at least the "default" workspace exists
+    # Fresh install: create the naked Nova workspace instead of exposing users
+    # to the legacy "default" name.
     if not workspaces:
-        ws = Workspace("default", "Default")
+        ws = Workspace(DEFAULT_WORKSPACE_SLUG, DEFAULT_WORKSPACE_SLUG)
         ws.root.mkdir(parents=True, exist_ok=True)
         workspaces.append(ws)
 
@@ -245,11 +250,11 @@ def create_workspace(slug: str, name: str = "", color: str = "") -> Workspace:
 def delete_workspace(slug: str) -> bool:
     """Remove a workspace directory entirely.
 
-    Only allowed for non-default workspaces.
-    Returns ``True`` if deleted, ``False`` if not found or protected.
+    The fresh default (nova) and legacy default are protected. Returns ``True``
+    if deleted, ``False`` if not found or protected.
     """
-    if slug.strip().lower() == "default":
-        logger.warning("refusing to delete the default workspace")
+    if slug.strip().lower() in {DEFAULT_WORKSPACE_SLUG, "default"}:
+        logger.warning("refusing to delete protected default workspace %s", slug)
         return False
     ws = get_workspace(slug)
     if not ws or not ws.root.is_dir():
@@ -294,12 +299,12 @@ def resolve_active_workspace() -> Workspace:
     Fallback chain:
       1. ``set_active_workspace()`` value
       2. ``HERMES_WEBUI_ACTIVE_WORKSPACE`` env var
-      3. ``default``
+      3. ``nova`` (or ``HERMES_WEBUI_DEFAULT_SPACE``)
 
     Never returns ``None``.
     """
     slug = get_active_workspace_slug()
     if not slug:
-        slug = os.getenv("HERMES_WEBUI_ACTIVE_WORKSPACE", "").strip().lower() or "default"
+        slug = os.getenv("HERMES_WEBUI_ACTIVE_WORKSPACE", "").strip().lower() or DEFAULT_WORKSPACE_SLUG
     ws = get_or_create_workspace(slug)
     return ws

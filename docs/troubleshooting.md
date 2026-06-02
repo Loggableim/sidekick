@@ -2,7 +2,7 @@
 
 Concrete diagnostic flows for the most common failure modes when running Sidekick. Each entry has the symptom, the diagnostic commands you should run *before* opening an issue, and the fix that has worked for past reporters.
 
-If your symptom isn't listed and the diagnostics don't narrow it down, file a bug at https://github.com/nesquena/hermes-webui/issues — include the **full output** of every command in the relevant section.
+If your symptom isn't listed and the diagnostics don't narrow it down, file a bug at https://github.com/Loggableim/sidekick/issues — include the **full output** of every command in the relevant section.
 
 ---
 
@@ -30,7 +30,7 @@ The third command must succeed (the file must exist). If it fails, your symlink 
 ### Step 2 — confirm the WebUI is using the right Python
 
 ```bash
-cd ~/hermes-webui && ./start.sh 2>&1 | grep -iE 'agent|python|hermes_webui_python' | head -20
+cd ~/sidekick && ./start.sh 2>&1 | grep -iE 'agent|python|hermes_webui_python' | head -20
 ```
 
 The startup banner prints which Python and agent dir it resolved. If the agent dir is empty or the Python is the wrong one, set the override:
@@ -53,7 +53,7 @@ pip install -e .                  # use the same python that runs the WebUI
 Then restart the WebUI:
 
 ```bash
-cd ~/hermes-webui
+cd ~/sidekick
 ./start.sh
 ```
 
@@ -77,7 +77,7 @@ If adding PYTHONPATH fixes it, persist the path either via `pip install -e .` (p
 
 ### When to file a bug
 
-If after running steps 1-4 the import still fails *and* `pip install -e .` succeeded *and* `PYTHONPATH=... python -c "from run_agent import AIAgent"` succeeds — that's a real WebUI bug. File at https://github.com/nesquena/hermes-webui/issues with:
+If after running steps 1-4 the import still fails *and* `pip install -e .` succeeded *and* `PYTHONPATH=... python -c "from run_agent import AIAgent"` succeeds — that's a real WebUI bug. File at https://github.com/Loggableim/sidekick/issues with:
 
 - The output of every command in steps 1-4
 - The full diagnostic block printed by the WebUI's `ImportError` (v0.51.6+)

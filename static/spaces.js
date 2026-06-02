@@ -8,7 +8,13 @@
 //   deleteSpace(slug)      — delete a space
 //   getActiveSpaceQuery()  — returns "?workspace=<slug>" or ""
 
-let _activeSpace = localStorage.getItem('hermes-active-workspace') || 'default';
+let DEFAULT_SPACE_SLUG = 'nova';
+const LEGACY_DEFAULT_SPACE_SLUG = 'default';
+function _isProtectedSpaceSlug(slug) {
+  const s = String(slug || '').toLowerCase();
+  return s === DEFAULT_SPACE_SLUG || s === LEGACY_DEFAULT_SPACE_SLUG;
+}
+let _activeSpace = localStorage.getItem('hermes-active-workspace') || DEFAULT_SPACE_SLUG;
 let _spacesCache = [];
 window._hermesSpaceSwitchRev = Number(window._hermesSpaceSwitchRev || 0);
 let _spacesPanelRenderRev = 0;
@@ -59,6 +65,14 @@ async function loadSpaces() {
   try {
     const data = await api('/api/spaces');
     _spacesCache = data.spaces || [];
+    if (data.default_space) DEFAULT_SPACE_SLUG = String(data.default_space || 'nova').toLowerCase() || 'nova';
+    if (_spacesCache.length && !_spacesCache.some(s => s && s.slug === _activeSpace)) {
+      const preferred = _spacesCache.find(s => s && s.slug === DEFAULT_SPACE_SLUG) || _spacesCache[0];
+      if (preferred && preferred.slug) {
+        _activeSpace = preferred.slug;
+        try { localStorage.setItem('hermes-active-workspace', _activeSpace); } catch (_) {}
+      }
+    }
     updateTitlebarSpace();
     return _spacesCache;
   } catch (e) {
@@ -197,7 +211,7 @@ async function selectSpace(slug) {
         if (typeof _allSessions !== 'undefined' && Array.isArray(_allSessions)) {
           // Client-side safety filter: only keep sessions matching the active space.
           // Backend also filters, but this catches edge cases from stale index data.
-          if (slug !== 'default') {
+          if (slug !== LEGACY_DEFAULT_SPACE_SLUG) {
             const listHasWorkspaceSlug = _allSessions.some(s => s && Object.prototype.hasOwnProperty.call(s, 'workspace_slug'));
             sessionsInSpace = listHasWorkspaceSlug ? _allSessions.filter(s => s && s.workspace_slug === slug) : _allSessions.slice();
           } else {
@@ -286,21 +300,21 @@ async function createSpace(slug, name, color, emoji) {
 // â”€â”€ Delete a space â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function deleteSpace(slug) {
-  if (!slug || slug === 'default') return { error: 'Cannot delete default space' };
+  if (!slug || _isProtectedSpaceSlug(slug)) return { error: 'Cannot delete default space' };
   try {
     const wasActive = _activeSpace === slug;
     if (wasActive) {
-      _activeSpace = 'default';
-      try { localStorage.setItem('hermes-active-workspace', 'default'); } catch (_) {}
+      _activeSpace = DEFAULT_SPACE_SLUG;
+      try { localStorage.setItem('hermes-active-workspace', DEFAULT_SPACE_SLUG); } catch (_) {}
     }
     await api('/api/space/delete', {
       method: 'POST',
       body: JSON.stringify({ slug }),
-      headers: {'X-Hermes-Workspace': 'default'},
+      headers: {'X-Hermes-Workspace': DEFAULT_SPACE_SLUG},
     });
     _spacesCache = _spacesCache.filter(s => s.slug !== slug);
     if (wasActive) {
-      await selectSpace('default');
+      await selectSpace(DEFAULT_SPACE_SLUG);
     }
     _refreshSidebarSelector();
     return { ok: true };
@@ -460,7 +474,7 @@ function renderSpacesPanel() {
       configSection.appendChild(projRow);
 
       // Edit project_dir inline
-      if (active.slug !== 'default') {
+      if (active.slug !== LEGACY_DEFAULT_SPACE_SLUG) {
         const editRow = document.createElement('div');
         editRow.className = 'space-config-row';
         editRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-top:4px;';
@@ -489,7 +503,7 @@ function renderSpacesPanel() {
       }
 
       // Delete button (only for non-default spaces)
-      if (active.slug !== 'default') {
+      if (!_isProtectedSpaceSlug(active.slug)) {
         const delBtn = document.createElement('button');
         delBtn.className = 'spaces-btn spaces-btn-danger';
         delBtn.textContent = 'Delete Space';
@@ -525,7 +539,7 @@ function _setSpaceDetailActions(space) {
     if (el) el.style.display = 'none';
   });
   const del = document.getElementById('btnDeleteWorkspaceDetail');
-  if (del && space && space.slug !== 'default') {
+  if (del && space && !_isProtectedSpaceSlug(space.slug)) {
     del.style.display = '';
     del.onclick = () => deleteActiveSpaceFromDetail();
   }
@@ -576,7 +590,7 @@ function renderSpaceDetail(space) {
         <div class="space-detail-actions">
           <button class="space-secondary-action" type="button" onclick="renderSpacesPanel()">Refresh</button>
           <button class="space-primary-action" type="button" onclick="saveActiveSpaceDetails()">Save changes</button>
-          ${space.slug !== 'default' ? '<button class="space-danger-action" type="button" onclick="deleteActiveSpaceFromDetail()">Delete space</button>' : ''}
+          ${!_isProtectedSpaceSlug(space.slug) ? '<button class="space-danger-action" type="button" onclick="deleteActiveSpaceFromDetail()">Delete space</button>' : ''}
         </div>
       </section>
       <section class="space-isolation-card">
@@ -615,7 +629,7 @@ async function saveActiveSpaceDetails() {
 
 async function deleteActiveSpaceFromDetail() {
   const space = _spaceBySlug(_activeSpace);
-  if (!space || space.slug === 'default') return;
+  if (!space || _isProtectedSpaceSlug(space.slug)) return;
   if (!confirm('Delete space "' + (space.name || space.slug) + '" and all isolated data?')) return;
   const result = await deleteSpace(space.slug);
   if (result && result.error) {

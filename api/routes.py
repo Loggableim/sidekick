@@ -116,6 +116,7 @@ def _setup_workspace_from_request(handler, parsed=None) -> None:
     from api.config import set_session_dir
     from api.kanban_bridge import set_workspace_kanban
     from api.space_engine import (
+        DEFAULT_SPACE_SLUG,
         get_or_create_workspace,
         set_active_workspace,
     )
@@ -132,8 +133,8 @@ def _setup_workspace_from_request(handler, parsed=None) -> None:
         set_session_dir(str(ws.sessions_dir))
         set_workspace_kanban(str(ws.root))
     else:
-        # No explicit workspace → use the "default" workspace
-        default_ws = get_or_create_workspace("default")
+        # No explicit workspace → use the fresh-install default Nova space.
+        default_ws = get_or_create_workspace(DEFAULT_SPACE_SLUG)
         set_active_workspace(default_ws.slug)
         default_ws.sessions_dir.mkdir(parents=True, exist_ok=True)
         set_session_dir(str(default_ws.sessions_dir))
@@ -3861,9 +3862,9 @@ def handle_get(handler, parsed) -> bool:
         )
 
     if parsed.path == "/api/spaces":
-        from api.space_engine import get_all_workspaces
+        from api.space_engine import DEFAULT_SPACE_SLUG, get_all_workspaces
         workspaces = [w.to_dict() for w in get_all_workspaces()]
-        return j(handler, {"spaces": workspaces})
+        return j(handler, {"spaces": workspaces, "default_space": DEFAULT_SPACE_SLUG})
 
     if parsed.path == "/api/space/config":
         qs = parse_qs(parsed.query)

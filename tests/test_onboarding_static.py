@@ -49,10 +49,18 @@ def test_onboarding_uses_i18n_helpers():
     assert "onboarding_title: 'Bienvenido a Sidekick'" in i18n
 
 
-def test_bootstrap_script_contains_official_installer_and_windows_guard():
+def test_bootstrap_script_is_sidekick_portable_launcher():
     src = read("bootstrap.py")
-    assert (
-        "https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh"
-        in src
-    )
-    assert "Native Windows is not supported" in src
+    assert "Portable launcher for Sidekick" in src
+    assert "def discover_agent_dir()" in src
+    assert "def ensure_supported_platform()" in src
+    assert "Python environment cannot import both WebUI dependencies and Nova" in src
+    assert "Native Windows is not supported" not in src
+
+
+def test_chat_composer_placeholder_targets_nova_not_hermes():
+    html = read("static/index.html")
+    assert 'id="msg" rows="1" placeholder="Message Nova…"' in html
+    deprecated_placeholder = "Message " + "Hermes"
+    assert deprecated_placeholder not in html
+    assert deprecated_placeholder.lower() not in html.lower()

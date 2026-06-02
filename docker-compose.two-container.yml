@@ -80,9 +80,9 @@ services:
     networks:
       - hermes-net
 
-  hermes-webui:
-    image: ghcr.io/nesquena/hermes-webui:latest
-    container_name: hermes-webui
+  sidekick-webui:
+    image: ghcr.io/loggableim/sidekick:latest
+    container_name: sidekick-webui
     depends_on:
       - hermes-agent
     ports:
@@ -103,6 +103,8 @@ services:
       - HERMES_WEBUI_HOST=0.0.0.0
       - HERMES_WEBUI_PORT=8787
       - HERMES_WEBUI_STATE_DIR=/home/hermeswebui/.hermes/webui
+      - HERMES_WEBUI_DEFAULT_SPACE=nova
+      - HERMES_WEBUI_DEFAULT_SPACE_NAME=Nova
       # Match your host user's UID/GID for correct file permissions.
       # In two-container setups the WebUI auto-detects UID/GID from the shared
       # hermes-home volume, but you can override explicitly if needed (#668):

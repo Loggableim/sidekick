@@ -4,7 +4,7 @@ import io
 import json
 from pathlib import Path
 
-from api import routes, space_engine
+from api import routes, space_engine, workspace_isolation
 import api.models as models
 
 
@@ -122,3 +122,70 @@ def test_hybrid_search_reads_active_space_memory_not_root_home(monkeypatch, tmp_
     contents = [hit["content"] for hit in payload["hits"]]
     assert any("space memory" in content for content in contents)
     assert all("root home" not in content for content in contents)
+
+def test_fresh_install_creates_nova_default_space(monkeypatch, tmp_path):
+    monkeypatch.setattr(space_engine, "SPACES_ROOT", tmp_path / "spaces")
+    monkeypatch.setattr(space_engine, "_OLD_ROOT", tmp_path / "workspaces")
+    space_engine.clear_active_space()
+    space_engine._invalidate_space_cache()
+
+    spaces = space_engine.get_all_spaces()
+
+    assert [space.slug for space in spaces] == ["nova"]
+    nova = spaces[0]
+    assert nova.root.name == "nova"
+    assert nova.get_project_dir() is None
+    assert nova.memory_dir.is_dir()
+    assert nova.agent_soul_path("default").is_file()
+    cfg = nova.load_config()
+    assert cfg["name"] == "Nova"
+    assert cfg["emoji"] == "✨"
+
+
+def test_resolve_active_space_falls_back_to_nova(monkeypatch, tmp_path):
+    monkeypatch.delenv("HERMES_WEBUI_ACTIVE_WORKSPACE", raising=False)
+    monkeypatch.setattr(space_engine, "SPACES_ROOT", tmp_path / "spaces")
+    monkeypatch.setattr(space_engine, "_OLD_ROOT", tmp_path / "workspaces")
+    space_engine.clear_active_space()
+    space_engine._invalidate_space_cache()
+
+    active = space_engine.resolve_active_space()
+
+    assert active.slug == "nova"
+    assert active.get_project_dir() is None
+
+
+def test_delete_protects_nova_and_legacy_default(monkeypatch, tmp_path):
+    monkeypatch.setattr(space_engine, "SPACES_ROOT", tmp_path / "spaces")
+    monkeypatch.setattr(space_engine, "_OLD_ROOT", tmp_path / "workspaces")
+    space_engine._invalidate_space_cache()
+    space_engine.get_or_create_space("nova")
+    space_engine.get_or_create_space("default")
+
+    assert space_engine.delete_space("nova") is False
+    assert space_engine.delete_space("default") is False
+    assert space_engine.get_space("nova") is not None
+    assert space_engine.get_space("default") is not None
+
+def test_legacy_workspace_isolation_fresh_install_uses_nova(monkeypatch, tmp_path):
+    monkeypatch.setattr(workspace_isolation, "WORKSPACES_ROOT", tmp_path / "workspaces")
+    workspace_isolation.clear_active_workspace()
+    workspace_isolation._invalidate_cache()
+
+    workspaces = workspace_isolation.get_all_workspaces()
+
+    assert [workspace.slug for workspace in workspaces] == ["nova"]
+    assert workspaces[0].get_project_dir() is None
+
+
+def test_legacy_workspace_delete_protects_nova_and_default(monkeypatch, tmp_path):
+    monkeypatch.setattr(workspace_isolation, "WORKSPACES_ROOT", tmp_path / "workspaces")
+    workspace_isolation.clear_active_workspace()
+    workspace_isolation._invalidate_cache()
+    workspace_isolation.get_or_create_workspace("nova")
+    workspace_isolation.get_or_create_workspace("default")
+
+    assert workspace_isolation.delete_workspace("nova") is False
+    assert workspace_isolation.delete_workspace("default") is False
+    assert workspace_isolation.get_workspace("nova") is not None
+    assert workspace_isolation.get_workspace("default") is not None
