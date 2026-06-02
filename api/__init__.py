@@ -1,1 +1,1 @@
-"""Hermes Web UI -- API modules."""
+"""Sidekick -- API modules."""

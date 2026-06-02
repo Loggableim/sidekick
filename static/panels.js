@@ -614,7 +614,7 @@ function _renderCronOverview(jobs){
           <div>
             <div class="cron-overview-kicker">Scheduled jobs</div>
             <h2>No scheduled jobs yet</h2>
-            <p>Create a scheduled job from the left panel or from chat when you need Hermes to run something later.</p>
+            <p>Create a scheduled job from the left panel or from chat when you need Sidekick to run something later.</p>
           </div>
           <button class="btn primary" onclick="openCronCreate()">New job</button>
         </div>
@@ -1982,7 +1982,7 @@ async function createKanbanTask(){
 // click-on-backdrop closes). The modal markup lives in static/index.html as
 // #kanbanTaskModal — see the section just above </body>.
 //
-// The assignee field auto-completes against the union of (a) live Hermes
+// The assignee field auto-completes against the union of (a) live Sidekick
 // profile names from /api/profiles and (b) historical assignees on the
 // active board, with an inline hint that explains the dispatcher claim
 // contract — most users will pick a profile name from the dropdown rather
@@ -2070,7 +2070,7 @@ async function _kanbanPopulateAssigneeSelect(currentValue){
   // it last so the default-selected option is the first profile, not "no one".
   let html = '';
   if (profiles.length) {
-    html += `<optgroup label="${esc(t('kanban_assignee_profiles_label') || 'Hermes profiles')}">`;
+    html += `<optgroup label="${esc(t('kanban_assignee_profiles_label') || 'Nova profiles')}">`;
     html += profiles.map(v => `<option value="${esc(v)}"${v === currentValue ? ' selected' : ''}>${esc(v)}</option>`).join('');
     html += '</optgroup>';
   }
@@ -3195,7 +3195,7 @@ function _renderLlmWikiStatus(d) {
   // becomes config-driven. esc() HTML-escapes but doesn't validate URL scheme.
   const docsUrl = /^https?:\/\//i.test(rawDocsUrl) ? rawDocsUrl : '#';
   const toggleNote = status.toggle_available
-    ? 'Toggle available from configured Hermes Agent setting.'
+    ? 'Toggle available from configured Nova setting.'
     : (status.toggle_reason || 'No stable LLM Wiki on/off config flag was detected, so this panel is read-only.');
   const statusNote = isReady
     ? 'LLM Wiki is configured and page metadata is visible without exposing wiki content.'
@@ -5460,7 +5460,7 @@ let _settingsDirty = false;
 let _settingsThemeOnOpen = null; // track theme at open time for discard revert
 let _settingsSkinOnOpen = null; // track skin at open time for discard revert
 let _settingsFontSizeOnOpen = null; // track font size at open time for discard revert
-let _settingsHermesDefaultModelOnOpen = '';
+let _settingsSidekickDefaultModelOnOpen = '';
 let _settingsSection = 'conversation';
 let _currentSettingsSection = 'conversation';
 let _settingsAppearanceAutosaveTimer = null;
@@ -5490,7 +5490,7 @@ function switchSettingsSection(name){
   if(section==='plugins') loadPluginsPanel();
 }
 
-function _syncHermesPanelSessionActions(){
+function _syncSidekickPanelSessionActions(){
   const hasSession=!!S.session;
   const visibleMessages=hasSession?(S.messages||[]).filter(m=>m&&m.role&&m.role!=='tool').length:0;
   const title=hasSession?(S.session.title||t('untitled')):t('active_conversation_none');
@@ -5755,7 +5755,7 @@ async function _autosavePreferencesSettings(payload){
     const pwField=$('settingsPassword');
     const pwDirty=!!(pwField&&pwField.value);
     const modelSel=$('settingsModel');
-    const modelDirty=!!(modelSel&&((modelSel.value||'')!==(_settingsHermesDefaultModelOnOpen||'')));
+    const modelDirty=!!(modelSel&&((modelSel.value||'')!==(_settingsSidekickDefaultModelOnOpen||'')));
     if(!pwDirty&&!modelDirty){
       _settingsDirty=false;
       const bar=$('settingsUnsavedBar');
@@ -5877,16 +5877,16 @@ async function loadSettingsPanel(){
           _fetchLiveModels(models.active_provider, modelSel);
         }
       }catch(e){}
-      _settingsHermesDefaultModelOnOpen=(models&&models.default_model)||'';
+      _settingsSidekickDefaultModelOnOpen=(models&&models.default_model)||'';
       // Use the smart matcher so a saved bare form like "anthropic/claude-opus-4.6"
       // (what the CLI's `hermes model` command writes) still selects the matching
       // `@nous:anthropic/claude-opus-4.6` option on a Nous setup. Without this, the
       // picker renders blank for any user whose default was persisted without the
       // @-prefix — CLI-first users, legacy installs, etc.
       if(typeof _applyModelToDropdown==='function'){
-        _applyModelToDropdown(_settingsHermesDefaultModelOnOpen, modelSel, (models&&models.active_provider)||window._activeProvider||null);
+        _applyModelToDropdown(_settingsSidekickDefaultModelOnOpen, modelSel, (models&&models.active_provider)||window._activeProvider||null);
       }else{
-        modelSel.value=_settingsHermesDefaultModelOnOpen;
+        modelSel.value=_settingsSidekickDefaultModelOnOpen;
       }
       modelSel.addEventListener('change',_markSettingsDirty,{once:false});
     }
@@ -6003,7 +6003,7 @@ async function loadSettingsPanel(){
     // Bot name — debounced autosave (text input)
     const botNameField=$('settingsBotName');
     if(botNameField){
-      botNameField.value=settings.bot_name||'Hermes';
+      botNameField.value=settings.bot_name||'Nova';
       let botNameTimer=null;
       botNameField.addEventListener('input',()=>{
         if(botNameTimer) clearTimeout(botNameTimer);
@@ -6040,7 +6040,7 @@ async function loadSettingsPanel(){
       const disableBtn=$('btnDisableAuth');
       if(disableBtn) disableBtn.style.display='none';
     }
-    _syncHermesPanelSessionActions();
+    _syncSidekickPanelSessionActions();
     if(typeof loadDashboardSettings==='function') loadDashboardSettings();
     loadProvidersPanel(); // load provider cards in background
     loadPluginsPanel(); // load plugin/hook visibility in background
@@ -6109,23 +6109,23 @@ function _buildPluginCard(plugin){
 // Offline fallback — kept so the UI still works when the API is unreachable.
 const _APPSTORE_FALLBACK_APPS = [
   { key: 'discord', name: 'Discord', icon: '💬', cat: 'Messaging', catIcon: '📬',
-    dev: 'Hermes Team', version: '2.1.0', size: '1.2 MB',
+    dev: 'Sidekick Team', version: '2.1.0', size: '1.2 MB',
     desc: 'Nachrichten, Slash-Commands und Server-Management.',
-    fullDesc: 'Integriere Hermes mit Discord. Sende und empfange Nachrichten, führe Slash-Commands aus, verwalte Server und Kanäle. Volle Gateway-Integration mit Thread-Support, Embed-Rendering und Rolle-Management.',
+    fullDesc: 'Integriere Sidekick mit Discord. Sende und empfange Nachrichten, führe Slash-Commands aus, verwalte Server und Kanäle. Volle Gateway-Integration mit Thread-Support, Embed-Rendering und Rolle-Management.',
     status: 'available', tags: ['gateway', 'messaging', 'notifications'],
     screenshots: ['Chat-Übersicht', 'Server-Liste', 'Einstellungen'],
     setup_steps: [], config_changes: [], env_writes: {}, gateway_restart: false, tools_enable: [] },
   { key: 'telegram', name: 'Telegram', icon: '✈️', cat: 'Messaging', catIcon: '📬',
-    dev: 'Hermes Team', version: '1.8.0', size: '0.9 MB',
+    dev: 'Sidekick Team', version: '1.8.0', size: '0.9 MB',
     desc: 'Gateway für Benachrichtigungen und Bot-Interaktionen.',
-    fullDesc: 'Verbinde Hermes mit Telegram. Erhalte Benachrichtigungen, interagiere mit Gruppen, verwalte Kanäle und nutze Inline-Buttons für schnelle Aktionen.',
+    fullDesc: 'Verbinde Sidekick mit Telegram. Erhalte Benachrichtigungen, interagiere mit Gruppen, verwalte Kanäle und nutze Inline-Buttons für schnelle Aktionen.',
     status: 'available', tags: ['gateway', 'messaging', 'bot'],
     screenshots: ['Chat-Ansicht', 'Inline-Menü'],
     setup_steps: [], config_changes: [], env_writes: {}, gateway_restart: false, tools_enable: [] },
   { key: 'slack', name: 'Slack', icon: '💼', cat: 'Messaging', catIcon: '📬',
     dev: 'Community', version: '0.6.0', size: '0.6 MB',
     desc: 'Team-Kommunikation und Benachrichtigungen.',
-    fullDesc: 'Binde Hermes in deinen Slack-Workspace ein. Sende Nachrichten in Channels, reagiere auf Threads und verwalte Benachrichtigungen zentral.',
+    fullDesc: 'Binde Sidekick in deinen Slack-Workspace ein. Sende Nachrichten in Channels, reagiere auf Threads und verwalte Benachrichtigungen zentral.',
     status: 'planned', tags: ['gateway', 'team', 'notifications'],
     screenshots: [],
     setup_steps: [], config_changes: [], env_writes: {}, gateway_restart: false, tools_enable: [] },
@@ -6139,63 +6139,63 @@ const _APPSTORE_FALLBACK_APPS = [
   { key: 'whatsapp', name: 'WhatsApp', icon: '📱', cat: 'Messaging', catIcon: '📬',
     dev: 'Community', version: '0.3.0', size: '0.4 MB',
     desc: 'Integration für Nachrichten und Medien.',
-    fullDesc: 'WhatsApp-Gateway für Hermes. Sende und empfange Nachrichten, teile Medien und verwalte Kontakte.',
+    fullDesc: 'WhatsApp-Gateway für Sidekick. Sende und empfange Nachrichten, teile Medien und verwalte Kontakte.',
     status: 'planned', tags: ['gateway', 'messaging', 'media'],
     screenshots: [],
     setup_steps: [], config_changes: [], env_writes: {}, gateway_restart: false, tools_enable: [] },
   { key: 'spotify', name: 'Spotify', icon: '🎵', cat: 'Media', catIcon: '🎵',
-    dev: 'Hermes Team', version: '1.5.0', size: '0.8 MB',
+    dev: 'Sidekick Team', version: '1.5.0', size: '0.8 MB',
     desc: 'Wiedergabe, Playlists und Suche per Sprachbefehl.',
-    fullDesc: 'Steuere Spotify direkt aus Hermes. Durchsuche die Musikbibliothek, erstelle und verwalte Playlists, steuere die Wiedergabe und entdecke neue Musik – alles per Chat-Befehl.',
+    fullDesc: 'Steuere Spotify direkt aus Sidekick. Durchsuche die Musikbibliothek, erstelle und verwalte Playlists, steuere die Wiedergabe und entdecke neue Musik – alles per Chat-Befehl.',
     status: 'available', tags: ['music', 'playback', 'playlist'],
     screenshots: ['Player-Ansicht', 'Playlist-Browser', 'Suche'],
     setup_steps: [], config_changes: [], env_writes: {}, gateway_restart: false, tools_enable: [] },
   { key: 'soundcloud', name: 'SoundCloud', icon: '🎧', cat: 'Media', catIcon: '🎵',
     dev: 'Community', version: '0.5.0', size: '0.5 MB',
     desc: 'Tracks suchen, Playlists verwalten.',
-    fullDesc: 'SoundCloud-Integration für Hermes. Durchsuche Millionen von Tracks, verwalte deine Playlists und entdecke neue Künstler.',
+    fullDesc: 'SoundCloud-Integration für Sidekick. Durchsuche Millionen von Tracks, verwalte deine Playlists und entdecke neue Künstler.',
     status: 'planned', tags: ['music', 'tracks', 'discover'],
     screenshots: [],
     setup_steps: [], config_changes: [], env_writes: {}, gateway_restart: false, tools_enable: [] },
   { key: 'gmail', name: 'Gmail', icon: '📧', cat: 'Productivity', catIcon: '⚡',
-    dev: 'Hermes Team', version: '1.3.0', size: '0.7 MB',
+    dev: 'Sidekick Team', version: '1.3.0', size: '0.7 MB',
     desc: 'E-Mails lesen, senden und durchsuchen.',
-    fullDesc: 'Integriere dein Gmail-Konto mit Hermes. Lies ungelesene E-Mails, durchsuche dein Postfach, sende Nachrichten und verwalte Labels – alles aus dem Chat.',
+    fullDesc: 'Integriere dein Gmail-Konto mit Sidekick. Lies ungelesene E-Mails, durchsuche dein Postfach, sende Nachrichten und verwalte Labels – alles aus dem Chat.',
     status: 'available', tags: ['email', 'google', 'productivity'],
     screenshots: ['Inbox-Ansicht', 'E-Mail-Detail', 'Compose'],
     setup_steps: [], config_changes: [], env_writes: {}, gateway_restart: false, tools_enable: [] },
   { key: 'calendar', name: 'Google Calendar', icon: '📅', cat: 'Productivity', catIcon: '⚡',
     dev: 'Community', version: '0.7.0', size: '0.5 MB',
     desc: 'Termine verwalten und Kalender einsehen.',
-    fullDesc: 'Verbinde Google Calendar mit Hermes. Erstelle Termine, prüfe deinen Tagesplan, verwalte Erinnerungen und teile Termine mit anderen.',
+    fullDesc: 'Verbinde Google Calendar mit Sidekick. Erstelle Termine, prüfe deinen Tagesplan, verwalte Erinnerungen und teile Termine mit anderen.',
     status: 'planned', tags: ['calendar', 'google', 'scheduling'],
     screenshots: [],
     setup_steps: [], config_changes: [], env_writes: {}, gateway_restart: false, tools_enable: [] },
   { key: 'github', name: 'GitHub', icon: '🐙', cat: 'Developer Tools', catIcon: '🛠️',
-    dev: 'Hermes Team', version: '2.0.0', size: '1.1 MB',
+    dev: 'Sidekick Team', version: '2.0.0', size: '1.1 MB',
     desc: 'Repository-Verwaltung, Issues und Pull Requests.',
-    fullDesc: 'Verwalte deine GitHub-Repositories direkt aus Hermes. Erstelle Issues, reviewe Pull Requests, durchsuche Code und verwalte Projekte.',
+    fullDesc: 'Verwalte deine GitHub-Repositories direkt aus Sidekick. Erstelle Issues, reviewe Pull Requests, durchsuche Code und verwalte Projekte.',
     status: 'available', tags: ['git', 'development', 'ci/cd'],
     screenshots: ['Repository-Ansicht', 'Issue-Tracker', 'PR-Detail'],
     setup_steps: [], config_changes: [], env_writes: {}, gateway_restart: false, tools_enable: [] },
   { key: 'vscode', name: 'VS Code', icon: '💻', cat: 'Developer Tools', catIcon: '🛠️',
     dev: 'Community', version: '0.5.0', size: '0.6 MB',
     desc: 'Editor-Integration und Dateimanagement.',
-    fullDesc: 'Steuere VS Code aus Hermes heraus. Öffne Dateien, führe Befehle aus, navigiere im Projektbaum und verwalte Workspaces.',
+    fullDesc: 'Steuere VS Code aus Sidekick heraus. Öffne Dateien, führe Befehle aus, navigiere im Projektbaum und verwalte Workspaces.',
     status: 'planned', tags: ['editor', 'development', 'files'],
     screenshots: [],
     setup_steps: [], config_changes: [], env_writes: {}, gateway_restart: false, tools_enable: [] },
   { key: 'comfyui', name: 'ComfyUI', icon: '🎨', cat: 'AI', catIcon: '🤖',
     dev: 'Community', version: '0.8.0', size: '0.9 MB',
     desc: 'Bildgenerierung mit Stabil Diffusion Workflows.',
-    fullDesc: 'Verbinde Hermes mit ComfyUI. Erstelle und steuere Bildgenerierungs-Workflows, verwalte Checkpoints und generiere Bilder per Chat-Befehl.',
+    fullDesc: 'Verbinde Sidekick mit ComfyUI. Erstelle und steuere Bildgenerierungs-Workflows, verwalte Checkpoints und generiere Bilder per Chat-Befehl.',
     status: 'planned', tags: ['ai', 'image-gen', 'stable-diffusion'],
     screenshots: [],
     setup_steps: [], config_changes: [], env_writes: {}, gateway_restart: false, tools_enable: [] },
   { key: 'openrouter', name: 'OpenRouter', icon: '🧠', cat: 'AI', catIcon: '🤖',
-    dev: 'Hermes Team', version: '1.1.0', size: '0.4 MB',
+    dev: 'Sidekick Team', version: '1.1.0', size: '0.4 MB',
     desc: 'Multi-Provider LLM-Zugriff und Modell-Routing.',
-    fullDesc: 'Nutze OpenRouter als Fallback-Provider für Hermes. Greife auf 100+ Modelle von 20+ Anbietern zu, mit automatischem Failover und Cost-Tracking.',
+    fullDesc: 'Nutze OpenRouter als Fallback-Provider für Sidekick. Greife auf 100+ Modelle von 20+ Anbietern zu, mit automatischem Failover und Cost-Tracking.',
     status: 'available', tags: ['ai', 'llm', 'provider'],
     screenshots: ['Modell-Liste', 'Usage-Dashboard'],
     setup_steps: [], config_changes: [], env_writes: {}, gateway_restart: false, tools_enable: [] },
@@ -6452,9 +6452,9 @@ function _renderAppstoreHome(container) {
   html +=
     '<div class="appstore-hero">' +
       '<div class="appstore-hero-content">' +
-        '<div class="appstore-hero-badge">Hermes Integrations</div>' +
+        '<div class="appstore-hero-badge">Sidekick Integrations</div>' +
         '<h1 class="appstore-hero-title">🛍️ Appstore</h1>' +
-        '<p class="appstore-hero-sub">Erweitere Hermes mit Plugins, Gateways und Tools. Ein Klick – los geht\'s.</p>' +
+        '<p class="appstore-hero-sub">Erweitere Sidekick mit Plugins, Gateways und Tools. Ein Klick – los geht\'s.</p>' +
       '</div>' +
     '</div>';
 
@@ -6514,7 +6514,7 @@ function _renderAppstoreHome(container) {
       '<div class="appstore-featured-icon">🔧</div>' +
       '<div class="appstore-featured-body">' +
         '<div class="appstore-featured-title">Eigenes Plugin bauen?</div>' +
-        '<div class="appstore-featured-desc">Nutze das Hermes Plugin SDK und veröffentliche deine eigene Integration im Appstore.</div>' +
+        '<div class="appstore-featured-desc">Nutze das Sidekick Plugin SDK und veröffentliche deine eigene Integration im Appstore.</div>' +
       '</div>' +
       '<button class="appstore-featured-btn" onclick="_appstoreNavigate(\'sdk\')">SDK ansehen →</button>' +
     '</div>';
@@ -7436,7 +7436,7 @@ async function _appstoreRestartGateway(btn) {
     }
   } catch (err) {
     if (btn) {
-      btn.textContent = 'Gateway-Neustart nicht verfügbar. Bitte starte Hermes manuell neu.';
+      btn.textContent = 'Gateway-Neustart nicht verfügbar. Bitte starte Sidekick manuell neu.';
       btn.disabled = false;
       btn.style.background = 'var(--warning)';
     }
@@ -8167,7 +8167,7 @@ function _applySavedSettingsUi(saved, body, opts){
   window._sidebarDensity=sidebarDensity==='detailed'?'detailed':'compact';
   window._busyInputMode=body.busy_input_mode||'queue';
   window._sessionEndlessScrollEnabled=!!body.session_endless_scroll;
-  window._botName=body.bot_name||'Hermes';
+  window._botName=body.bot_name||'Nova';
   if(typeof applyBotName==='function') applyBotName();
   if(typeof setLocale==='function') setLocale(language);
   if(typeof applyLocaleToDOM==='function') applyLocaleToDOM();
@@ -8182,7 +8182,7 @@ function _applySavedSettingsUi(saved, body, opts){
   _settingsFontSizeOnOpen=fontSize||localStorage.getItem('hermes-font-size')||'default';
   const bar=$('settingsUnsavedBar');
   if(bar) bar.style.display='none';
-  _settingsHermesDefaultModelOnOpen=body.default_model||_settingsHermesDefaultModelOnOpen||'';
+  _settingsSidekickDefaultModelOnOpen=body.default_model||_settingsSidekickDefaultModelOnOpen||'';
   // Sync window._defaultModel so newSession() uses the just-saved default without a reload (#908).
   if(body.default_model) window._defaultModel=body.default_model;
   if(typeof clearMessageRenderCache==='function') clearMessageRenderCache();
@@ -8244,7 +8244,7 @@ async function checkUpdatesNow(){
 
 async function saveSettings(andClose){
   const model=($('settingsModel')||{}).value;
-  const modelChanged=(model||'')!==(_settingsHermesDefaultModelOnOpen||'');
+  const modelChanged=(model||'')!==(_settingsSidekickDefaultModelOnOpen||'');
   const sendKey=($('settingsSendKey')||{}).value;
   const showTokenUsage=!!($('settingsShowTokenUsage')||{}).checked;
   const showTps=!!($('settingsShowTps')||{}).checked;
@@ -8279,7 +8279,7 @@ async function saveSettings(andClose){
   body.busy_input_mode=busyInputMode;
   body.auto_title_refresh_every=(($('settingsAutoTitleRefresh')||{}).value||'0');
   const botName=(($('settingsBotName')||{}).value||'').trim();
-  body.bot_name=botName||'Hermes';
+  body.bot_name=botName||'Nova';
   // Password: only act if the field has content; blank = leave auth unchanged
   if(pw && pw.trim()){
     try{

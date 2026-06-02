@@ -1,5 +1,5 @@
 /**
- * Agents Tab — Multi-Agent System UI for Hermes WebUI
+ * Agents Tab — Multi-Agent System UI for Sidekick
  *
  * Supports:
  * - Splash screen (first-run setup with template selection)
@@ -824,7 +824,7 @@ function showCreatorResult(agent) {
         var lines = [];
         if (a.workdir) lines.push('<div style="margin-bottom:6px"><span style="font-weight:600;display:block;font-size:11px;color:var(--text);margin-bottom:2px">Workdir</span><code style="font-size:11px;word-break:break-all;opacity:0.8">' + escHtml(a.workdir) + '</code></div>');
         if (tools.length > 0) lines.push('<div style="margin-bottom:6px"><span style="font-weight:600;display:block;font-size:11px;color:var(--text);margin-bottom:2px">Erlaubte Tools</span><span style="font-size:11px;opacity:0.8">' + escHtml(tools.join(', ')) + '</span></div>');
-        if (a.profile) lines.push('<div style="margin-bottom:6px"><span style="font-weight:600;display:block;font-size:11px;color:var(--text);margin-bottom:2px">Hermes-Profil</span><code style="font-size:11px">' + escHtml(a.profile) + '</code> <span style="font-size:10px;opacity:0.6">(hermes -p ' + escHtml(a.profile) + ')</span></div>');
+        if (a.profile) lines.push('<div style="margin-bottom:6px"><span style="font-weight:600;display:block;font-size:11px;color:var(--text);margin-bottom:2px">Nova-Profil</span><code style="font-size:11px">' + escHtml(a.profile) + '</code> <span style="font-size:10px;opacity:0.6">(hermes -p ' + escHtml(a.profile) + ')</span></div>');
         if (a.agent_type) lines.push('<div style="margin-bottom:6px"><span style="font-weight:600;display:block;font-size:11px;color:var(--text);margin-bottom:2px">Typ</span><span style="font-size:11px;opacity:0.8">' + escHtml(a.agent_type) + '</span></div>');
         if (lines.length === 0) lines.push('<span style="opacity:0.6">Keine zusätzlichen Informationen</span>');
         infoEl.innerHTML = lines.join('');

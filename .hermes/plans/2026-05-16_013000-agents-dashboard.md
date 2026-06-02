@@ -81,7 +81,7 @@ Replace the current Agents panel (grid + cramped 3-pane workspace + interfering 
 
 4. Integrate logging into existing operations:
    - `chat_with_agent()` → log "Chat: {user_message[:60]}"
-   - `spawn_hermes_agent()` → log "Hermes task: {task[:60]}"
+   - `spawn_hermes_agent()` → log "Sidekick task: {task[:60]}"
    - `process_agent_request()` → log each command executed
    - Agent create/delete → log create/delete activity
 

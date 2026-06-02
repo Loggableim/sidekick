@@ -7,7 +7,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DOC = REPO_ROOT / "docs" / "wsl-autostart.md"
-WSL_SCRIPT = REPO_ROOT / "scripts" / "wsl" / "hermes_webui_autostart.sh"
+WSL_SCRIPT = REPO_ROOT / "scripts" / "wsl" / "sidekick_webui_autostart.sh"
 POWERSHELL_SCRIPT = REPO_ROOT / "scripts" / "windows" / "setup_webui_autostart.ps1"
 README = REPO_ROOT / "README.md"
 
@@ -23,7 +23,7 @@ def test_wsl_autostart_docs_cover_session_and_task_scheduler_options():
     assert "docs/wsl-autostart.md" in readme
     assert "WSL session startup" in doc
     assert "Windows Task Scheduler" in doc
-    assert "scripts/wsl/hermes_webui_autostart.sh" in doc
+    assert "scripts/wsl/sidekick_webui_autostart.sh" in doc
     assert "scripts/windows/setup_webui_autostart.ps1" in doc
     assert "HERMES_WEBUI_REPO" in doc
     assert "HERMES_WEBUI_LOG_DIR" in doc

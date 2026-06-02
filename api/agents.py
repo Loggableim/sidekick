@@ -1,5 +1,5 @@
 """
-Agents Registry — Multi-Agent-System für Hermes WebUI + Hermes Agent.
+Agents Registry — Multi-Agent-System für Sidekick + Nova.
 
 Jeder Agent hat:
   - Eigene Persönlichkeit (SOUL/Prompt)
@@ -13,7 +13,7 @@ Architektur:
   - SQLite-DB unter STATE_DIR / "agents.db"
   - Agent-Sessions als JSON-Dateien unter STATE_DIR / "agents" / <slug> / "sessions"
   - SOUL.md pro Agent unter STATE_DIR / "agents" / <slug> / "SOUL.md"
-  - Integriert mit Hermes-Profilen: jeder Agent kann ein Hermes-Profil sein
+  - Integriert mit Nova-Profilen: jeder Agent kann ein Nova-Profil sein
 """
 
 import json
@@ -916,7 +916,7 @@ def _call_llm(messages: list, timeout: int = 15) -> Optional[str]:
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/Loggableim/cids-hermes-webui",
-        "X-Title": "Hermes WebUI Agents",
+        "X-Title": "Sidekick Agents",
     }
 
     url = f"{base_url}/chat/completions"
@@ -1181,7 +1181,7 @@ def get_agent_data_dir(slug: str) -> Optional[Path]:
 # ── Current Agent (CLI ↔ WebUI Bridge) ──────────────────────────────────
 
 def get_current_agent_slug() -> Optional[str]:
-    """Hole den aktuell aktiven Agenten-Slug (gesetzt von Hermes Agent CLI)."""
+    """Hole den aktuell aktiven Agenten-Slug (gesetzt von Nova CLI)."""
     with _db_lock, closing(_get_conn()) as conn:
         row = conn.execute(
             "SELECT value FROM meta WHERE key='current_agent'"
@@ -1193,7 +1193,7 @@ def get_current_agent_slug() -> Optional[str]:
 
 
 def set_current_agent_slug(slug: Optional[str]):
-    """Setze den aktuell aktiven Agenten-Slug (von Hermes Agent CLI)."""
+    """Setze den aktuell aktiven Agenten-Slug (von Nova CLI)."""
     with _db_lock, closing(_get_conn()) as conn:
         conn.execute(
             "INSERT OR REPLACE INTO meta (key, value) VALUES ('current_agent', ?)",

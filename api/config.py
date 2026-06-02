@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- Shared configuration, constants, and global state.
+Sidekick -- Shared configuration, constants, and global state.
 Imported by all other api/* modules and by server.py.
 
 Discovery order for all paths:
@@ -85,7 +85,7 @@ def clear_session_dir() -> None:
         pass
 
 
-# ── Hermes agent directory discovery ─────────────────────────────────────────
+# ── Nova agent directory discovery ─────────────────────────────────────────
 def _discover_agent_dir() -> Path:
     """
     Locate the hermes-agent checkout using a multi-strategy search.
@@ -145,7 +145,7 @@ def _discover_agent_dir() -> Path:
 
 def _discover_python(agent_dir: Path) -> str:
     """
-    Locate a Python executable that has the Hermes agent dependencies installed.
+    Locate a Python executable that has the Nova agent dependencies installed.
 
     Priority:
       1. HERMES_WEBUI_PYTHON env var
@@ -477,7 +477,7 @@ def print_startup_config() -> None:
 
     lines = [
         "",
-        "  Hermes Web UI -- startup config",
+        "  Sidekick -- startup config",
         "  --------------------------------",
         f"  repo root   : {REPO_ROOT}",
         f"  agent dir   : {_AGENT_DIR if _AGENT_DIR else 'NOT FOUND'}  {ok if _AGENT_DIR else err}",
@@ -492,7 +492,7 @@ def print_startup_config() -> None:
 
     if not _HERMES_FOUND:
         print(
-            f"{err}  Could not find the Hermes agent directory.\n"
+            f"{err}  Could not find the Nova agent directory.\n"
             "      The server will start but agent features will not work.\n"
             "\n"
             "      To fix, set one of:\n"
@@ -663,15 +663,23 @@ _FALLBACK_MODELS = [
     {"provider": "Z.AI",      "id": "zai/glm-4.7",                      "label": "GLM-4.7"},
     {"provider": "Z.AI",      "id": "zai/glm-4.5",                      "label": "GLM-4.5"},
     {"provider": "Z.AI",      "id": "zai/glm-4.5-flash",                "label": "GLM-4.5 Flash"},
-    # OpenRouter free-tier models — must appear in fallback list so they
-    # are visible even when the tool-support filter in hermes_cli strips
-    # them out of the live catalog (see #1426).
+    # OpenRouter free-tier models — keep this curated to chat-safe text / multimodal
+    # models that still make sense in the WebUI chatbox. Seedream 4.5 is image
+    # generation and billed per output image, so it is intentionally not included here.
+    # These entries also protect the picker when the live OpenRouter fetch is unavailable.
     {"provider": "OpenRouter", "id": "openrouter/elephant-alpha",                   "label": "Elephant Alpha (free)"},
     {"provider": "OpenRouter", "id": "openrouter/owl-alpha",                        "label": "Owl Alpha (free)"},
+    {"provider": "OpenRouter", "id": "moonshotai/kimi-k2.6:free",                   "label": "Kimi K2.6 (free)"},
     {"provider": "OpenRouter", "id": "tencent/hy3-preview:free",                    "label": "Hy3 Preview (free)"},
     {"provider": "OpenRouter", "id": "nvidia/nemotron-3-super-120b-a12b:free",      "label": "Nemotron 3 Super (free)"},
+    {"provider": "OpenRouter", "id": "nvidia/nemotron-3-nano-30b-a3b:free",         "label": "Nemotron 3 Nano 30B A3B (free)"},
+    {"provider": "OpenRouter", "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free", "label": "Nemotron 3 Nano Omni (free)"},
+    {"provider": "OpenRouter", "id": "nvidia/nemotron-nano-12b-v2-vl:free",          "label": "Nemotron Nano 12B 2 VL (free)"},
+    {"provider": "OpenRouter", "id": "nvidia/nemotron-nano-9b-v2:free",              "label": "Nemotron Nano 9B V2 (free)"},
     {"provider": "OpenRouter", "id": "arcee-ai/trinity-large-preview:free",         "label": "Trinity Large Preview (free)"},
+
 ]
+
 
 # Provider display names for known Hermes provider IDs
 _PROVIDER_DISPLAY = {
@@ -2137,7 +2145,7 @@ _models_cache_path = STATE_DIR / "models_cache.json"
 
 
 def _get_auth_store_path() -> Path:
-    """Return the auth.json path for the active Hermes profile."""
+    """Return the auth.json path for the active Nova profile."""
     try:
         from api.profiles import get_active_hermes_home as _gah
 
@@ -4167,7 +4175,7 @@ _SETTINGS_DEFAULTS = {
     "session_endless_scroll": False,  # auto-load older transcript pages while scrolling upward
     "language": "en",  # UI locale code; must match a key in static/i18n.js LOCALES
     "bot_name": os.getenv(
-        "HERMES_WEBUI_BOT_NAME", "Hermes"
+        "HERMES_WEBUI_BOT_NAME", "Nova"
     ),  # display name for the assistant
     "sound_enabled": False,  # play notification sound when assistant finishes
     "notifications_enabled": False,  # browser notification when tab is in background

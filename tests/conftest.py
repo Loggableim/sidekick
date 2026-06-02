@@ -113,7 +113,7 @@ os.environ['HERMES_WEBUI_STATE_DIR'] = str(TEST_STATE_DIR)
 os.environ['HERMES_WEBUI_DEFAULT_WORKSPACE'] = str(TEST_WORKSPACE)
 os.environ['HERMES_HOME'] = str(TEST_STATE_DIR)
 os.environ['HERMES_BASE_HOME'] = str(TEST_STATE_DIR)
-# Hermes Agent sessions may inherit HERMES_CONFIG_PATH pointing at the live
+# Nova sessions may inherit HERMES_CONFIG_PATH pointing at the live
 # ~/.hermes/config.yaml.  Override it before any product modules are imported so
 # tests that read/write config.yaml stay inside the isolated test home.
 os.environ['HERMES_CONFIG_PATH'] = str(TEST_STATE_DIR / 'config.yaml')
@@ -126,7 +126,7 @@ if not SERVER_SCRIPT.exists():
         "Is conftest.py in the tests/ subdirectory of the repo?"
     )
 
-# ── Hermes agent discovery (mirrors api/config._discover_agent_dir) ───────
+# ── Nova agent discovery (mirrors api/config._discover_agent_dir) ───────
 def _discover_agent_dir() -> pathlib.Path:
     candidates = [
         os.getenv('HERMES_WEBUI_AGENT_DIR', ''),

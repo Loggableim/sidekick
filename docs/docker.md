@@ -1,4 +1,4 @@
-# Hermes WebUI — Docker setup guide
+# Sidekick — Docker setup guide
 
 This is the comprehensive Docker reference. For a 5-minute quickstart, see the [README Docker section](../README.md#docker).
 
@@ -16,7 +16,7 @@ If something stops working, **start with the single-container setup** — it's t
 ## Production image security model
 
 The production Docker image is hardened for the normal single-tenant container threat model:
-Hermes WebUI assumes one operator controls the container, mounted Hermes home, and workspace.
+Sidekick assumes one operator controls the container, mounted Sidekick home, and workspace.
 The image does **not** install `sudo`, does not add runtime users to a sudo group, and does not
 grant `NOPASSWD` escalation. If an agent/tool process gains a shell as `hermeswebui`, it should
 not be able to become root with a passwordless sudo command.

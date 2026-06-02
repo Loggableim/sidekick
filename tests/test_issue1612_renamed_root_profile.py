@@ -1,7 +1,7 @@
 """Tests for issue #1612: renamed root profile must resolve to ~/.hermes,
 not ~/.hermes/profiles/<name>.
 
-A renamed root/default Hermes profile (`is_default=True` on the agent side
+A renamed root/default Nova profile (`is_default=True` on the agent side
 but with a display name like `kinni`) was being treated as a named profile
 directory under `~/.hermes/profiles/kinni`, which doesn't exist. Every
 `if name == 'default':` site in api/profiles.py fell through to the wrong

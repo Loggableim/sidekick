@@ -1745,7 +1745,7 @@ source.addEventListener('done',e=>{
 }
 
 function transcript(){
-  const lines=[`# Hermes session ${S.session?.session_id||''}`,``,
+  const lines=[`# Nova session ${S.session?.session_id||''}`,``,
     `Workspace: ${S.session?.workspace||''}`,`Model: ${S.session?.model||''}`,``];
   for(const m of S.messages){
     if(!m||m.role==='tool')continue;
@@ -2710,7 +2710,7 @@ function playNotificationSound(){
 function sendBrowserNotification(title,body){
   if(!window._notificationsEnabled||!document.hidden) return;
   if(!('Notification' in window)) return;
-  const botName=window._botName||'Hermes';
+  const botName=window._botName||'Nova';
   if(Notification.permission==='granted'){
     new Notification(title||botName,{body:body});
   }else if(Notification.permission!=='denied'){

@@ -83,7 +83,7 @@ function syncWorkspaceDisplays() {}
 function syncReasoningChip() {}
 function syncToolsetsChip() {}
 function syncTerminalButton() {}
-function _syncHermesPanelSessionActions() {}
+function _syncSidekickPanelSessionActions() {}
 function _latestGatewayRoutingForSession() { return null; }
 function getModelLabel(v) { return v; }
 function _formatGatewayModelLabel(_v, text) { return text; }
@@ -94,7 +94,7 @@ const document = {
   createElement(tag) { return {tagName: tag.toUpperCase(), className: '', textContent: '', appendChild(){}}; },
   createTextNode(text) { return {textContent: text}; },
 };
-const window = { _botName: 'Hermes', _defaultModel: null, _activeProvider: null };
+const window = { _botName: 'Nova', _defaultModel: null, _activeProvider: null };
 function fetch(url, opts) { calls.fetches.push({url: String(url), body: opts && opts.body || ''}); return Promise.resolve({ok: true}); }
 
 for (const name of [

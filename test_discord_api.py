@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Hermes WebUI — Discord Integration API-Test-Suite
+Sidekick — Discord Integration API-Test-Suite
 =================================================
 Prüft alle Discord-Endpunkte der WebUI (Backend).
 Läuft ohne Browser — testet nur die REST-APIs.
@@ -199,7 +199,7 @@ def test_hermes_frontend():
             'selectDiscordMember': 'Autocomplete-Funktion',
             'setupScrollPagination': 'Scroll-Handler',
             'teardownScrollPagination': 'Scroll-Handler Cleanup',
-            '/api/chat': 'Hermes Mode API-Call',
+            '/api/chat': 'Nova Mode API-Call',
             '_memberCache': 'Member-Cache Variable',
             'discordOvModUser': 'Moderation User-Input',
             'discordOvModDropdown': 'Autocomplete Dropdown',
@@ -234,7 +234,7 @@ def test_discord_panel_html():
 if __name__ == '__main__':
     verbose = '-v' in sys.argv
 
-    log(f'Hermes WebUI — Discord Integration Test-Suite')
+    log(f'Sidekick — Discord Integration Test-Suite')
     log(f'Basis-URL: {BASE}')
     log(f'{"─" * 50}')
 

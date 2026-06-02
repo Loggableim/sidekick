@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- HTTP helper functions.
+Sidekick -- HTTP helper functions.
 """
 import json as _json
 import os

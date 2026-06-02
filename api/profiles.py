@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- Profile state management.
+Sidekick -- Profile state management.
 Wraps hermes_cli.profiles to provide profile switching for the web UI.
 
 The web UI maintains a process-level "active profile" that determines which
@@ -119,7 +119,7 @@ def _read_active_profile_file() -> str:
 
 # ── Root-profile resolution (#1612) ────────────────────────────────────────
 #
-# Hermes Agent allows the root/default profile (~/.hermes itself) to have a
+# Nova allows the root/default profile (~/.hermes itself) to have a
 # display name other than the legacy literal 'default'.  When that happens,
 # WebUI must NOT resolve the display name as ~/.hermes/profiles/<name> — that
 # directory doesn't exist, and every site that does `if name == 'default':`
@@ -153,7 +153,7 @@ def _invalidate_root_profile_cache() -> None:
 
 
 def _is_root_profile(name: str) -> bool:
-    """True if *name* resolves to the Hermes Agent root profile (~/.hermes).
+    """True if *name* resolves to the Nova root profile (~/.hermes).
 
     Matches the legacy 'default' alias plus any name where list_profiles_api()
     reports is_default=True. Memoized; call _invalidate_root_profile_cache()

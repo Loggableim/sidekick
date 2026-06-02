@@ -1,6 +1,6 @@
 # Contributors
 
-Hermes WebUI is a community project. **130 people** have shipped code that landed in a release tag — including the long tail of folks whose work was salvaged into batch releases or absorbed via Co-authored-by trailers. This file is the canonical credit roll.
+Sidekick is a community project. **130 people** have shipped code that landed in a release tag — including the long tail of folks whose work was salvaged into batch releases or absorbed via Co-authored-by trailers. This file is the canonical credit roll.
 
 A contributor's PR count is the number of distinct PRs they get credit for: PRs they authored that merged directly, PRs they authored that were closed-but-absorbed into a release commit (batch merges, salvage rewrites), and PRs where they were explicitly attributed in `CHANGELOG.md`. All three count the same.
 
@@ -82,7 +82,7 @@ All four paths count as a contribution. GitHub's `merged_at` field only catches 
 - **[@franksong2702](https://github.com/franksong2702)** — most prolific external contributor across the project's history. 92 PRs spanning the session sidebar, mobile/responsive layout, workspace state machine, profile context, slash autocomplete, breadcrumb navigation, streaming-session exemption, cron output preservation, embedded terminal, and a long tail of polish.
 - **[@Michaelyklam](https://github.com/Michaelyklam)** — most prolific contributor of late-2025/early-2026. 81 PRs covering Docker hardening, profile-scoped skills, KaTeX delimiter parsing, Codex quota surfacing, Goal command, Kanban polish, auto-compression toast lifetime, and the localization parity backfills.
 - **[@bergeouss](https://github.com/bergeouss)** — provider-management UI, OAuth status, two-container Docker docs, profile isolation hardening, Reveal-in-Finder, the OpenRouter free-tier live fetch, and most of Settings → Providers. 61 PRs.
-- **[@ai-ag2026](https://github.com/ai-ag2026)** — autonomous-AI contributor (Hermes Agent-driven). 49 PRs focused on session recovery (state.db sidecar reconciliation, orphan `.bak` recovery, audit + safe-repair endpoints), workspace/run lifecycle health, and the crash-safe turn-journal RFC.
+- **[@ai-ag2026](https://github.com/ai-ag2026)** — autonomous-AI contributor (Nova-driven). 49 PRs focused on session recovery (state.db sidecar reconciliation, orphan `.bak` recovery, audit + safe-repair endpoints), workspace/run lifecycle health, and the crash-safe turn-journal RFC.
 - **[@iRonin](https://github.com/iRonin)** — security hardening sprint (PRs #196–#204): session memory leak fix, CSP + Permissions-Policy headers, slow-client connection timeout, optional HTTPS/TLS, upstream branch tracking, CLI session file-browser support. Six consecutive, focused, high-quality security PRs.
 - **[@indigokarasu](https://github.com/indigokarasu)** — visual redesign proposal (PR #213). Icon rail sidebar, design token system, 7 themes. Didn't merge as-is but shaped the design language that landed in v0.50.0.
 - **[@zenc-cp](https://github.com/zenc-cp)** — anti-hallucination guard for the ReAct loop (PR #133). Three-layer approach (ephemeral prompt, live token filtering, session-history cleanup) that the streaming pipeline still uses.

@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- Route handlers for GET and POST endpoints.
+Sidekick -- Route handlers for GET and POST endpoints.
 Extracted from server.py (Sprint 11) so server.py is a thin shell.
 """
 
@@ -166,7 +166,7 @@ def _all_profiles_query_flag(parsed_url) -> bool:
 
 
 def _active_skills_dir() -> Path:
-    """Return the skills directory for the request's active Hermes profile.
+    """Return the skills directory for the request's active Nova profile.
 
     WebUI profile switches are cookie/thread-local scoped, so the agent
     module-level ``tools.skills_tool.SKILLS_DIR`` can still point at the server
@@ -2428,7 +2428,7 @@ def _build_llm_wiki_status() -> dict:
             "path_configured": path_configured,
             "path_source": path_source,
             "toggle_available": False,
-            "toggle_reason": "Hermes Agent exposes WIKI_PATH/wiki.path for location, but no stable on/off config flag is currently available.",
+            "toggle_reason": "Nova exposes WIKI_PATH/wiki.path for location, but no stable on/off config flag is currently available.",
             "docs_url": _LLM_WIKI_DOCS_URL,
         }
         if not wiki_path.exists():
@@ -2838,7 +2838,7 @@ _PLUGIN_VISIBILITY_HOOK_SET = set(_PLUGIN_VISIBILITY_HOOKS)
 
 
 def _get_plugin_manager_for_visibility():
-    """Return Hermes Agent's plugin manager for read-only WebUI visibility."""
+    """Return Nova's plugin manager for read-only WebUI visibility."""
     from hermes_cli.plugins import get_plugin_manager
 
     return get_plugin_manager()
@@ -2860,7 +2860,7 @@ def _clean_plugin_visibility_text(value, *, limit=240) -> str:
 def _plugin_visibility_payload(manager=None) -> dict:
     """Build a sanitized plugin/hook visibility payload for Settings.
 
-    The Hermes Agent manager stores manifests and callback objects internally.
+    The Nova manager stores manifests and callback objects internally.
     This endpoint intentionally exposes only safe, user-facing metadata and the
     four lifecycle hook names called out by the Settings visibility MVP. It
     never includes plugin source paths, callback names, callback reprs, or raw
@@ -3014,11 +3014,11 @@ _SHELL_ERROR_HTML = """<!doctype html>
 <head>
   <meta charset=\"utf-8\">
   <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
-  <title>Hermes is restarting</title>
+  <title>Sidekick is restarting</title>
 </head>
 <body style=\"margin:0;padding:2rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#111827;color:#e5e7eb;\">
   <main style=\"max-width:40rem;margin:10vh auto;line-height:1.5;\">
-    <h1 style=\"font-size:1.5rem;margin:0 0 0.75rem;\">Hermes is restarting…</h1>
+    <h1 style=\"font-size:1.5rem;margin:0 0 0.75rem;\">Sidekick is restarting…</h1>
     <p style=\"margin:0;color:#cbd5e1;\">The WebUI shell could not load cleanly. Refresh in a moment if this page does not update automatically.</p>
   </main>
 </body>
@@ -3152,7 +3152,7 @@ def handle_get(handler, parsed) -> bool:
 
     if parsed.path == "/login":
         _settings = load_settings()
-        _bn = _html.escape(_settings.get("bot_name") or "Hermes")
+        _bn = _html.escape(_settings.get("bot_name") or "Nova")
         _lang = _settings.get("language", "en")
         _login_strings = _LOGIN_LOCALE[
             _resolve_login_locale_key(_lang)
@@ -4500,13 +4500,13 @@ def _handle_window_control(handler, body):
             buf = ctypes.create_unicode_buffer(512)
             user32.GetWindowTextW(hwnd, buf, 512)
             title = (buf.value or "").strip()
-            if "Hermes" in title and not any(skip in title for skip in ("Portable", "Gateway", "llama", "cmd", "PowerShell")):
+            if ("Sidekick" in title or "Nova" in title) and not any(skip in title for skip in ("Portable", "Gateway", "llama", "cmd", "PowerShell")):
                 hwnds.append(hwnd)
             return True
 
         user32.EnumWindows(enum_proc_type(enum_proc), 0)
         if not hwnds:
-            return bad(handler, "Hermes app window not found", 404)
+            return bad(handler, "Sidekick app window not found", 404)
         hwnd = hwnds[0]
         if action == "minimize":
             user32.ShowWindow(hwnd, 6)
@@ -5673,7 +5673,7 @@ def handle_post(handler, parsed) -> bool:
         )
 
         if "bot_name" in body:
-            body["bot_name"] = (str(body["bot_name"]) or "").strip() or "Hermes"
+            body["bot_name"] = (str(body["bot_name"]) or "").strip() or "Nova"
 
         auth_enabled_before = is_auth_enabled()
         current_cookie = parse_cookie(handler)
@@ -6336,7 +6336,7 @@ def _handle_agents_get(handler, parsed):
     if path == "/api/agents/splash/status":
         return j(handler, {"completed": is_splash_completed()})
 
-    # GET /api/agents/current — aktiver Agent (gesetzt von Hermes Agent CLI)
+    # GET /api/agents/current — aktiver Agent (gesetzt von Nova CLI)
     if path == "/api/agents/current":
         from api.agents import get_current_agent_slug
         slug = get_current_agent_slug()
@@ -6345,7 +6345,7 @@ def _handle_agents_get(handler, parsed):
             return j(handler, {"active": True, "agent": agent})
         return j(handler, {"active": False, "agent": None})
 
-    # GET /api/agents/profiles — Hermes-Profil-Status aller Agenten
+    # GET /api/agents/profiles — Nova-Profil-Status aller Agenten
     if path == "/api/agents/profiles":
         from api.agents import list_activated_agents
         import json as _json
@@ -6502,7 +6502,7 @@ def _handle_agents_post(handler, parsed, body):
         result = agent_creator_step(answers)
         return j(handler, result)
 
-    # POST /api/agents/current — setze aktiven Agenten (von Hermes Agent CLI)
+    # POST /api/agents/current — setze aktiven Agenten (von Nova CLI)
     if path == "/api/agents/current":
         from api.agents import set_current_agent_slug
         slug = body.get("slug", "")
@@ -6513,7 +6513,7 @@ def _handle_agents_post(handler, parsed, body):
         set_current_agent_slug(None)
         return j(handler, {"ok": True, "slug": None})
 
-    # POST /api/agents/<slug>/profile — Hermes-Profil erstellen/aktualisieren
+    # POST /api/agents/<slug>/profile — Nova-Profil erstellen/aktualisieren
     parts = path.split("/")
     if len(parts) == 5 and parts[4] == "profile" and parts[2] == "agents":
         slug = parts[3]
@@ -6521,7 +6521,7 @@ def _handle_agents_post(handler, parsed, body):
         if agent is None:
             return bad(handler, f"Agent '{slug}' not found", status=404)
         try:
-            # Hermes-Profil erstellen via Subprocess
+            # Nova-Profil erstellen via Subprocess
             import subprocess as _sp
             profile_name = body.get("profile_name", slug)
             result = _sp.run(
@@ -9202,7 +9202,7 @@ def _handle_chat_sync(handler, body):
                 provider=_provider,
                 base_url=_base_url,
                 api_key=_api_key,
-                # Identify browser-originated sessions as WebUI so Hermes Agent
+                # Identify browser-originated sessions as WebUI so Nova
                 # does not inject CLI-specific terminal/output guidance.
                 platform="webui",
                 quiet_mode=True,
@@ -10098,7 +10098,7 @@ def _handle_session_compress(handler, body):
             provider=resolved_provider,
             base_url=resolved_base_url,
             api_key=resolved_api_key,
-            # Identify browser-originated sessions as WebUI so Hermes Agent
+            # Identify browser-originated sessions as WebUI so Nova
             # does not inject CLI-specific terminal/output guidance.
             platform="webui",
             quiet_mode=True,
@@ -10601,7 +10601,7 @@ def _handle_handoff_summary(handler, body):
         return channel_label
 
     def _agent_text_completion(agent, system_prompt, user_text, max_tokens=700):
-        """Use the current Hermes Agent transport without mutating conversation history."""
+        """Use the current Nova transport without mutating conversation history."""
         api_messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_text},
@@ -11238,7 +11238,7 @@ def _mcp_runtime_status_by_name() -> dict[str, dict]:
     """Return already-known MCP runtime status without starting servers.
 
     ``tools.mcp_tool.get_mcp_status()`` only reads the existing MCP registry and
-    configuration; it does not probe or spawn MCP subprocesses. If Hermes Agent
+    configuration; it does not probe or spawn MCP subprocesses. If Nova
     is unavailable, fall back to an empty map so the API remains safe.
     """
     try:

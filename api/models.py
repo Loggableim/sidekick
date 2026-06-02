@@ -1,4 +1,4 @@
-"""Hermes Web UI -- Session model and in-memory session store."""
+"""Sidekick -- Session model and in-memory session store."""
 import collections
 import datetime
 import hashlib
@@ -1087,7 +1087,7 @@ def _hide_from_default_sidebar(session: dict) -> bool:
 
 
 def _active_state_db_path() -> Path:
-    """Return state.db for the active Hermes profile, degrading to HERMES_HOME."""
+    """Return state.db for the active Nova profile, degrading to HERMES_HOME."""
     try:
         from api.profiles import get_active_hermes_home
         hermes_home = Path(get_active_hermes_home()).expanduser().resolve()

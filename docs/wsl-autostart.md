@@ -1,6 +1,6 @@
 # Windows / WSL auto-start
 
-Hermes WebUI runs well under WSL2, but native Windows login does not automatically start Linux user processes. This guide covers two supported options:
+Sidekick runs well under WSL2, but native Windows login does not automatically start Linux user processes. This guide covers two supported options:
 
 1. **WSL session startup** — simple and low-risk. WebUI starts the next time you open a WSL shell.
 2. **Windows Task Scheduler** — true Windows logon startup. Windows invokes `wsl.exe`, which runs the WSL launch script.
@@ -8,7 +8,7 @@ Hermes WebUI runs well under WSL2, but native Windows login does not automatical
 Both paths use the same WSL launch script:
 
 ```text
-scripts/wsl/hermes_webui_autostart.sh
+scripts/wsl/sidekick_webui_autostart.sh
 ```
 
 The script is safe to call repeatedly. It uses a lock file, checks the `/health` endpoint, checks a pid file, and writes logs before starting `start.sh --foreground` in the background. It does not hardcode a user path; by default it derives the repository root from its own location.
@@ -25,19 +25,19 @@ The WSL launcher supports these environment variables:
 | `HERMES_WEBUI_PORT` | `8787` | WebUI port and health-check port |
 | `HERMES_WEBUI_HEALTH_URL` | `http://127.0.0.1:$HERMES_WEBUI_PORT/health` | URL used to decide whether WebUI is already running |
 | `HERMES_WEBUI_PID_FILE` | `$HERMES_WEBUI_LOG_DIR/hermes-webui.pid` | pid file used for duplicate prevention |
-| `HERMES_WEBUI_REQUIRE_AGENT_PROCESS` | `0` | Optional: set to `1` only if your local setup requires a separate Hermes process before WebUI starts |
+| `HERMES_WEBUI_REQUIRE_AGENT_PROCESS` | `0` | Optional: set to `1` only if your local setup requires a separate Sidekick process before WebUI starts |
 
 Make the script executable once inside WSL:
 
 ```bash
 cd /path/to/hermes-webui
-chmod +x scripts/wsl/hermes_webui_autostart.sh
+chmod +x scripts/wsl/sidekick_webui_autostart.sh
 ```
 
 Run it manually to verify your paths and logs:
 
 ```bash
-scripts/wsl/hermes_webui_autostart.sh
+scripts/wsl/sidekick_webui_autostart.sh
 curl -fsS http://127.0.0.1:8787/health
 ```
 
@@ -55,9 +55,9 @@ This starts WebUI when your WSL login shell starts. It is the easiest option if 
 Add this to `~/.profile` or `~/.bashrc` inside WSL, adjusting the repo path:
 
 ```bash
-if [ -x "$HOME/hermes-webui/scripts/wsl/hermes_webui_autostart.sh" ]; then
+if [ -x "$HOME/hermes-webui/scripts/wsl/sidekick_webui_autostart.sh" ]; then
   HERMES_WEBUI_REPO="$HOME/hermes-webui" \
-    "$HOME/hermes-webui/scripts/wsl/hermes_webui_autostart.sh" >/dev/null 2>&1 &
+    "$HOME/hermes-webui/scripts/wsl/sidekick_webui_autostart.sh" >/dev/null 2>&1 &
 fi
 ```
 
@@ -84,14 +84,14 @@ From Windows PowerShell, run it with the WSL path to the launch script:
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\scripts\windows\setup_webui_autostart.ps1 `
-  -WslScriptPath "/home/your-user/hermes-webui/scripts/wsl/hermes_webui_autostart.sh" `
+  -WslScriptPath "/home/your-user/hermes-webui/scripts/wsl/sidekick_webui_autostart.sh" `
   -Distro "Ubuntu"
 ```
 
 Notes:
 
 - `-Distro` is optional. Omit it to use your default WSL distro.
-- The default task name is `HermesWebUIAutoStart`; pass `-TaskName` if you need a different name.
+- The default task name is `SidekickWebUIAutoStart`; pass `-TaskName` if you need a different name.
 - The script is idempotent: rerunning it updates the existing scheduled task instead of creating duplicates.
 - The task runs as the current Windows user at logon with least privilege.
 - Add `-WhatIf` to preview the scheduled task registration.
@@ -101,8 +101,8 @@ Notes:
 To inspect or remove the task later:
 
 ```powershell
-Get-ScheduledTask -TaskName HermesWebUIAutoStart
-Unregister-ScheduledTask -TaskName HermesWebUIAutoStart -Confirm:$false
+Get-ScheduledTask -TaskName SidekickWebUIAutoStart
+Unregister-ScheduledTask -TaskName SidekickWebUIAutoStart -Confirm:$false
 ```
 
 ## Troubleshooting

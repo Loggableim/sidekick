@@ -1104,7 +1104,7 @@ $('modelSelect').onchange=async()=>{
   if(typeof showToast==='function'){
     showToast(t('model_scope_toast')||'Applies to this conversation from your next message.', 3000);
   }
-  // Warn if selected model belongs to a different provider than what Hermes is configured for
+  // Warn if selected model belongs to a different provider than what Sidekick is configured for
   if(typeof _checkProviderMismatch==='function'){
     const warn=_checkProviderMismatch(selectedModel);
     if(warn&&typeof showToast==='function') showToast(warn,4000);
@@ -1679,12 +1679,12 @@ function _buildSkinPicker(activeSkin){
 function applyBotName(){
   // Prefer profile name over global bot_name for personalised placeholder.
   // If activeProfile is set and not 'default', use it (capitalised).
-  // Falls back to window._botName (global bot_name setting) or 'Hermes'.
+  // Falls back to window._botName (global bot_name setting) or 'Nova'.
   let name;
   if(S.activeProfile && S.activeProfile!=='default'){
     name=S.activeProfile.charAt(0).toUpperCase()+S.activeProfile.slice(1);
   }else{
-    name=window._botName||'Hermes';
+    name=window._botName||'Nova';
   }
   document.title=name;
   // ─── DEV MODE: roter Titelbalken + Warnbanner ─────────────────────
@@ -1772,7 +1772,7 @@ async function _loadActiveSpaceConfig() {
     window._composerMode=(s.composer_mode||'action');
     try{localStorage.setItem('hermes-webui-composer-mode',window._composerMode);}catch(_){}
     window._sessionEndlessScrollEnabled=!!s.session_endless_scroll;
-    window._botName=s.bot_name||'Hermes';
+    window._botName=s.bot_name||'Nova';
     if(s.default_model) window._defaultModel=s.default_model;
     // Persist default workspace so the blank new-chat page can show it
     // and workspace actions (New file/folder) work before the first session (#804).
@@ -1809,7 +1809,7 @@ async function _loadActiveSpaceConfig() {
     window._sidebarDensity='compact';
     window._busyInputMode='queue';
     window._sessionEndlessScrollEnabled=false;
-    window._botName='Hermes';
+    window._botName='Nova';
     _bootSettings={check_for_updates:false};
     if(typeof setLocale==='function'){
       const _lang=typeof resolvePreferredLocale==='function'
@@ -2163,16 +2163,16 @@ function onChatSearchNav(direction){
 
 // ─── Shutdown / Reboot ─────────────────────────────────────────────────────
 function confirmShutdown() {
-  if (!confirm('⚠️ Hermes Server herunterfahren?\n\nBrowser und Server werden geschlossen.')) return;
-  const btn = document.getElementById('btnShutdownHermes');
+  if (!confirm('⚠️ Sidekick Server herunterfahren?\n\nBrowser und Server werden geschlossen.')) return;
+  const btn = document.getElementById('btnShutdownSidekick');
   btn.disabled = true;
   btn.style.opacity = '0.5';
   api('/api/system/shutdown').catch(function(){});
   setTimeout(function(){ window.close(); }, 1200);
 }
 function confirmReboot() {
-  if (!confirm('⚠️ Hermes Server neustarten?\n\nBrowser schliessen, Cache löschen, Server+Browser neu starten.')) return;
-  const btn = document.getElementById('btnRebootHermes');
+  if (!confirm('⚠️ Sidekick Server neustarten?\n\nBrowser schliessen, Cache löschen, Server+Browser neu starten.')) return;
+  const btn = document.getElementById('btnRebootSidekick');
   btn.disabled = true;
   btn.style.opacity = '0.5';
   api('/api/system/restart').catch(function(){});

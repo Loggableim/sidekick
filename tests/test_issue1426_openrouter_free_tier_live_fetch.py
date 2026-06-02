@@ -85,11 +85,23 @@ def _isolate_openrouter_cache(monkeypatch):
 
 def test_fallback_list_contains_free_tier_entries():
     """The hardcoded fallback list (defense-in-depth) still contains the
-    contributor's free-tier entries so offline / test envs see them."""
+    chat-safe free-tier entries so offline / test envs see them."""
     or_entries = [m for m in config._FALLBACK_MODELS if m.get("provider") == "OpenRouter"]
-    assert len(or_entries) >= 5, "fallback list should include at least 5 free-tier entries"
-    free_labels = [m["label"] for m in or_entries if "free" in m["label"].lower()]
-    assert len(free_labels) >= 5, f"expected ≥5 free-tier entries in fallback, got {len(free_labels)}"
+    ids = {m["id"] for m in or_entries}
+    expected_ids = {
+        "openrouter/elephant-alpha",
+        "openrouter/owl-alpha",
+        "moonshotai/kimi-k2.6:free",
+        "tencent/hy3-preview:free",
+        "nvidia/nemotron-3-super-120b-a12b:free",
+        "nvidia/nemotron-3-nano-30b-a3b:free",
+        "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "nvidia/nemotron-nano-12b-v2-vl:free",
+        "nvidia/nemotron-nano-9b-v2:free",
+        "arcee-ai/trinity-large-preview:free",
+    }
+    assert expected_ids <= ids, f"fallback list missing: {sorted(expected_ids - ids)}"
+    assert "bytedance-seed/seedream-4.5" not in ids, "Seedream 4.5 is image-gen and should stay out of the chat dropdown"
 
 
 def test_openrouter_group_uses_live_fetch_when_available(monkeypatch):
@@ -163,17 +175,20 @@ def test_openrouter_falls_back_to_static_when_live_fails(monkeypatch):
     assert len(or_group["models"]) > 0, "fallback must produce a non-empty model list"
     # The hardcoded free-tier entries MUST be in the fallback
     fallback_ids = {m["id"] for m in or_group["models"]}
-    # At least one of the contributor's hardcoded free-tier entries must be present
     expected_free_ids = {
         "openrouter/elephant-alpha",
         "openrouter/owl-alpha",
+        "moonshotai/kimi-k2.6:free",
         "tencent/hy3-preview:free",
         "nvidia/nemotron-3-super-120b-a12b:free",
+        "nvidia/nemotron-3-nano-30b-a3b:free",
+        "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "nvidia/nemotron-nano-12b-v2-vl:free",
+        "nvidia/nemotron-nano-9b-v2:free",
         "arcee-ai/trinity-large-preview:free",
     }
-    overlap = fallback_ids & expected_free_ids
-    assert len(overlap) >= 3, \
-        f"static fallback must include the contributor's hardcoded free-tier entries; got overlap={overlap}"
+    assert expected_free_ids <= fallback_ids, \
+        f"static fallback missing entries: {sorted(expected_free_ids - fallback_ids)}"
 
 
 def test_free_tier_cap_prevents_picker_drowning(monkeypatch):

@@ -1,7 +1,7 @@
 """Kanban read-only bridge tests.
 
 The first upstream WebUI Kanban integration is intentionally read-only: it
-surfaces Hermes Agent Kanban data under /api/kanban/* while keeping the Agent
+surfaces Nova Kanban data under /api/kanban/* while keeping the Agent
 kanban database as the only source of truth.
 
 CI for hermes-webui does not install hermes-agent, so these tests inject a tiny

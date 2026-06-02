@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- Self-update checker.
+Sidekick -- Self-update checker.
 
 Checks if the webui and hermes-agent git repos are behind their upstream
 branches. Results are cached server-side (30-min TTL) so git fetch runs
@@ -123,7 +123,7 @@ def _detect_webui_version() -> str:
 
 
 def _detect_agent_version() -> str:
-    """Detect the running Hermes Agent version for UI display."""
+    """Detect the running Nova version for UI display."""
     if _AGENT_DIR is None:
         return 'not detected'
 

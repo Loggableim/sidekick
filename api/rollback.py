@@ -1,8 +1,8 @@
 """
-Hermes Web UI -- Filesystem checkpoint (rollback) API.
+Sidekick -- Filesystem checkpoint (rollback) API.
 
 Provides endpoints to list, diff, and restore filesystem checkpoints
-created by the Hermes agent's CheckpointManager.  Checkpoints live at
+created by the Nova agent's CheckpointManager.  Checkpoints live at
 ``{hermes_home}/checkpoints/<hash>/`` as shadow git repositories.
 """
 

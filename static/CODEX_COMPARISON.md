@@ -1,4 +1,4 @@
-# Codex Comparison — Hermes WebUI Code-Map & Feature-Gap Analyse
+# Codex Comparison — Sidekick Code-Map & Feature-Gap Analyse
 
 Erstellt: 10.05.2026
 Basis: `C:\Users\logga\hermes-webui\static\`
@@ -11,7 +11,7 @@ Basis: `C:\Users\logga\hermes-webui\static\`
 
 | Struktur | Zeilen | Zweck |
 |----------|--------|-------|
-| `<header class="app-titlebar">` | 63-86 | Titelzeile mit Hermes-Logo, Hamburger |
+| `<header class="app-titlebar">` | 63-86 | Titelzeile mit Sidekick-Logo, Hamburger |
 | `<nav class="rail">` | 88-106 | Desktop-Icon-Leiste (Chat/Tasks/Kanban/Skills/...) |
 | `<aside class="sidebar">` | 107-125 | Mobile Sidebar (gleiche Nav + Panels) |
 | `<div class="sidebar-nav">` | 109-125 | Sidebar-Navigation-Buttons |

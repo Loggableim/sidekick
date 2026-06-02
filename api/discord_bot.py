@@ -49,7 +49,7 @@ def _get_headers():
     return {
         'Authorization': f'Bot {token}',
         'Content-Type': 'application/json',
-        'User-Agent': 'HermesWebUI/1.0 (https://github.com/Loggableim/cids-hermes-webui)',
+        'User-Agent': 'SidekickWebUI/1.0 (https://github.com/Loggableim/sidekick)',
     }
 
 import urllib.request, urllib.error
@@ -193,7 +193,7 @@ def handle_get(handler, parsed):
         req = urllib.request.Request(url, headers={
             'Authorization': f'Bot {token}',
             'Content-Type': 'application/json',
-            'User-Agent': 'HermesWebUI/1.0',
+            'User-Agent': 'SidekickWebUI/1.0',
         })
         try:
             with urllib.request.urlopen(req, timeout=15) as resp:

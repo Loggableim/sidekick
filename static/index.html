@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hermes</title>
+<title>Sidekick</title>
 <link rel="icon" type="image/svg+xml" href="static/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32.png">
 <link rel="shortcut icon" href="static/favicon.ico">
@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Hermes">
+<meta name="apple-mobile-web-app-title" content="Sidekick">
 <link rel="apple-touch-icon" sizes="512x512" href="static/apple-touch-icon.png">
 <!-- base href enables subpath mount support; all static paths must stay relative (no leading slash) -->
 <script>(function(){var path=location.pathname,marker='/session/',i=path.indexOf(marker),p;i>=0?p=(path.slice(0,i+1)||'/'):p=(path.endsWith('/')?path:(path.replace(/\/[^\/]*$/,'/')||'/'));document.write('<base href="'+location.origin+p+'">');})()</script>
@@ -75,21 +75,8 @@
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
   <div class="app-titlebar-inner">
-    <span class="app-titlebar-icon" aria-hidden="true">
-      <svg viewBox="0 0 64 64" width="16" height="16" aria-hidden="true">
-        <defs>
-          <linearGradient id="app-titlebar-gold" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#F5C542"/>
-            <stop offset="100%" style="stop-color:#D4961C"/>
-          </linearGradient>
-        </defs>
-        <rect x="30" y="10" width="4" height="46" rx="2" fill="url(#app-titlebar-gold)"/>
-        <path d="M30 18 C24 14, 14 14, 10 18 C14 16, 22 16, 28 20" fill="#F5C542" opacity="0.9"/>
-        <path d="M34 18 C40 14, 50 14, 54 18 C50 16, 42 16, 36 20" fill="#F5C542" opacity="0.9"/>
-        <circle cx="32" cy="10" r="4" fill="#F5C542"/>
-      </svg>
-    </span>
-    <span class="app-titlebar-title" id="appTitlebarTitle">Hermes</span>
+    <span class="app-titlebar-icon" aria-hidden="true"><img src="static/favicon.svg" width="16" height="16" alt=""></span>
+    <span class="app-titlebar-title" id="appTitlebarTitle">Sidekick</span>
     <span class="app-titlebar-sub" id="appTitlebarSub" hidden></span>
   </div>
   <div class="app-titlebar-center" id="appTitlebarCenter">
@@ -131,10 +118,10 @@
     <button class="titlebar-action-btn has-tooltip has-tooltip--bottom cast-status-btn" id="btnCastToggle" type="button" data-tooltip="Hub Cast" aria-label="Hub Cast" onclick="toggleHubCast()" style="display:none">
       <span id="castStatusIcon">📺</span>
     </button>
-    <button class="titlebar-action-btn has-tooltip has-tooltip--bottom" id="btnRebootHermes" onclick="confirmReboot()" type="button" data-tooltip="Neustarten (Browser+Caches+Server)" aria-label="Neustarten">
+    <button class="titlebar-action-btn has-tooltip has-tooltip--bottom" id="btnRebootSidekick" onclick="confirmReboot()" type="button" data-tooltip="Neustarten (Browser+Caches+Server)" aria-label="Neustarten">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
     </button>
-    <button class="titlebar-action-btn titlebar-action-btn-danger has-tooltip has-tooltip--bottom" id="btnShutdownHermes" onclick="confirmShutdown()" type="button" data-tooltip="Herunterfahren (Browser+Server schliessen)" aria-label="Herunterfahren">
+    <button class="titlebar-action-btn titlebar-action-btn-danger has-tooltip has-tooltip--bottom" id="btnShutdownSidekick" onclick="confirmShutdown()" type="button" data-tooltip="Herunterfahren (Browser+Server schliessen)" aria-label="Herunterfahren">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     </button>
   </div>
@@ -162,7 +149,7 @@
     <button class="rail-btn nav-tab has-tooltip" data-panel="profiles" onclick="switchPanel('profiles',{fromRailClick:true})" data-tooltip="Agent profiles" data-i18n-title="tab_profiles" aria-label="Agent profiles"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
     <button class="rail-btn nav-tab has-tooltip" data-panel="todos" onclick="switchPanel('todos',{fromRailClick:true})" data-tooltip="Current task list" data-i18n-title="tab_todos" aria-label="Todos"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="m3 17 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg></button>
     <button class="rail-btn nav-tab has-tooltip" data-panel="insights" onclick="switchPanel('insights',{fromRailClick:true})" data-tooltip="Insights" data-i18n-title="tab_insights" aria-label="Insights"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></button>
-    <button class="rail-btn nav-tab dashboard-link has-tooltip" id="dashboardRailBtn" data-dashboard-link style="display:none" onclick="openHermesDashboard(event)" data-tooltip="Hermes Dashboard" data-i18n-title="tab_dashboard" aria-label="Hermes Dashboard"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg><span class="dashboard-external-badge" aria-hidden="true"></span></button>
+    <button class="rail-btn nav-tab dashboard-link has-tooltip" id="dashboardRailBtn" data-dashboard-link style="display:none" onclick="openNovaDashboard(event)" data-tooltip="Nova Dashboard" data-i18n-title="tab_dashboard" aria-label="Nova Dashboard"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg><span class="dashboard-external-badge" aria-hidden="true"></span></button>
     <button class="rail-btn nav-tab has-tooltip" data-panel="logs" onclick="switchPanel('logs',{fromRailClick:true})" data-tooltip="Logs" data-i18n-title="tab_logs" aria-label="Logs"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/><path d="M8 9h2"/></svg></button>
 <button class="rail-btn nav-tab has-tooltip" data-panel="gmail" onclick="switchPanel('gmail',{fromRailClick:true})" data-tooltip="Gmail" data-i18n-title="Gmail" aria-label="Gmail" id="gmailRailBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg><span class="gmail-badge-dot" id="gmailUnreadDot" style="display:none"></span></button>
     <button class="rail-btn nav-tab has-tooltip" data-panel="browser" onclick="switchPanel('browser',{fromRailClick:true})" data-tooltip="Browser" data-i18n-title="tab_browser" aria-label="Browser"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 8h18"/><circle cx="7" cy="6" r="0.75" fill="currentColor" stroke="none"/><circle cx="10" cy="6" r="0.75" fill="currentColor" stroke="none"/><path d="M12 11l4 4"/><path d="M14 11h2v2"/></svg></button>
@@ -187,7 +174,7 @@
       <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="profiles" data-label="Profiles" onclick="switchPanel('profiles',{fromRailClick:true})" data-tooltip="Agent profiles" data-i18n-title="tab_profiles"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
       <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="todos" data-label="Todos" onclick="switchPanel('todos',{fromRailClick:true})" data-tooltip="Current task list" data-i18n-title="tab_todos"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="m3 17 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg></button>
       <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="insights" data-label="Insights" onclick="switchPanel('insights',{fromRailClick:true})" data-tooltip="Insights" data-i18n-title="tab_insights"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></button>
-      <button class="nav-tab dashboard-link has-tooltip has-tooltip--bottom" id="dashboardMobileBtn" data-dashboard-link data-label="Dashboard" style="display:none" onclick="openHermesDashboard(event)" data-tooltip="Hermes Dashboard" data-i18n-title="tab_dashboard"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg><span class="dashboard-external-badge" aria-hidden="true"></span></button>
+      <button class="nav-tab dashboard-link has-tooltip has-tooltip--bottom" id="dashboardMobileBtn" data-dashboard-link data-label="Dashboard" style="display:none" onclick="openNovaDashboard(event)" data-tooltip="Nova Dashboard" data-i18n-title="tab_dashboard"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg><span class="dashboard-external-badge" aria-hidden="true"></span></button>
       <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="logs" data-label="Logs" onclick="switchPanel('logs',{fromRailClick:true})" data-tooltip="Logs" data-i18n-title="tab_logs"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/><path d="M8 9h2"/></svg></button>
       <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="browser" data-label="Browser" onclick="switchPanel('browser',{fromRailClick:true})" data-tooltip="Browser" data-i18n-title="tab_browser"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 8h18"/><circle cx="7" cy="6" r="0.75" fill="currentColor" stroke="none"/><circle cx="10" cy="6" r="0.75" fill="currentColor" stroke="none"/><path d="M12 11l4 4"/><path d="M14 11h2v2"/></svg></button>
       <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="appstore" data-label="Appstore" onclick="switchPanel('appstore',{fromRailClick:true})" data-tooltip="Appstore" aria-label="Appstore"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3 7h7l-5.5 4.3 2.1 7L12 16.2 5.4 20.3l2.1-7L2 9h7z"/><circle cx="12" cy="12" r="2" fill="currentColor" opacity=".4"/></svg></button>
@@ -655,23 +642,7 @@
       <button id="jumpToSessionStartBtn" style="display:none"></button>
       <button id="scrollToBottomBtn" class="scroll-to-bottom-btn" style="display:none" onclick="scrollToBottom()" aria-label="Scroll to bottom" data-i18n-aria-label="session_jump_end_label" data-i18n-title="session_jump_end_label"><span aria-hidden="true">â†“</span><span class="session-jump-btn__text" data-i18n="session_jump_end">End</span></button>
       <div class="empty-state" id="emptyState">
-        <div class="empty-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="80" height="80" aria-label="Hermes caduceus">
-          <defs>
-            <linearGradient id="hermes-gold" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" style="stop-color:#F5C542;stop-opacity:1"/>
-              <stop offset="100%" style="stop-color:#D4961C;stop-opacity:1"/>
-            </linearGradient>
-          </defs>
-          <rect x="30" y="10" width="4" height="46" rx="2" fill="url(#hermes-gold)"/>
-          <path d="M30 18 C24 14, 14 14, 10 18 C14 16, 22 16, 28 20" fill="#F5C542" opacity="0.9"/>
-          <path d="M30 22 C26 19, 18 19, 14 22 C18 20, 24 20, 28 24" fill="#D4961C" opacity="0.8"/>
-          <path d="M34 18 C40 14, 50 14, 54 18 C50 16, 42 16, 36 20" fill="#F5C542" opacity="0.9"/>
-          <path d="M34 22 C38 19, 46 19, 50 22 C46 20, 40 20, 36 24" fill="#D4961C" opacity="0.8"/>
-          <path d="M32 48 C22 44, 20 38, 26 34 C20 36, 18 42, 24 46 C18 40, 22 30, 30 28 C24 32, 22 38, 28 42" fill="none" stroke="#F5C542" stroke-width="2.5" stroke-linecap="round"/>
-          <path d="M32 48 C42 44, 44 38, 38 34 C44 36, 46 42, 40 46 C46 40, 42 30, 34 28 C40 32, 42 38, 36 42" fill="none" stroke="#D4961C" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="32" cy="10" r="4" fill="#F5C542"/>
-          <circle cx="32" cy="10" r="2" fill="#FFF8E1" opacity="0.7"/>
-        </svg></div>
+        <div class="empty-logo"><img src="static/favicon.svg" width="80" height="80" alt="Sidekick logo"></div>
         <h2 data-i18n="empty_title">What can I help with?</h2>
         <p data-i18n="empty_subtitle">Ask anything, run commands, explore files, or manage your scheduled tasks.</p>
         <div class="suggestion-grid">
@@ -707,16 +678,16 @@
       <div class="offline-copy">
         <strong id="offlineTitle" data-i18n="offline_title">Connection lost</strong>
         <span id="offlineDetails" data-i18n="offline_browser_detail">Your browser reports that this device is offline.</span>
-        <span id="offlineAutorefresh" data-i18n="offline_autorefresh">I will refresh this page automatically when Hermes is reachable again.</span>
+        <span id="offlineAutorefresh" data-i18n="offline_autorefresh">I will refresh this page automatically when Sidekick is reachable again.</span>
       </div>
       <button class="offline-action" id="offlineCheckNow" type="button" onclick="checkOfflineRecoveryNow()" data-i18n="offline_check_now">Check now</button>
     </div>
     <div class="agent-health-banner" id="agentHealthBanner" role="alert" aria-live="assertive" hidden>
       <div class="agent-health-copy">
-        <strong id="agentHealthTitle">Hermes agent is not responding</strong>
+        <strong id="agentHealthTitle">Nova agent is not responding</strong>
         <span id="agentHealthDetails">The gateway heartbeat failed. Messages may not be delivered until it comes back.</span>
       </div>
-      <button class="agent-health-dismiss" id="agentHealthDismiss" type="button" onclick="dismissAgentHealthAlert()" aria-label="Dismiss Hermes agent heartbeat alert">Dismiss</button>
+      <button class="agent-health-dismiss" id="agentHealthDismiss" type="button" onclick="dismissAgentHealthAlert()" aria-label="Dismiss Nova agent heartbeat alert">Dismiss</button>
     </div>
     <div class="composer-wrap" id="composerWrap">
       <div class="composer-flyout">
@@ -800,7 +771,7 @@
           <button type="button" class="action-chip" data-cmd="/deploy" onclick="actionChipClick('/deploy')" title="Deploy to production" data-tooltip="Deploy to production" aria-label="Deploy to production">Deploy</button>
           <button type="button" class="action-chip" data-cmd="/plan" onclick="actionChipClick('/plan')" title="Create implementation plan" data-tooltip="Create implementation plan" aria-label="Create implementation plan">Plan</button>
         </div>
-        <textarea id="msg" rows="1" placeholder="Message Hermes…"></textarea>
+        <textarea id="msg" rows="1" placeholder="Message Nova…"></textarea>
         <div class="msg-expand-bar is-collapsed" id="msgExpandBar">
           <button type="button" class="msg-expand-btn" id="btnExpandEditor" onclick="toggleExpandEditor()" title="Expand editor (Ctrl+Shift+E)" aria-label="Expand editor">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
@@ -993,7 +964,7 @@
               <button class="ctx-compress-btn composer-mobile-context-compress" id="composerMobileCtxCompressBtn" type="button" style="display:none"></button>
             </div>
             <div class="composer-advanced-panel" id="composerAdvancedPanel" aria-label="Advanced composer options">
-              <button class="composer-mobile-config-action" type="button" onclick="setComposerBusyMode('queue')" title="Queue messages while Hermes is busy">
+              <button class="composer-mobile-config-action" type="button" onclick="setComposerBusyMode('queue')" title="Queue messages while Nova is busy">
                 <span aria-hidden="true">⇄</span>
                 <span class="composer-mobile-config-copy"><span class="composer-mobile-config-value">Queue</span></span>
               </button>
@@ -1047,8 +1018,8 @@
             <span class="browser-session-label" id="browserSessionLabel"></span>
             <span class="browser-permission-status" id="browserPermissionStatus">Agent locked</span>
             <div class="panel-actions">
-              <button class="panel-icon-btn has-tooltip has-tooltip--bottom" id="browserPermissionBtn" data-tooltip="Allow Hermes agent browser control" aria-label="Allow Hermes agent browser control" aria-pressed="false" onclick="browserTogglePermission()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.5-2.2"/></svg></button>
-              <button class="panel-icon-btn has-tooltip has-tooltip--bottom" id="browserAgentStopBtn" data-tooltip="Stop Hermes agent browser handoff" aria-label="Stop Hermes agent browser handoff" onclick="browserStopPermission()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6"/><path d="M15 9l-6 6"/></svg></button>
+              <button class="panel-icon-btn has-tooltip has-tooltip--bottom" id="browserPermissionBtn" data-tooltip="Allow Nova agent browser control" aria-label="Allow Nova agent browser control" aria-pressed="false" onclick="browserTogglePermission()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.5-2.2"/></svg></button>
+              <button class="panel-icon-btn has-tooltip has-tooltip--bottom" id="browserAgentStopBtn" data-tooltip="Stop Nova agent browser handoff" aria-label="Stop Nova agent browser handoff" onclick="browserStopPermission()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6"/><path d="M15 9l-6 6"/></svg></button>
               <button class="panel-icon-btn has-tooltip has-tooltip--bottom" id="browserBtnBack" data-tooltip="Back" aria-label="Back" onclick="browserGoBack()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
               <button class="panel-icon-btn has-tooltip has-tooltip--bottom" id="browserBtnForward" data-tooltip="Forward" aria-label="Forward" onclick="browserGoForward()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
               <button class="panel-icon-btn has-tooltip has-tooltip--bottom" id="browserBtnReload" data-tooltip="Reload" aria-label="Reload" onclick="browserReload()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
@@ -1559,7 +1530,7 @@
             <div class="settings-section-head">
               <div>
                 <div class="settings-section-title" data-i18n="settings_section_preferences_title">Preferences</div>
-                <div class="settings-section-meta" data-i18n="settings_section_preferences_meta">Defaults and UI behavior for Hermes Web UI.</div>
+                <div class="settings-section-meta" data-i18n="settings_section_preferences_meta">Defaults and UI behavior for Sidekick.</div>
               </div>
             </div>
             <div class="settings-field">
@@ -1604,7 +1575,7 @@
                 <input type="checkbox" id="settingsVoiceModeEnabled" style="width:15px;height:15px;accent-color:var(--accent)">
                 <span data-i18n="settings_label_voice_mode">Hands-free voice mode button</span>
               </label>
-              <div style="font-size:11px;color:var(--muted);margin-top:4px" data-i18n="settings_desc_voice_mode">Show the voice-mode button (audio waveform) next to the dictation mic. Lets you speak naturally — Hermes auto-sends after a pause and reads replies aloud. Requires a browser that supports both speech recognition and TTS.</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:4px" data-i18n="settings_desc_voice_mode">Show the voice-mode button (audio waveform) next to the dictation mic. Lets you speak naturally — Nova auto-sends after a pause and reads replies aloud. Requires a browser that supports both speech recognition and TTS.</div>
             </div>
             <div class="settings-field">
               <label for="settingsTtsVoice" data-i18n="settings_label_tts_voice">Voice</label>
@@ -1712,8 +1683,8 @@
             </div>
             <div class="settings-field">
               <label for="settingsBotName" data-i18n="settings_label_bot_name">Assistant Name</label>
-              <div style="font-size:11px;color:var(--muted);margin-bottom:6px" data-i18n="settings_desc_bot_name">Display name for the assistant throughout the UI. Defaults to Hermes.</div>
-              <input type="text" id="settingsBotName" placeholder="Hermes" maxlength="64" style="width:100%;padding:8px;background:var(--code-bg);color:var(--text);border:1px solid var(--border2);border-radius:6px;font-size:13px">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:6px" data-i18n="settings_desc_bot_name">Display name for Nova throughout the UI. Defaults to Nova.</div>
+              <input type="text" id="settingsBotName" placeholder="Nova" maxlength="64" style="width:100%;padding:8px;background:var(--code-bg);color:var(--text);border:1px solid var(--border2);border-radius:6px;font-size:13px">
             </div>
             <button class="sm-btn" onclick="saveSettings()" style="margin-top:12px;width:100%;padding:8px;font-weight:600" data-i18n="settings_save_btn">Save Settings</button>
             <div id="settingsPreferencesAutosaveStatus" class="settings-autosave-status" aria-live="polite"></div>
@@ -1763,7 +1734,7 @@
               <!-- Populated dynamically by loadPluginsPanel() -->
             </div>
             <div id="pluginsEmpty" style="display:none;text-align:center;padding:32px 0;color:var(--muted);font-size:13px">
-              No Hermes plugins are currently visible. Install or enable plugins from the Hermes CLI/config to see them here.
+              No Sidekick plugins are currently visible. Install or enable plugins from the Sidekick CLI/config to see them here.
             </div>
           </div>
           <div class="settings-pane" id="settingsPaneSystem">
@@ -1788,7 +1759,7 @@
             <button class="sm-btn" id="btnDisableAuth" onclick="disableAuth()" style="margin-top:6px;width:100%;padding:8px;font-weight:600;color:#e8a030;border-color:rgba(232,160,48,.3);display:none" data-i18n="disable_auth">Disable Auth</button>
             <button class="sm-btn" id="btnSignOut" onclick="signOut()" style="margin-top:6px;width:100%;padding:8px;font-weight:600;color:var(--accent);border-color:rgba(233,69,96,.3);display:none" data-i18n="sign_out">Sign Out</button>
             <div class="settings-field" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
-              <label for="settingsDashboardMode">Official Hermes Dashboard</label>
+              <label for="settingsDashboardMode">Official Nova Dashboard</label>
               <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Show a nav-rail link when the official <code>hermes dashboard</code> is reachable. Overrides are restricted to loopback URLs.</div>
               <select id="settingsDashboardMode" style="width:100%;padding:8px;background:var(--code-bg);color:var(--text);border:1px solid var(--border2);border-radius:6px">
                 <option value="auto">Auto-detect</option>
@@ -1802,7 +1773,7 @@
             <!-- Gateway Status Section -->
             <div class="settings-field" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
               <label>Gateway Status</label>
-              <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Status of the Hermes gateway (Telegram, Discord, Slack, etc.)</div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Status of the Nova gateway (Telegram, Discord, Slack, etc.)</div>
               <div id="gatewayStatusCard"><span style="color:var(--muted);font-size:12px">Loading…</span></div>
             </div>
             <!-- MCP Servers Section -->
@@ -1810,7 +1781,7 @@
               <label data-i18n="mcp_servers_title">MCP Servers</label>
               <div style="font-size:11px;color:var(--muted);margin-bottom:8px" data-i18n="mcp_servers_desc">View Model Context Protocol servers configured in config.yaml.</div>
               <div id="mcpServerList"></div>
-              <div class="mcp-restart-hint" data-i18n="mcp_restart_hint">Server changes are read-only here for now. Edit config.yaml and restart Hermes for changes to take effect.</div>
+              <div class="mcp-restart-hint" data-i18n="mcp_restart_hint">Server changes are read-only here for now. Edit config.yaml and restart Sidekick for changes to take effect.</div>
             </div>
             <!-- MCP Tools Section -->
             <div class="settings-field" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
@@ -1983,8 +1954,8 @@
     <div class="onboarding-shell">
       <div class="onboarding-sidebar">
         <div class="onboarding-badge" data-i18n="onboarding_badge">FIRST RUN</div>
-        <h2 id="onboardingTitle" data-i18n="onboarding_title">Welcome to Hermes Web UI</h2>
-        <p id="onboardingLead" data-i18n="onboarding_lead">A quick guided setup will check your Hermes install, choose a workspace and model, and optionally protect the app with a password.</p>
+        <h2 id="onboardingTitle" data-i18n="onboarding_title">Welcome to Sidekick</h2>
+        <p id="onboardingLead" data-i18n="onboarding_lead">A quick guided setup will check your Sidekick install, choose a workspace and model, and optionally protect the app with a password.</p>
         <div class="onboarding-steps" id="onboardingSteps"></div>
       </div>
       <div class="onboarding-main">
@@ -2104,7 +2075,7 @@
       <select id="kanbanTaskModalAssignee">
         <!-- Options populated by _kanbanPopulateAssigneeSelect() at modal open time. -->
       </select>
-      <div class="kanban-modal-hint" id="kanbanTaskModalAssigneeHint" data-i18n="kanban_assignee_hint">Pick a Hermes profile so the dispatcher can claim and run this task. Tasks left as <em>Unassigned</em> will sit in Ready forever.</div>
+      <div class="kanban-modal-hint" id="kanbanTaskModalAssigneeHint" data-i18n="kanban_assignee_hint">Pick a Nova profile so the dispatcher can claim and run this task. Tasks left as <em>Unassigned</em> will sit in Ready forever.</div>
     </div>
     <div class="kanban-modal-row">
       <label for="kanbanTaskModalTenant" data-i18n="kanban_tenant">Tenant</label>
@@ -2169,7 +2140,7 @@
       <input type="text" id="agentsEditWorkdir" placeholder="z.B. C:\Users\logga\projects">
     </div>
     <div class="agents-edit-field">
-      <label for="agentsEditProfile">Hermes-Profil (optional)</label>
+      <label for="agentsEditProfile">Nova-Profil (optional)</label>
       <input type="text" id="agentsEditProfile" placeholder="z.B. developer (Profilname)">
     </div>
     <div class="agents-edit-field">

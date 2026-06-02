@@ -117,8 +117,8 @@ class TestRailButtonsPassFromRailClick:
             assert args and "fromRailClick:true" in args, panel
 
     def test_dashboard_button_unchanged(self):
-        assert "openHermesDashboard(event)" in HTML
-        dash_idx = HTML.index("openHermesDashboard(event)")
+        assert "openNovaDashboard(event)" in HTML
+        dash_idx = HTML.index("openNovaDashboard(event)")
         assert "fromRailClick" not in HTML[dash_idx - 200 : dash_idx + 50]
 
 

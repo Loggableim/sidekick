@@ -1,4 +1,4 @@
-"""Safe server-side probe for the official Hermes Agent dashboard.
+"""Safe server-side probe for the official Nova dashboard.
 
 The official `hermes dashboard` binds to 127.0.0.1:9119 by default and exposes
 GET /api/status as a public, read-only identity/status endpoint.  Keep all
@@ -68,7 +68,7 @@ def _looks_like_official_dashboard(payload: object) -> bool:
     version = payload.get("version")
     if not isinstance(version, str) or not version.strip():
         return False
-    # Verified against current Hermes Agent `hermes_cli.web_server.get_status()`:
+    # Verified against current Nova `hermes_cli.web_server.get_status()`:
     # /api/status returns version plus these Hermes-specific fields. Requiring at
     # least one avoids treating any generic {version: ...} local service as the
     # official dashboard.

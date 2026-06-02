@@ -1,4 +1,4 @@
-# Hermes WebUI — single-container Docker Compose
+# Sidekick — single-container Docker Compose
 #
 # QUICK START (most users):
 #   1. (Optional) Copy .env.docker.example to .env and edit values

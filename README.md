@@ -1,8 +1,8 @@
-# Hermes Web UI
+# Sidekick
 
-[Hermes Agent](https://hermes-agent.nousresearch.com/) is a sophisticated autonomous agent that lives on your server, accessed via a terminal or messaging apps, that remembers what it learns and gets more capable the longer it runs.
+[Nova](https://hermes-agent.nousresearch.com/) is a sophisticated autonomous agent that lives on your server, accessed via a terminal or messaging apps, that remembers what it learns and gets more capable the longer it runs.
 
-Hermes WebUI is a lightweight, dark-themed web app interface in your browser for [Hermes Agent](https://hermes-agent.nousresearch.com/).
+Sidekick is a lightweight, dark-themed web app interface in your browser for [Nova](https://hermes-agent.nousresearch.com/).
 Full parity with the CLI experience - everything you can do from a terminal,
 you can do from this UI. No build step, no framework, no bundler. Just Python
 and vanilla JS.
@@ -11,9 +11,9 @@ Layout: three-panel. Left sidebar for sessions and navigation, center for chat,
 right for workspace file browsing. Model, profile, and workspace controls live in
 the **composer footer** — always visible while composing. A circular context ring
 shows token usage at a glance. All settings and session tools are in the
-**Hermes Control Center** (launcher at the sidebar bottom).
+**Sidekick Control Center** (launcher at the sidebar bottom).
 
-<img width="2448" height="1748" alt="Hermes Web UI — three-panel layout" src="https://github.com/user-attachments/assets/6bf8af4c-209d-441e-8b92-6515d7a0c369" />
+<img width="2448" height="1748" alt="Sidekick — three-panel layout" src="https://github.com/user-attachments/assets/6bf8af4c-209d-441e-8b92-6515d7a0c369" />
 
 <table>
   <tr>
@@ -41,36 +41,36 @@ shows token usage at a glance. All settings and session tools are in the
   </tr>
 </table>
 
-This gives you nearly **1:1 parity with Hermes CLI from a convenient web UI** which you can access securely through an SSH tunnel from your Hermes setup. Single command to start this up, and a single command to SSH tunnel for access on your computer. Every single part of the web UI uses your existing Hermes agent and existing models, without requiring any additional setup.
+This gives you nearly **1:1 parity with Sidekick CLI from a convenient web UI** which you can access securely through an SSH tunnel from your Sidekick setup. Single command to start this up, and a single command to SSH tunnel for access on your computer. Every single part of the web UI uses your existing Nova agent and existing models, without requiring any additional setup.
 
 ---
 
-## Why Hermes
+## Why Sidekick
 
 Most AI tools reset every session. They don't know who you are, what you worked on, or what
 conventions your project follows. You re-explain yourself every time.
 
-Hermes retains context across sessions, runs scheduled jobs while you're offline, and gets
-smarter about your environment the longer it runs. It uses your existing Hermes agent setup,
+Sidekick retains context across sessions, runs scheduled jobs while you're offline, and gets
+smarter about your environment the longer it runs. It uses your existing Nova agent setup,
 your existing models, and requires no additional configuration to start.
 
 What makes it different from other agentic tools:
 
 - **Persistent memory** — user profile, agent notes, and a skills system that saves reusable
-  procedures; Hermes learns your environment and does not have to relearn it
+  procedures; Sidekick learns your environment and does not have to relearn it
 - **Self-hosted scheduling** — cron jobs that fire while you're offline and deliver results to
   Telegram, Discord, Slack, Signal, email, and more
 - **10+ messaging platforms** — the same agent available in the terminal is reachable from your phone
-- **Self-improving skills** — Hermes writes and saves its own skills automatically from experience;
+- **Self-improving skills** — Sidekick writes and saves its own skills automatically from experience;
   no marketplace to browse, no plugins to install
 - **Provider-agnostic** — OpenAI, Anthropic, Google, DeepSeek, OpenRouter, and more
 - **Orchestrates other agents** — can spawn Claude Code or Codex for heavy coding tasks and bring
   the results back into its own memory
 - **Self-hosted** — your conversations, your memory, your hardware
 
-**vs. the field** *(landscape is actively shifting — see [HERMES.md](HERMES.md) for the full breakdown)*:
+**vs. the field** *(landscape is actively shifting — see [SIDEKICK.md](SIDEKICK.md) for the full breakdown)*:
 
-| | OpenClaw | Claude Code | Codex CLI | OpenCode | Hermes |
+| | OpenClaw | Claude Code | Codex CLI | OpenCode | Sidekick |
 |---|---|---|---|---|---|
 | Persistent memory (auto) | Yes | Partial† | Partial | Partial | Yes |
 | Scheduled jobs (self-hosted) | Yes | No‡ | No | No | Yes |
@@ -85,11 +85,11 @@ What makes it different from other agentic tools:
 ‡ Claude Code has cloud-managed scheduling (Anthropic infrastructure) and session-scoped `/loop`; no self-hosted cron
 
 **The closest competitor is OpenClaw** — both are always-on, self-hosted, open-source agents
-with memory, cron, and messaging. The key differences: Hermes writes and saves its own skills
+with memory, cron, and messaging. The key differences: Sidekick writes and saves its own skills
 automatically as a core behavior (OpenClaw's skill system centers on a community marketplace);
-Hermes is more stable across updates (OpenClaw has documented release regressions and ClawHub
-has had security incidents involving malicious skills); and Hermes runs natively in the Python
-ecosystem. See [HERMES.md](HERMES.md) for the full side-by-side.
+Sidekick is more stable across updates (OpenClaw has documented release regressions and ClawHub
+has had security incidents involving malicious skills); and Sidekick runs natively in the Python
+ecosystem. See [SIDEKICK.md](SIDEKICK.md) for the full side-by-side.
 
 ---
 
@@ -123,7 +123,7 @@ For self-hosted VM or homelab installs, `ctl.sh` wraps the common daemon lifecyc
 
 The bootstrap will:
 
-1. Detect Hermes Agent and, if missing, attempt the official installer (`curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash`).
+1. Detect Nova and, if missing, attempt the official installer (`curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash`).
 2. Find or create a Python environment with the WebUI dependencies.
 3. Start the web server and wait for `/health`.
 4. Open the browser unless you pass `--no-browser`.
@@ -231,7 +231,7 @@ For the deep dive on each of these, see [`docs/docker.md`](docs/docker.md).
 
 | Thing | How it finds it |
 |---|---|
-| Hermes agent dir | `HERMES_WEBUI_AGENT_DIR` env, then `~/.hermes/hermes-agent`, then sibling `../hermes-agent` |
+| Nova agent dir | `HERMES_WEBUI_AGENT_DIR` env, then `~/.hermes/hermes-agent`, then sibling `../hermes-agent` |
 | Python executable | Agent venv first, then `.venv` in this repo, then system `python3` |
 | State directory | `HERMES_WEBUI_STATE_DIR` env, then `~/.hermes/webui` |
 | Default workspace | `HERMES_WEBUI_DEFAULT_WORKSPACE` env, then `~/workspace`, then state dir |
@@ -272,15 +272,15 @@ Full list of environment variables:
 | `HERMES_WEBUI_EXTENSION_DIR` | *(unset)* | Optional local directory served at `/extensions/`; must point to an existing directory before extension injection is enabled |
 | `HERMES_WEBUI_EXTENSION_SCRIPT_URLS` | *(unset)* | Optional comma-separated same-origin script URLs to inject; see [WebUI Extensions](docs/EXTENSIONS.md) |
 | `HERMES_WEBUI_EXTENSION_STYLESHEET_URLS` | *(unset)* | Optional comma-separated same-origin stylesheet URLs to inject; see [WebUI Extensions](docs/EXTENSIONS.md) |
-| `HERMES_HOME` | `~/.hermes` | Base directory for Hermes state (affects all paths) |
-| `HERMES_CONFIG_PATH` | `~/.hermes/config.yaml` | Path to Hermes config file |
+| `HERMES_HOME` | `~/.hermes` | Base directory for Sidekick state (affects all paths) |
+| `HERMES_CONFIG_PATH` | `~/.hermes/config.yaml` | Path to Sidekick config file |
 
 ---
 
 ## Accessing from a remote machine
 
 The server binds to `127.0.0.1` by default (loopback only). If you are running
-Hermes on a VPS or remote server, use an SSH tunnel from your local machine:
+Sidekick on a VPS or remote server, use an SSH tunnel from your local machine:
 
 ```bash
 ssh -N -L <local-port>:127.0.0.1:<remote-port> <user>@<server-host>
@@ -305,7 +305,7 @@ are running over SSH.
 WireGuard. Install it on your server and your phone, and they join the same
 private network -- no port forwarding, no SSH tunnels, no public exposure.
 
-The Hermes Web UI is fully responsive with a mobile-optimized layout
+The Sidekick is fully responsive with a mobile-optimized layout
 (hamburger sidebar, sidebar top tabs in the drawer, touch-friendly controls),
 so it works well as a daily-driver agent interface from your phone.
 
@@ -338,11 +338,11 @@ for an app-like experience.
 If you prefer to launch the server directly:
 
 ```bash
-cd /path/to/hermes-agent          # or wherever sys.path can find Hermes modules
+cd /path/to/hermes-agent          # or wherever sys.path can find Sidekick modules
 HERMES_WEBUI_PORT=8787 venv/bin/python /path/to/hermes-webui/server.py
 ```
 
-Note: use the agent venv Python (or any Python environment that has the Hermes agent dependencies installed). System Python will be missing `openai`, `httpx`, and other required packages.
+Note: use the agent venv Python (or any Python environment that has the Nova agent dependencies installed). System Python will be missing `openai`, `httpx`, and other required packages.
 
 Health check:
 
@@ -354,7 +354,7 @@ curl http://127.0.0.1:8787/health
 
 ## Running tests
 
-Tests discover the repo and the Hermes agent dynamically -- no hardcoded paths.
+Tests discover the repo and the Nova agent dynamically -- no hardcoded paths.
 
 ```bash
 cd hermes-webui
@@ -377,7 +377,7 @@ across 100+ test files.
 
 ### Chat and agent
 - Streaming responses via SSE (tokens appear as they are generated)
-- Multi-provider model support -- any Hermes API provider (OpenAI, Anthropic, Google, DeepSeek, Nous Portal, OpenRouter, MiniMax, Xiaomi MiMo, Z.AI); dynamic model dropdown populated from configured keys
+- Multi-provider model support -- any Sidekick API provider (OpenAI, Anthropic, Google, DeepSeek, Nous Portal, OpenRouter, MiniMax, Xiaomi MiMo, Z.AI); dynamic model dropdown populated from configured keys
 - Send a message while one is processing -- it queues automatically
 - Edit any past user message inline and regenerate from that point
 - Retry the last assistant response with one click
@@ -454,7 +454,7 @@ across 100+ test files.
 - Custom themes: define a `:root[data-theme="name"]` CSS block and it works — see [THEMES.md](THEMES.md)
 
 ### Settings and configuration
-- **Hermes Control Center** (sidebar launcher button) -- Conversation tab (export/import/clear), Preferences tab (model, send key, theme, language, all toggles), System tab (version, password)
+- **Sidekick Control Center** (sidebar launcher button) -- Conversation tab (export/import/clear), Preferences tab (model, send key, theme, language, all toggles), System tab (version, password)
 - Send key: Enter (default) or Ctrl/Cmd+Enter
 - Show/hide CLI sessions toggle (enabled by default)
 - Token usage display toggle (off by default, also via `/usage` command)
@@ -530,7 +530,7 @@ State lives outside the repo at `~/.hermes/webui/` by default
 
 ## Docs
 
-- `HERMES.md` -- why Hermes, mental model, and detailed comparison to Claude Code / Codex / OpenCode / Cursor
+- `SIDEKICK.md` -- why Sidekick, mental model, and detailed comparison to Claude Code / Codex / OpenCode / Cursor
 - `ROADMAP.md` -- feature roadmap and sprint history
 - `ARCHITECTURE.md` -- system design, all API endpoints, implementation notes
 - `TESTING.md` -- manual browser test plan and automated coverage reference
@@ -542,7 +542,7 @@ State lives outside the repo at `~/.hermes/webui/` by default
 
 ## Contributors
 
-Hermes WebUI is built with help from the open-source community. Every PR — whether merged directly, absorbed into a batch release, or salvaged from a larger proposal — shapes the project, and we're grateful to everyone who has taken the time to contribute.
+Sidekick is built with help from the open-source community. Every PR — whether merged directly, absorbed into a batch release, or salvaged from a larger proposal — shapes the project, and we're grateful to everyone who has taken the time to contribute.
 
 **130 contributors have shipped code that landed in a release tag** as of v0.51.44. The full credit roll lives in [`CONTRIBUTORS.md`](CONTRIBUTORS.md). The highlights:
 
@@ -575,7 +575,7 @@ Production Docker hardening (#1921, drops sudo-capable staging user), profile-sc
 Provider management UI for adding/editing custom providers from Settings, OAuth provider status detection (#1552), two-container Docker setup, profile isolation hardening (per-profile `.env` secrets), the bulk of what users see when they touch Settings → Providers, Reveal-in-Finder context menu (#1551), gateway status card (#1552), auto-assign session to active project filter (#1550), "What's new?" link in update banner (#1549), OpenRouter free-tier live fetch (#1548), credential pool 401 self-heal (#1553), inline provider chip + group model count in model picker (#1644).
 
 **[@ai-ag2026](https://github.com/ai-ag2026)** — Session recovery + audit infrastructure (49 PRs, `v0.50.279` → `v0.51.44`)
-Autonomous-AI contributor (Hermes Agent-driven) focused on durability: `state.db`-backed sidecar reconciliation (#2041), orphan `.json.bak` recovery on startup (#2035), read-only session recovery audit endpoints (#2036, #2040), active run lifecycle in `/health` (#2039), crash-safe turn-journal RFC at `docs/rfcs/turn-journal.md` (#2042), fork-session compression lineage isolation (#2014).
+Autonomous-AI contributor (Nova-driven) focused on durability: `state.db`-backed sidecar reconciliation (#2041), orphan `.json.bak` recovery on startup (#2035), read-only session recovery audit endpoints (#2036, #2040), active run lifecycle in `/health` (#2039), crash-safe turn-journal RFC at `docs/rfcs/turn-journal.md` (#2042), fork-session compression lineage isolation (#2014).
 
 **[@dso2ng](https://github.com/dso2ng)** — Session lineage + diagnostics (21 PRs, `v0.50.227` → `v0.51.37`)
 `/api/session/lineage-report/<sid>` endpoint for bounded session graph diagnostics (#2012), stale Mermaid render error cleanup (#1337), and a long tail of frontend reliability fixes around session loading.
@@ -584,7 +584,7 @@ Autonomous-AI contributor (Hermes Agent-driven) focused on durability: `state.db
 Sidebar collapse via active-rail click (#2054, fuses #1884 + #1924), composer chip lightbox (#1758), title fixes for tool-heavy first turns, and a string of frontend polish fixes.
 
 **[@aronprins](https://github.com/aronprins)** — `v0.50.0` UI overhaul (PR #242, plus 9 follow-ups)
-The biggest single contribution to the project: a complete UI redesign that moved model/profile/workspace controls into the composer footer, replaced the gear-icon settings panel with the Hermes Control Center (tabbed modal), removed the activity bar in favor of inline composer status, redesigned the session list with a `⋯` action dropdown, and added the workspace panel state machine. Plus chat transcript redesign (#587), sidebar declutter (#584), three-column layout refactor (#899), light/dark theme + accent skins (#627), and shared `confirm()`/`prompt()` dialog replacement (PR #251 extracted from #242).
+The biggest single contribution to the project: a complete UI redesign that moved model/profile/workspace controls into the composer footer, replaced the gear-icon settings panel with the Sidekick Control Center (tabbed modal), removed the activity bar in favor of inline composer status, redesigned the session list with a `⋯` action dropdown, and added the workspace panel state machine. Plus chat transcript redesign (#587), sidebar declutter (#584), three-column layout refactor (#899), light/dark theme + accent skins (#627), and shared `confirm()`/`prompt()` dialog replacement (PR #251 extracted from #242).
 
 **[@iRonin](https://github.com/iRonin)** — Security hardening sprint (PRs #196–#204)
 Six consecutive, focused security PRs: session memory leak fix (expired token pruning), CSP + Permissions-Policy headers, 30-second slow-client connection timeout, optional HTTPS/TLS support via environment variables, upstream branch tracking fix for self-update, and CLI session support in the file-browser API. The kind of focused, high-quality security work that makes a self-hosted tool trustworthy.

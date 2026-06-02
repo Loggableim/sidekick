@@ -2,7 +2,7 @@
 
 The browser receives only WebUI-local flow metadata (flow_id, user_code,
 verification_uri, high-level status). Provider device/auth codes and OAuth
-tokens stay server-side and are persisted to the active Hermes profile's
+tokens stay server-side and are persisted to the active Nova profile's
 ``auth.json`` credential_pool.
 """
 

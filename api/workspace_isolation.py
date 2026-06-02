@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- Workspace Isolation System (Spaces).
+Sidekick -- Workspace Isolation System (Spaces).
 
 Each Space (= workspace) has its own:
   - ``sessions/`` directory   → isolated chat logs

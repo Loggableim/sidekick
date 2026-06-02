@@ -1,10 +1,10 @@
-# Three-container Docker Compose: Hermes Agent + Dashboard + WebUI
+# Three-container Docker Compose: Nova + Dashboard + WebUI
 #
 # QUICK START:
 #   docker compose -f docker-compose.three-container.yml up -d
 #   Open http://localhost:8787 (chat) and http://localhost:9119 (dashboard)
 #
-# This extends the two-container setup with the Hermes Dashboard for
+# This extends the two-container setup with the Nova Dashboard for
 # monitoring agent activity, sessions, and resource usage.
 #
 # Services:

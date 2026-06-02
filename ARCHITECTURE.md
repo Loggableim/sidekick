@@ -1,7 +1,7 @@
-# Hermes Web UI: Developer and Architecture Guide
+# Sidekick: Developer and Architecture Guide
 
 > This document is the canonical reference for anyone (human or agent) working on the
-> Hermes Web UI. It covers the exact current state of the code, every design decision and
+> Sidekick. It covers the exact current state of the code, every design decision and
 > quirk discovered during development, and a phased architecture improvement roadmap that
 > runs in parallel with the feature roadmap in ROADMAP.md.
 >
@@ -16,8 +16,8 @@
 
 ## 1. Overview and Purpose
 
-The Hermes Web UI is a lightweight web application that gives you a browser-based
-interface to the Hermes agent that is functionally equivalent to the CLI. It is modeled on
+The Sidekick is a lightweight web application that gives you a browser-based
+interface to the Nova agent that is functionally equivalent to the CLI. It is modeled on
 the Claude-style interface: a sidebar for session management, a central chat area,
 and a demand-driven right panel used for workspace browsing and preview surfaces.
 The right panel is closed by default on desktop and opens only when it is actively
@@ -33,8 +33,8 @@ frontend framework. The Python server is split into a routing shell (server.py) 
 business logic modules (api/). The frontend is seven vanilla JS modules loaded from static/.
 This makes the code easy to modify from a terminal or by an agent.
 
-Hermes-level chrome is intentionally consolidated: the sidebar has no dedicated brand header.
-Instead, the footer exposes a single "Hermes WebUI" launch button that opens one tabbed
+Sidekick-level chrome is intentionally consolidated: the sidebar has no dedicated brand header.
+Instead, the footer exposes a single "Sidekick" launch button that opens one tabbed
 control-center modal for global preferences, conversation import/export, and clear-conversation
 actions. The topbar remains focused on conversation context and the workspace/files toggle.
 
@@ -106,10 +106,10 @@ Log file:
 ## 3. Runtime Environment
 
 - Python interpreter: <agent-dir>/venv/bin/python
-- The venv has all Hermes agent dependencies (run_agent, tools/*, cron/*)
+- The venv has all Nova agent dependencies (run_agent, tools/*, cron/*)
 - Server binds to 127.0.0.1:8787 (localhost only, not public internet)
 - Access from Mac: SSH tunnel: ssh -N -L 8787:127.0.0.1:8787 <user>@<your-server>
-- The server imports Hermes modules via sys.path.insert(0, parent_dir)
+- The server imports Sidekick modules via sys.path.insert(0, parent_dir)
 
 Environment variables controlling behavior:
 
@@ -120,7 +120,7 @@ Environment variables controlling behavior:
     HERMES_CONFIG_PATH             Path to ~/.hermes/config.yaml
     HERMES_WEBUI_DEFAULT_MODEL     Default LLM model string
     HERMES_WEBUI_PASSWORD          Optional: enable password auth (off by default)
-    HERMES_HOME                    Base directory for Hermes state (~/.hermes by default)
+    HERMES_HOME                    Base directory for Sidekick state (~/.hermes by default)
 
 Test isolation environment variables (set by conftest.py):
 
@@ -290,7 +290,7 @@ fires (within the same SSE stream), without waiting for the next poll cycle.
 
 ### 4.5 Approval System Integration
 
-The approval system uses the existing Hermes gateway module at tools/approval.py.
+The approval system uses the existing Sidekick gateway module at tools/approval.py.
 All state lives in module-level variables in that file:
 
     _pending = {}        dict: session_key -> pending_entry_dict
@@ -379,7 +379,7 @@ inherit `currentColor` for consistent theming.
 
 Three-panel layout (in static/index.html):
 
-    <aside class="sidebar">    Left panel: session list, nav tabs, sidebar-footer Hermes WebUI trigger
+    <aside class="sidebar">    Left panel: session list, nav tabs, sidebar-footer Sidekick trigger
     <main class="main">        Center: topbar, messages area, approval card, composer
     <aside class="rightpanel"> Right panel: workspace file tree and file preview
 
@@ -562,7 +562,7 @@ Step-by-step trace of what happens when you type a message and press Send:
 6.  Build msgText from text + file note
 7.  Build userMsg {role:'user', content: displayText, attachments?: filenames}
 8.  Push userMsg to S.messages, call renderMessages(), appendThinking()
-9.  setBusy(true), setStatus('Hermes is thinking...')
+9.  setBusy(true), setStatus('Sidekick is thinking...')
 10. INFLIGHT[activeSid] = {messages: [...S.messages], uploaded}
 11. startApprovalPolling(activeSid)
 12. POST /api/chat/start {session_id, message, model, workspace}
@@ -585,7 +585,7 @@ Step-by-step trace of what happens when you type a message and press Send:
 ## 7. Dependency Map
 
 server.py imports from api/ modules (config, helpers, models, workspace, upload, streaming).
-The api/ modules in turn import Hermes internals:
+The api/ modules in turn import Sidekick internals:
 
     api/streaming.py imports:
       run_agent.AIAgent              Main agent class. Wraps LLM + tool execution.
@@ -848,7 +848,7 @@ Endpoint requiring a valid session:
     except KeyError:
         return j(self, {'error': 'Session not found'}, status=404)
 
-Endpoint that calls Hermes Python modules:
+Endpoint that calls Sidekick Python modules:
 
     # Example: calling cron.jobs
     import sys
@@ -1188,7 +1188,7 @@ Recommended execution order:
 
 ## 17. Working Conventions for Agent Contributors
 
-This section is specifically for agents (Hermes instances, subagents, Codex, etc.) that
+This section is specifically for agents (Sidekick instances, subagents, Codex, etc.) that
 will be working on this codebase. Read this before touching any file.
 
 ### Before Making Any Change

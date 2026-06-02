@@ -240,7 +240,7 @@ function cliOnlyCommandResponse(cmdName, meta){
   if(name==='browser'){
     extra='\n\nBrowser tools in WebUI must be configured server-side with the agent/browser environment. Once configured, ask the model to use browser tools directly; `/browser` itself only works in `hermes chat`.';
   }
-  return `\`/${name}\` is a Hermes CLI-only command and cannot run inside the WebUI.${detail}${extra}`;
+  return `\`/${name}\` is a Sidekick CLI-only command and cannot run inside the WebUI.${detail}${extra}`;
 }
 
 async function executeAgentPluginCommand(text,_meta){

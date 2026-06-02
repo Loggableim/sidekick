@@ -74,8 +74,8 @@ def test_all_sessions_exposes_state_db_lineage_metadata_for_webui_json_sessions(
     conn = _ensure_state_db(_isolate)
     t0 = time.time() - 100
     try:
-        _save_webui_session("lineage_api_root", title="Hermes WebUI", updated_at=t0)
-        _save_webui_session("lineage_api_tip", title="Hermes WebUI #2", updated_at=t0 + 10)
+        _save_webui_session("lineage_api_root", title="Sidekick", updated_at=t0)
+        _save_webui_session("lineage_api_tip", title="Sidekick #2", updated_at=t0 + 10)
         _insert_state_row(
             conn,
             "lineage_api_root",
@@ -215,8 +215,8 @@ def test_cli_close_parent_preserves_cross_surface_continuation_lineage(_isolate)
     conn = _ensure_state_db(_isolate)
     t0 = time.time() - 100
     try:
-        _save_webui_session("lineage_api_cli_parent", title="Hermes WebUI #8", updated_at=t0)
-        _save_webui_session("lineage_api_webui_child", title="Hermes WebUI #8", updated_at=t0 + 10)
+        _save_webui_session("lineage_api_cli_parent", title="Sidekick #8", updated_at=t0)
+        _save_webui_session("lineage_api_webui_child", title="Sidekick #8", updated_at=t0 + 10)
         _insert_state_row(
             conn,
             "lineage_api_cli_parent",

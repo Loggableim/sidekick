@@ -1,5 +1,5 @@
 """
-Sprint 1 test suite for the Hermes Web UI.
+Sprint 1 test suite for the Sidekick.
 
 Tests use the ISOLATED test server. Port is auto-derived per worktree (see conftest.py).
 Production server (port 8787) and your real conversations are never touched.

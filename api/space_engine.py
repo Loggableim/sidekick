@@ -1,5 +1,5 @@
 """
-Hermes Web UI — Space Engine v2.
+Sidekick — Space Engine v2.
 
 Each Space owns everything: sessions, agents, kanban, memory.
 Agents are roles INSIDE a space — no more global profiles.

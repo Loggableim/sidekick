@@ -1,5 +1,5 @@
 @echo off
-title Hermes WebUI (auto-restart)
+title Sidekick (auto-restart)
 for %%I in ("%~dp0..") do set "ROOT=%%~fI"
 cd /d "%ROOT%"
 
@@ -39,7 +39,7 @@ if exist "%ROOT%\.env" (
 set PYTHON=%HERMES_WEBUI_PYTHON%
 
 echo ============================================
-echo   Hermes WebUI - Drei-Panel Codex-Ersatz
+echo   Sidekick - Drei-Panel Codex-Ersatz
 echo   Auto-Restart bei Absturz (max %MAX_RESTARTS%x)
 echo ============================================
 echo.

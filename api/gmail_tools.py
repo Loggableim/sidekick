@@ -1,5 +1,5 @@
 """
-Gmail API — Hermes WebUI backend for Gmail operations.
+Gmail API — Sidekick backend for Gmail operations.
 Clean IMAP/SMTP access with RFC 2047 decoding.
 No ctypes DNS patch needed — server Python has working DNS.
 Multi-Account support: account query parameter on all endpoints.
@@ -741,7 +741,7 @@ _AGENT_GATEWAY_PORTS = [9119, 9118, 9120]
 
 def _ai_call(prompt, system_prompt="You are a helpful assistant.", max_tokens=300):
     """Try multiple AI backends in order. Returns text or None."""
-    # 1. Try Hermes agent gateway (OpenAI-compatible /chat/completions)
+    # 1. Try Nova agent gateway (OpenAI-compatible /chat/completions)
     for port in _AGENT_GATEWAY_PORTS:
         try:
             payload = json.dumps({

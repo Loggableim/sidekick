@@ -1,7 +1,7 @@
 {
-  "name": "Hermes",
-  "short_name": "Hermes",
-  "description": "Hermes AI Agent Web UI",
+  "name": "Sidekick",
+  "short_name": "Sidekick",
+  "description": "Sidekick — Nova AI Agent Web UI",
   "start_url": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],

@@ -1,4 +1,4 @@
-# Hermes Web UI -- minimal Python dependencies
+# Sidekick -- minimal Python dependencies
 # The server uses only stdlib + pyyaml.
-# All heavy ML/agent deps live in the Hermes agent venv.
+# All heavy ML/agent deps live in the Nova agent venv.
 pyyaml>=6.0

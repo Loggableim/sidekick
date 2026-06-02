@@ -138,8 +138,8 @@ class TestSetDefaultModelPreservesAtPrefix:
         on both sides and picks the matching option.
         """
         js = (Path(__file__).resolve().parent.parent / "static" / "panels.js").read_text()
-        # Find the block that sets _settingsHermesDefaultModelOnOpen
-        anchor = "_settingsHermesDefaultModelOnOpen=(models&&models.default_model)||"
+        # Find the block that sets _settingsSidekickDefaultModelOnOpen
+        anchor = "_settingsSidekickDefaultModelOnOpen=(models&&models.default_model)||"
         idx = js.find(anchor)
         assert idx != -1, "Settings default-model initialisation not found in panels.js"
         block = js[idx:idx + 1200]

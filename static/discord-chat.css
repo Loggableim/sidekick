@@ -390,15 +390,15 @@
   padding-left: 8px;
 }
 
-/* Hermes Chat Input */
-.discord-hermes-area {
+/* Nova Chat Input */
+.discord-nova-area {
   border-top: 1px solid var(--border, #1e1f22);
   background: var(--surface, #313338);
   flex-shrink: 0;
   padding: 6px 12px 10px;
 }
 
-.discord-hermes-header {
+.discord-nova-header {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -407,13 +407,13 @@
   color: var(--muted);
 }
 
-.discord-hermes-input-row {
+.discord-nova-input-row {
   display: flex;
   gap: 8px;
   align-items: flex-end;
 }
 
-.discord-hermes-input {
+.discord-nova-input {
   flex: 1;
   border: 1px solid var(--input-border, #3f4148);
   background: var(--input-bg, #383a40);
@@ -427,14 +427,14 @@
   min-height: 36px;
   max-height: 120px;
 }
-.discord-hermes-input:focus {
+.discord-nova-input:focus {
   border-color: var(--accent, #5865F2);
 }
-.discord-hermes-input::placeholder {
+.discord-nova-input::placeholder {
   color: var(--muted, #5c5e66);
 }
 
-.discord-hermes-send {
+.discord-nova-send {
   width: 36px;
   height: 36px;
   border: none;
@@ -449,17 +449,17 @@
   flex-shrink: 0;
   transition: background 0.15s;
 }
-.discord-hermes-send:hover {
+.discord-nova-send:hover {
   background: var(--accent-hover, #4752c4);
 }
 
-.discord-hermes-mode {
+.discord-nova-mode {
   display: flex;
   gap: 4px;
   flex-shrink: 0;
 }
 
-.discord-hermes-mode-btn {
+.discord-nova-mode-btn {
   padding: 3px 8px;
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -469,7 +469,7 @@
   cursor: pointer;
   transition: all 0.15s;
 }
-.discord-hermes-mode-btn.active {
+.discord-nova-mode-btn.active {
   background: var(--accent-bg, rgba(88,101,242,0.2));
   color: var(--accent);
   border-color: var(--accent);

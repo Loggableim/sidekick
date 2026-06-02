@@ -1,4 +1,4 @@
-# Running Hermes Web UI under a process supervisor
+# Running Sidekick under a process supervisor
 
 Use a process supervisor (launchd, systemd, supervisord, runit, s6) when you
 want the Web UI to start at boot, restart on crash, or be managed alongside
@@ -105,7 +105,7 @@ The flag is still recommended as documentation of intent.
 
 ```ini
 [Unit]
-Description=Hermes Web UI
+Description=Sidekick
 After=network.target
 
 [Service]
@@ -242,12 +242,12 @@ is reaching the process.
 process is still listening on the port but request handling is wedged, pair your
 supervisor with an HTTP probe and force a restart when the probe fails.
 
-Hermes Web UI exposes two health levels:
+Sidekick exposes two health levels:
 
 - ``/health`` — cheap liveness probe with ``active_streams``, uptime, and an
   ``accept_loop`` heartbeat counter.
 - ``/health?deep=1`` — readiness probe that briefly acquires the stream lock,
-  reads the sidebar/session path, reads projects state, and touches Hermes
+  reads the sidebar/session path, reads projects state, and touches Sidekick
   ``state.db`` if it exists. Use this for watchdogs.
 
 At startup the server also tries to raise its file-descriptor soft limit to

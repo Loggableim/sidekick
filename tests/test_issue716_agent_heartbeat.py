@@ -1,4 +1,4 @@
-"""Regression coverage for #716 Hermes agent/gateway heartbeat monitor."""
+"""Regression coverage for #716 Nova agent/gateway heartbeat monitor."""
 
 from __future__ import annotations
 

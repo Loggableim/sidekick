@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Portable launcher for Hermes Web UI.
+"""Portable launcher for Sidekick.
 
 This module is the documented entry point used by `start.sh`, `ctl.sh`, and
 the Windows wrappers. It keeps bootstrap responsibilities small:
@@ -137,7 +137,7 @@ def ensure_python_has_webui_deps(python_exe: str, agent_dir: Path | None) -> str
         candidate = discover_launcher_python(agent_dir)
         if candidate != python_exe and _python_can_run_webui_and_agent(candidate, agent_dir):
             return candidate
-    raise RuntimeError("Python environment cannot import both WebUI dependencies and Hermes Agent")
+    raise RuntimeError("Python environment cannot import both WebUI dependencies and Nova")
 
 
 def hermes_command_exists() -> bool:

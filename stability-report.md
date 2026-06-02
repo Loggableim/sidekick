@@ -1,4 +1,4 @@
-# Stabilitätsreport Hermes WebUI v0.51.44
+# Stabilitätsreport Sidekick v0.51.44
 Erstellt: 11.05.2026
 
 ## Zusammenfassung

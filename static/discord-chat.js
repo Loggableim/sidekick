@@ -2,7 +2,7 @@
  * Discord Full Chat View — 3-Column Layout
  * Left: Overview (Stats, Moderation, Settings, Logs)
  * Middle: Channel Tree (Categories + Channels)
- * Right: Channel Messages + Hermes Chat Input
+ * Right: Channel Messages + Nova Chat Input
  */
 (function () {
   'use strict';
@@ -124,7 +124,7 @@
             <div class="discord-loading-state"><div class="discord-loading-spinner"></div><span>Channels...</span></div>
           </div>
         </div>
-        <!-- Column 3: Messages + Hermes Chat -->
+        <!-- Column 3: Messages + Nova Chat -->
         <div class="discord-col-main">
           <div class="discord-col-main-header" id="discordMainHeader">
             <span>💬 Willkommen</span>
@@ -135,19 +135,19 @@
               <p>Wähle einen Channel aus der Channel-Liste</p>
             </div>
           </div>
-          <div class="discord-hermes-area" id="discordHermesArea" style="display:none;">
-            <div class="discord-hermes-header">
-              <span>💬 Nachricht an <strong id="discordHermesChannelLabel">#channel</strong></span>
-              <div class="discord-hermes-mode">
-                <button class="discord-hermes-mode-btn active" data-mode="discord" onclick="discordSetInputMode('discord')">📨 Discord</button>
-                <button class="discord-hermes-mode-btn" data-mode="hermes" onclick="discordSetInputMode('hermes')">🤖 Hermes</button>
+          <div class="discord-nova-area" id="discordNovaArea" style="display:none;">
+            <div class="discord-nova-header">
+              <span>💬 Nachricht an <strong id="discordNovaChannelLabel">#channel</strong></span>
+              <div class="discord-nova-mode">
+                <button class="discord-nova-mode-btn active" data-mode="discord" onclick="discordSetInputMode('discord')">📨 Discord</button>
+                <button class="discord-nova-mode-btn" data-mode="nova" onclick="discordSetInputMode('hermes')">🤖 Nova</button>
               </div>
             </div>
-            <div class="discord-hermes-input-row">
-              <textarea class="discord-hermes-input" id="discordHermesInput"
+            <div class="discord-nova-input-row">
+              <textarea class="discord-nova-input" id="discordNovaInput"
                 placeholder="Nachricht an #channel..."
-                onkeydown="discordHermesKey(event)" rows="1"></textarea>
-              <button class="discord-hermes-send" onclick="discordHermesSend()" title="Senden">➤</button>
+                onkeydown="discordNovaKey(event)" rows="1"></textarea>
+              <button class="discord-nova-send" onclick="discordNovaSend()" title="Senden">➤</button>
             </div>
           </div>
         </div>
@@ -479,9 +479,9 @@
     $('discordMainHeader').innerHTML = `<span># ${esc(chName)}</span>`;
 
     // Show input area
-    $('discordHermesArea').style.display = '';
-    $('discordHermesInput').placeholder = `Nachricht an #${chName}`;
-    $('discordHermesChannelLabel').textContent = '#' + chName;
+    $('discordNovaArea').style.display = '';
+    $('discordNovaInput').placeholder = `Nachricht an #${chName}`;
+    $('discordNovaChannelLabel').textContent = '#' + chName;
 
     // Loading
     $('discordMsgScroll').innerHTML = '<div class="discord-loading-state"><div class="discord-loading-spinner"></div><span>Lade Nachrichten...</span></div>';
@@ -694,29 +694,29 @@
   /* ═══════════════════ HERMES CHAT INPUT ═══════════════════ */
   window.discordSetInputMode = function (mode) {
     _hermesMode = mode;
-    document.querySelectorAll('.discord-hermes-mode-btn').forEach(b =>
+    document.querySelectorAll('.discord-nova-mode-btn').forEach(b =>
       b.classList.toggle('active', b.dataset.mode === mode));
-    const input = $('discordHermesInput');
+    const input = $('discordNovaInput');
     if (mode === 'discord') {
-      const chName = $('discordHermesChannelLabel')?.textContent || '#channel';
+      const chName = $('discordNovaChannelLabel')?.textContent || '#channel';
       input.placeholder = `Nachricht an ${chName}...`;
     } else {
-      input.placeholder = '🤖 Frage Hermes zum Channel...';
+      input.placeholder = '🤖 Frage Nova zum Channel...';
     }
   };
 
-  window.discordHermesKey = function (e) {
+  window.discordNovaKey = function (e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      discordHermesSend();
+      discordNovaSend();
     }
     const el = e.target;
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 120) + 'px';
   };
 
-  window.discordHermesSend = async function () {
-    const input = $('discordHermesInput');
+  window.discordNovaSend = async function () {
+    const input = $('discordNovaInput');
     const text = input.value.trim();
     if (!text) return;
     input.value = '';
@@ -725,7 +725,7 @@
     if (_hermesMode === 'discord') {
       // Send to Discord channel
       if (!_activeChannelId) {
-        showHermesResponse('❌ Kein Channel ausgewählt');
+        showNovaResponse('❌ Kein Channel ausgewählt');
         return;
       }
       const scrollEl = $('discordMsgScroll');
@@ -743,7 +743,7 @@
       if (lastChild && lastChild.textContent.includes('⏳')) lastChild.remove();
 
       if (result.error) {
-        showHermesResponse(`❌ ${esc(result.message||'Fehler')}`);
+        showNovaResponse(`❌ ${esc(result.message||'Fehler')}`);
       } else if (result.id) {
         _messageCache[result.id] = result;
         const msg = result;
@@ -762,13 +762,13 @@
         scrollEl.scrollTop = scrollEl.scrollHeight;
       }
     } else {
-      // Hermes mode: AI Chat via WebUI Agent (POST /api/chat)
+      // Nova mode: AI Chat via WebUI Agent (POST /api/chat)
       if (!window.S || !window.S.session || !window.S.session.session_id) {
-        showHermesResponse('❌ Keine aktive Chat-Session. Bitte zuerst eine Nachricht im WebUI-Chat senden.');
+        showNovaResponse('❌ Keine aktive Chat-Session. Bitte zuerst eine Nachricht im WebUI-Chat senden.');
         return;
       }
       if (window.S.busy) {
-        showHermesResponse('⏳ Hermes ist gerade beschäftigt. Bitte warten bis die aktuelle Antwort fertig ist.');
+        showNovaResponse('⏳ Nova ist gerade beschäftigt. Bitte warten bis die aktuelle Antwort fertig ist.');
         return;
       }
 
@@ -793,7 +793,7 @@
         <div class="discord-message-avatar" style="background:#5865F2;">H</div>
         <div class="discord-message-body">
           <div class="discord-message-author">
-            <span style="color:#5865F2;">Hermes</span>
+            <span style="color:#5865F2;">Sidekick</span>
             <span class="discord-message-time">${formatTime(new Date().toISOString())}</span>
           </div>
           <div class="discord-message-content"><em>denkt nach...</em></div>
@@ -819,7 +819,7 @@
             <div class="discord-message-avatar" style="background:#5865F2;">H</div>
             <div class="discord-message-body">
               <div class="discord-message-author">
-                <span style="color:#5865F2;">Hermes</span>
+                <span style="color:#5865F2;">Sidekick</span>
                 <span class="discord-message-time">${formatTime(new Date().toISOString())}</span>
               </div>
               <div class="discord-message-content">${linkify(esc(data.answer))}</div>
@@ -827,25 +827,25 @@
           </div>`;
           scrollEl.insertAdjacentHTML('beforeend', answerHtml);
         } else {
-          showHermesResponse('❌ Keine Antwort erhalten.');
+          showNovaResponse('❌ Keine Antwort erhalten.');
         }
       } catch (e) {
         const thinking = document.getElementById('hermesThinking');
         if (thinking) thinking.remove();
-        showHermesResponse('❌ Fehler: ' + esc(e.message));
+        showNovaResponse('❌ Fehler: ' + esc(e.message));
       }
       scrollEl.scrollTop = scrollEl.scrollHeight;
     }
   };
 
-  function showHermesResponse(msg) {
+  function showNovaResponse(msg) {
     const scrollEl = $('discordMsgScroll');
     if (!scrollEl) return;
     scrollEl.insertAdjacentHTML('beforeend', `<div class="discord-message bot-message">
       <div class="discord-message-avatar" style="background:#5865F2;">H</div>
       <div class="discord-message-body">
         <div class="discord-message-author">
-          <span style="color:#5865F2;">Hermes</span>
+          <span style="color:#5865F2;">Sidekick</span>
           <span class="discord-message-time">${formatTime(new Date().toISOString())}</span>
         </div>
         <div class="discord-message-content">${msg}</div>

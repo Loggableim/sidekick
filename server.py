@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- Main server entry point.
+Sidekick -- Main server entry point.
 Thin routing shell: imports Handler, delegates to api/routes.py, runs server.
 All business logic lives in api/*.
 """
@@ -247,7 +247,7 @@ class Handler(BaseHTTPRequestHandler):
             except OSError:
                 pass
     _ver_suffix = WEBUI_VERSION.removeprefix('v')
-    server_version = ('HermesWebUI/' + _ver_suffix) if _ver_suffix != 'unknown' else 'HermesWebUI'
+    server_version = ('SidekickWebUI/' + _ver_suffix) if _ver_suffix != 'unknown' else 'SidekickWebUI'
     _CSP_REPORT_ONLY = (
         "default-src 'self' https://*.cloudflareaccess.com; "
         "base-uri 'self'; "
@@ -487,7 +487,7 @@ def main() -> None:
 
     ok, missing, errors = verify_hermes_imports()
     if not ok and _HERMES_FOUND:
-        print(f'[!!] Warning: Hermes agent found but missing modules: {missing}', flush=True)
+        print(f'[!!] Warning: Nova agent found but missing modules: {missing}', flush=True)
         for mod, err in errors.items():
             print(f'     {mod}: {err}', flush=True)
         print('     Attempting to install missing dependencies from agent requirements.txt...', flush=True)
@@ -553,7 +553,7 @@ def main() -> None:
             print(f'[!!] WARNING: TLS setup failed ({e}), falling back to HTTP', flush=True)
             scheme = 'http'
 
-        print(f'  Hermes Web UI listening on {scheme}://{HOST}:{PORT}', flush=True)
+        print(f'  Sidekick listening on {scheme}://{HOST}:{PORT}', flush=True)
         if HOST in ('127.0.0.1', '::1') or within_container:
             print(f'  Remote access: ssh -N -L {PORT}:127.0.0.1:{PORT} <user>@<your-server>', flush=True)
         print(f'  Then open:     {scheme}://localhost:{PORT}', flush=True)

@@ -1,5 +1,5 @@
 /* =============================================================
-   Hermes WebUI – Power Off / Relaunch Controls
+   Sidekick – Power Off / Relaunch Controls
    ============================================================= */
 
 (function () {
@@ -83,7 +83,7 @@
   window.hermesPowerOff = async function () {
     const confirmed = await showConfirm(
       'Ausschalten',
-      'Möchtest du den Hermes-Server wirklich herunterfahren? Alle laufenden Vorgänge werden beendet.',
+      'Möchtest du den Sidekick-Server wirklich herunterfahren? Alle laufenden Vorgänge werden beendet.',
       true
     );
     if (!confirmed) return;
@@ -96,7 +96,7 @@
   window.hermesRelaunch = async function () {
     const confirmed = await showConfirm(
       'Neustarten',
-      'Möchtest du den Hermes-Server wirklich neu starten?',
+      'Möchtest du den Sidekick-Server wirklich neu starten?',
       false
     );
     if (!confirmed) return;

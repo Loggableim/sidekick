@@ -225,7 +225,7 @@ function _browserResearchNormalizeQuestions(value, topic, allowEmpty) {
 function _browserResearchBuildIntakePrompt(topic) {
   const clean = String(topic || '').trim();
   return [
-    'You are the Hermes Browser tab intake assistant.',
+    'You are Nova, the Sidekick browser tab intake assistant.',
     'Return ONLY valid JSON. No markdown, no code fences, no commentary.',
     'Schema:',
     '{',
@@ -253,7 +253,7 @@ function _browserResearchBuildResearchPrompt(topic, direction, intake) {
   const cleanDirection = String(direction || '').trim();
   const quick = intake && intake.quick_answer ? String(intake.quick_answer).trim() : '';
   return [
-    'You are the Hermes Browser research agent.',
+    'You are Nova, the Sidekick browser research agent.',
     'The user has already seen a quick intake answer and chose a direction.',
     'Now produce a curated research result. Focus on clarity, structure, and sources.',
     'Output a concise but useful answer with headings, key takeaways, caveats, and next steps where relevant.',
@@ -538,10 +538,10 @@ function browserRenderPermission(permission) {
   if (btn) {
     const nextAction = mode === 'control' ? 'Pause' : 'Resume';
     const tooltip = mode === 'none'
-      ? 'Allow Hermes agent browser control'
+      ? 'Allow Nova agent browser control'
       : (mode === 'control'
-        ? 'Pause Hermes agent browser control'
-        : 'Resume Hermes agent browser control');
+        ? 'Pause Nova agent browser control'
+        : 'Resume Nova agent browser control');
     btn.classList.toggle('is-active', mode === 'control');
     btn.setAttribute('aria-pressed', mode === 'control' ? 'true' : 'false');
     btn.setAttribute('aria-label', tooltip);
@@ -554,8 +554,8 @@ function browserRenderPermission(permission) {
     stopBtn.disabled = mode === 'none';
     stopBtn.classList.toggle('is-active', mode !== 'none');
     stopBtn.setAttribute('aria-pressed', mode !== 'none' ? 'true' : 'false');
-    stopBtn.setAttribute('aria-label', mode === 'none' ? 'Stop Hermes agent browser handoff' : 'Stop Hermes agent browser handoff');
-    stopBtn.dataset.tooltip = mode === 'none' ? 'Stop Hermes agent browser handoff' : 'Stop Hermes agent browser handoff';
+    stopBtn.setAttribute('aria-label', mode === 'none' ? 'Stop Nova agent browser handoff' : 'Stop Nova agent browser handoff');
+    stopBtn.dataset.tooltip = mode === 'none' ? 'Stop Nova agent browser handoff' : 'Stop Nova agent browser handoff';
   }
 }
 
@@ -591,7 +591,7 @@ async function browserTogglePermission() {
     if (_browserCurrentSessionId() !== sid) return false;
     browserRenderPermission(data && data.permission ? data.permission : {mode: 'none'});
     if (typeof showToast === 'function') {
-      showToast(nextMode === 'control' ? 'Hermes agent browser control enabled' : 'Hermes agent browser control paused', 2200, nextMode === 'control' ? 'success' : 'info');
+      showToast(nextMode === 'control' ? 'Nova agent browser control enabled' : 'Nova agent browser control paused', 2200, nextMode === 'control' ? 'success' : 'info');
     }
   } catch (e) {
     if (_browserCurrentSessionId() !== sid) return false;
@@ -612,7 +612,7 @@ async function browserStopPermission() {
     });
     if (_browserCurrentSessionId() !== sid) return false;
     browserRenderPermission(data && data.permission ? data.permission : {mode: 'none'});
-    if (typeof showToast === 'function') showToast('Hermes agent browser handoff stopped', 2200, 'info');
+    if (typeof showToast === 'function') showToast('Nova agent browser handoff stopped', 2200, 'info');
   } catch (e) {
     if (_browserCurrentSessionId() !== sid) return false;
     browserRenderPermission({mode: 'none'});

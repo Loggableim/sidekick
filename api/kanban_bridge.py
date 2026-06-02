@@ -1,7 +1,7 @@
 """Hermes Kanban bridge for the WebUI.
 
 This module exposes a full CRUD API under ``/api/kanban/*`` while keeping
-Hermes Agent's ``hermes_cli.kanban_db`` as the only source of truth.
+Nova's ``hermes_cli.kanban_db`` as the only source of truth.
 
 Supported operations:
 - Task CRUD (create, read, patch, bulk update, archive)
@@ -115,7 +115,7 @@ def _conn(board=None):
     """Return a kanban DB connection, respecting workspace isolation.
 
     If the current thread has a workspace kanban home (set via
-    :func:`set_workspace_kanban`), the Hermes Agent library's
+    :func:`set_workspace_kanban`), the Nova library's
     ``HERMES_KANBAN_HOME`` env var is temporarily overridden so that
     the DB is created/opened inside the workspace root.
     """

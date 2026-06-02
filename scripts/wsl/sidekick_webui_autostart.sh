@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# WSL-friendly autostart launcher for Hermes WebUI.
+# WSL-friendly autostart launcher for Sidekick.
 #
 # Safe defaults:
 # - derives the repo from this script location, override with HERMES_WEBUI_REPO
@@ -47,7 +47,7 @@ pid_is_alive() {
 
 validate_repo() {
   if [[ ! -d "${HERMES_WEBUI_REPO}" ]]; then
-    log "Hermes WebUI repo not found: ${HERMES_WEBUI_REPO}"
+    log "Sidekick repo not found: ${HERMES_WEBUI_REPO}"
     exit 1
   fi
   if [[ ! -f "${HERMES_WEBUI_REPO}/start.sh" ]]; then
@@ -57,7 +57,7 @@ validate_repo() {
 }
 
 maybe_require_agent_process() {
-  # Hermes WebUI usually launches the agent in-process, so this check is opt-in.
+  # Sidekick usually launches the agent in-process, so this check is opt-in.
   # Set HERMES_WEBUI_REQUIRE_AGENT_PROCESS=1 only if your setup depends on a
   # separately running Hermes gateway/agent before WebUI starts.
   if [[ "${HERMES_WEBUI_REQUIRE_AGENT_PROCESS:-0}" != "1" ]]; then
@@ -86,17 +86,17 @@ start_webui() {
   maybe_require_agent_process
 
   if webui_healthy; then
-    log "Hermes WebUI already running at ${HERMES_WEBUI_HEALTH_URL}"
+    log "Sidekick already running at ${HERMES_WEBUI_HEALTH_URL}"
     exit 0
   fi
 
   if pid_is_alive; then
-    log "Hermes WebUI already running with pid $(cat "${HERMES_WEBUI_PID_FILE}")"
+    log "Sidekick already running with pid $(cat "${HERMES_WEBUI_PID_FILE}")"
     exit 0
   fi
 
   rm -f "${HERMES_WEBUI_PID_FILE}"
-  log "Starting Hermes WebUI from ${HERMES_WEBUI_REPO} on ${HERMES_WEBUI_HOST}:${HERMES_WEBUI_PORT}"
+  log "Starting Sidekick from ${HERMES_WEBUI_REPO} on ${HERMES_WEBUI_HOST}:${HERMES_WEBUI_PORT}"
 
   (
     cd "${HERMES_WEBUI_REPO}"
@@ -106,16 +106,16 @@ start_webui() {
 
   sleep "${HERMES_WEBUI_STARTUP_GRACE_SECONDS:-2}"
   if webui_healthy; then
-    log "Hermes WebUI started and passed health check"
+    log "Sidekick started and passed health check"
     exit 0
   fi
 
   if pid_is_alive; then
-    log "Hermes WebUI process started with pid $(cat "${HERMES_WEBUI_PID_FILE}"); health check not ready yet"
+    log "Sidekick process started with pid $(cat "${HERMES_WEBUI_PID_FILE}"); health check not ready yet"
     exit 0
   fi
 
-  log "Hermes WebUI failed to stay running; see ${WEBUI_LOG}"
+  log "Sidekick failed to stay running; see ${WEBUI_LOG}"
   exit 1
 }
 

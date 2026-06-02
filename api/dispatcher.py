@@ -1,5 +1,5 @@
 """
-Hermes Web UI — Global Dispatcher.
+Sidekick — Global Dispatcher.
 
 Scans ALL spaces' kanban boards for ready tasks and dispatches them
 to the corresponding agent within that space. Independent of the
@@ -207,7 +207,7 @@ def _spawn_worker(space, agent_slug: str, task_id: str, board_slug: str) -> None
 
 
 def _execute_task(space, agent_slug: str, task_id: str, board_slug: str, worker_id: str) -> None:
-    """Execute a dispatched task: spawn a Hermes agent worker via subprocess.
+    """Execute a dispatched task: spawn a Nova agent worker via subprocess.
 
     Mirrors the gateway dispatcher's ``_default_spawn`` pattern
     (``kanban_db._default_spawn``) but runs synchronously in a background

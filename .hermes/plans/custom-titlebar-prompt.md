@@ -1,6 +1,6 @@
 # Prompt für externes LLM: Custom Titlebar (Frameless)
 
-**Kontext**: Hermes WebUI läuft im borderless `--app=` Chromium-Modus. Die app-titlebar existiert bereits als 38px-Header mit `-webkit-app-region: drag`, aber die nativen OS-Fenster-Buttons (Minimize/Maximize/Close) werden separat von Chromium in der `titlebar-area` gerendert.
+**Kontext**: Sidekick läuft im borderless `--app=` Chromium-Modus. Die app-titlebar existiert bereits als 38px-Header mit `-webkit-app-region: drag`, aber die nativen OS-Fenster-Buttons (Minimize/Maximize/Close) werden separat von Chromium in der `titlebar-area` gerendert.
 
 **Ziel**: Die native Titlebar über CSS `window-controls-overlay` verstecken und eigene HTML/CSS-Buttons in die bestehende `.app-titlebar` integrieren, sodass die Leiste einheitlich ist und Platz für Features bietet.
 

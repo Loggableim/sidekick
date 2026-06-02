@@ -52,8 +52,8 @@ eval(extractFunc('_isChildSession'));
 eval(extractFunc('_sessionLineageKey'));
 eval(extractFunc('_collapseSessionLineageForSidebar'));
 const sessions = [
-  {{session_id:'root', title:'Hermes WebUI', message_count:10, updated_at:10, last_message_at:10, _lineage_root_id:'root', _lineage_tip_id:'root'}},
-  {{session_id:'tip', title:'Hermes WebUI', message_count:20, updated_at:20, last_message_at:20, _lineage_root_id:'root', _lineage_tip_id:'tip'}},
+  {{session_id:'root', title:'Sidekick', message_count:10, updated_at:10, last_message_at:10, _lineage_root_id:'root', _lineage_tip_id:'root'}},
+  {{session_id:'tip', title:'Sidekick', message_count:20, updated_at:20, last_message_at:20, _lineage_root_id:'root', _lineage_tip_id:'tip'}},
   {{session_id:'solo', title:'Other', message_count:5, updated_at:15, last_message_at:15}},
 ];
 const collapsed = _collapseSessionLineageForSidebar(sessions);
@@ -115,8 +115,8 @@ eval(extractFunc('_sessionLineageKey'));
 eval(extractFunc('_collapseSessionLineageForSidebar'));
 eval(extractFunc('_sessionLineageContainsSession'));
 const sessions = [
-  {{session_id:'root', title:'Hermes WebUI', message_count:10, updated_at:10, last_message_at:10, _lineage_root_id:'root', _lineage_tip_id:'tip'}},
-  {{session_id:'tip', title:'Hermes WebUI', message_count:20, updated_at:20, last_message_at:20, _lineage_root_id:'root', _lineage_tip_id:'tip'}},
+  {{session_id:'root', title:'Sidekick', message_count:10, updated_at:10, last_message_at:10, _lineage_root_id:'root', _lineage_tip_id:'tip'}},
+  {{session_id:'tip', title:'Sidekick', message_count:20, updated_at:20, last_message_at:20, _lineage_root_id:'root', _lineage_tip_id:'tip'}},
 ];
 const collapsed = _collapseSessionLineageForSidebar(sessions);
 console.log(JSON.stringify({{sid: collapsed[0].session_id, containsRoot: _sessionLineageContainsSession(collapsed[0], 'root')}}));

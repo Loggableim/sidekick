@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- File upload: multipart parser and upload handler.
+Sidekick -- File upload: multipart parser and upload handler.
 """
 import mimetypes
 import re as _re
