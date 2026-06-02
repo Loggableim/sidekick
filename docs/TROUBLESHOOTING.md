@@ -21,7 +21,7 @@ Ohne Tauri-WebView2 ist `window.__TAURI__` nicht verfügbar.
 - Hermes WebUI öffnet jetzt in einem eigenen nativen Tauri WebviewWindow.  
 - Klicke "WebUI öffnen" in der Sidekick Control-Shell.
 
-## Hermes WebUI startet nicht
+## WebUI startet nicht
 **Symptom:** Status bleibt "Backend startet…" oder wechselt zu "Fehler".
 
 **Prüfungen:**

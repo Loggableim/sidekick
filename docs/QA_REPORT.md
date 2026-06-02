@@ -23,7 +23,7 @@
 | `app/index.html` | ✅ Vorhanden | |
 | `app/styles.css` | ✅ Vorhanden | |
 | `app/app.js` | ✅ Vorhanden | |
-| `app/hermes-icons.html` | ✅ Vorhanden | |
+| `app/sidekick-icons.html` | ✅ Vorhanden | |
 | `runtime/bootstrap_venv.ps1` | ✅ Vorhanden | |
 | `runtime/requirements.lock.txt` | ✅ Vorhanden | |
 | `scripts/dev_start.ps1` | ✅ Vorhanden | |
@@ -265,11 +265,11 @@ Allerdings: `try_graceful_kill` ruft bereits `child.try_wait()` im Polling-Loop 
 | 5 | **HIGH** | `app/app.js:338` vs `src-tauri/src/supervisor.rs:430` | JS `pollStatus()` erwartet von `get_status` ein Objekt `{ status, port, last_error }`, aber Rust gibt einen Plain-String zurück (`"stopped"`, `"running"`, etc.). `status.port` und `status.last_error` sind immer `undefined`. | `get_status()` sollte ein Struct mit `status`, `port`, `last_error` zurückgeben, oder JS muss den String parsen müssen. |
 | 6 | **MEDIUM** | `src-tauri/src/health.rs` | `health.rs` wird als Modul deklariert (`mod health;` in main.rs) aber nie aufgerufen. Die Funktion `check_health()` ist totes Gencode. | Entweder Healthcheck in Supervisor integrieren oder `mod health;` entfernen. |
 | 7 | **MEDIUM** | `README.md` | README referenziert `src-tauri/src/logs.rs`, `docs/WINDOWS_APP.md`, `docs/ARCHITECTURE.md`, `docs/TROUBLESHOOTING.md` — diese Dateien existieren nicht. | README an tatsächliche Projektstruktur anpassen oder fehlende Dateien anlegen. |
-| 8 | **LOW** | `app/hermes-icons.html` | Icon-Sammlung existiert, wird aber nicht in `index.html` eingebunden. | `<link rel="import">` oder inline usage hinzufügen, oder Datei entfernen. |
+| 8 | **LOW** | `app/sidekick-icons.html` | Icon-Sammlung existiert, wird aber nicht in `index.html` eingebunden. | `<link rel="import">` oder inline usage hinzufügen, oder Datei entfernen. |
 | 9 | **LOW** | `src-tauri/tauri.conf.json:27` | `"targets": "all"` ist kein gültiger Tauri v2 Bundle-Target. Gültig wäre z. B. `["msi", "nsis"]`. | Korrektes Array-Format für bundle targets verwenden. |
 | 10 | **LOW** | `src-tauri/src/settings.rs:153` | `to_windows_path()` ersetzt `/` durch `\` — das ist korrekt für Windows, könnte aber auf UNC-Pfaden oder gemischten Pfaden Probleme machen. | Kein dringender Fix, aber Dokumentation erwähnen. |
 | 11 | **INFO** | `runtime/requirements.lock.txt` | Enthält nur `pyyaml>=6.0`. Sollte ein gepinnter Lock sein (Version einfrieren), ist aber eine Range. | Version auf konkrete Version pinnen, z. B. `pyyaml==6.0.2`. |
-| 12 | **INFO** | `src-tauri/src/supervisor.rs:239` | `state_dir.trim_end_matches('/')` — In Windows-Kontext werden Backslashes verwendet. Der Trim könnte ins Leere laufen. | `trim_end_matches(|c| c == '/' || c == '\\')` für Windows-Kompatibilität. |
+| 12 | **INFO** | `src-tauri/src/supervisor.rs:239` | `state_dir.trim_end_matches('/')` — In Windows-Kontext werden Backslashes verwendet. Der Trim könnte ins Leere laufen. | `trim_end_matches(|c| c == '/' || c == '\')` für Windows-Kompatibilität. |
 
 ---
 

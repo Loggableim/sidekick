@@ -14,10 +14,10 @@ Sidekick ist eine **native Windows-Desktop-App**, die [Hermes WebUI](https://git
 **Zielgruppe:** Windows-Anwender, die Hermes WebUI nutzen möchten, ohne sich mit Kommandozeilen-Setup oder Docker auseinandersetzen zu müssen.
 
 **Kernfunktionen (MVP 1):**
-- Hermes WebUI automatisch starten/stoppen/neu starten
+- WebUI automatisch starten/stoppen/neu starten
 - Freien Port finden (Fallback 8787 → 8788 → 8789 → …)
 - Logs des Backends anzeigen
-- Hermes WebUI in einem nativen Fenster anzeigen
+ - WebUI in einem nativen Fenster anzeigen
 - AppData-Verzeichnis zur Ablage von Zustandsdaten
 - Einstellungen speichern/laden
 
@@ -305,7 +305,7 @@ Oder in der App: Port-Feld in den Einstellungen ändern und speichern.
 - Prüfung via Registry:
   `HKLM\SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}`
 
-### »Hermes startet nicht«
+### WebUI startet nicht
 
 1. Logs in der App prüfen (Button »Logs öffnen«)
 2. Hermes WebUI direkt testen:

@@ -6,7 +6,7 @@
     2. Fuehrt bootstrap_venv.ps1 aus (venv + Abhaengigkeiten)
     3. Startet Hermes WebUI im Hintergrund
     4. Startet Tauri im Dev-Modus (cargo tauri dev)
-    5. Raeumt bei Strg+C den Hermes-Prozess sauber auf
+#    5. Raeumt bei Strg+C den Sidekick-Prozess sauber auf
 .NOTES
     PowerShell 5.1+ unter Windows.
 #>
@@ -15,7 +15,7 @@
 # Projekt-Root ermitteln
 $ScriptDir = Split-Path -Parent $PSCommandPath
 $ProjectRoot = Resolve-Path "$ScriptDir\.."
-$HermesDir = "$ProjectRoot\vendor\hermes-webui"
+$SidekickDir = "$ProjectRoot\vendor\hermes-webui"
 $TauriDir = "$ProjectRoot\src-tauri"
 $RuntimeDir = "$ProjectRoot\runtime"
 
@@ -82,11 +82,11 @@ Write-Host "  [3/5] Port: $HostAddr`:$Port"
 Write-Host "  [4/5] Hermes WebUI starten ..."
 
 # Python: bevorzugt aus venv
-$HermesPython = "python"
+$SidekickPython = "python"
 $VenvPython = "$ProjectRoot\.venv\Scripts\python.exe"
 if (Test-Path $VenvPython) {
-    $HermesPython = $VenvPython
-    Write-Host "       Venv-Python: $HermesPython"
+    $SidekickPython = $VenvPython
+    Write-Host "       Venv-Python: $SidekickPython"
 } else {
     Write-Host "       System-Python: $(python --version 2>&1)"
 }
@@ -94,10 +94,10 @@ if (Test-Path $VenvPython) {
 $env:HERMES_WEBUI_HOST      = $HostAddr
 $env:HERMES_WEBUI_PORT      = "$Port"
 $env:HERMES_WEBUI_STATE_DIR = $StateDir
-$env:HERMES_WEBUI_PYTHON    = $HermesPython
+$env:HERMES_WEBUI_PYTHON    = $SidekickPython
 
-$HermesProcess = Start-Process -FilePath $HermesPython -ArgumentList @("$HermesDir\server.py") -NoNewWindow -PassThru
-Write-Host "       PID: $($HermesProcess.Id)" -ForegroundColor Green
+$SidekickProcess = Start-Process -FilePath $SidekickPython -ArgumentList @("$SidekickDir\server.py") -NoNewWindow -PassThru
+Write-Host "       PID: $($SidekickProcess.Id)" -ForegroundColor Green
 Start-Sleep -Milliseconds 500
 
 # Health-Check (max 10s)
@@ -142,9 +142,9 @@ try {
 # Aufraeumen
 Write-Host ""
 Write-Host "  Raeume auf ..."
-if ($HermesProcess -and (-not $HermesProcess.HasExited)) {
-    $HermesProcess.Kill()
-    $HermesProcess.WaitForExit(5000) | Out-Null
+if ($SidekickProcess -and (-not $SidekickProcess.HasExited)) {
+    $SidekickProcess.Kill()
+    $SidekickProcess.WaitForExit(5000) | Out-Null
     Write-Host "  Hermes WebUI beendet." -ForegroundColor Green
 }
 Write-Host ""

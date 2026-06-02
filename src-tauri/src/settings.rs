@@ -9,25 +9,25 @@ use std::path::PathBuf;
 pub struct Settings {
     /// Path to vendor/hermes-webui directory.
     /// Default: resolved relative to the running executable.
-    pub hermes_path: String,
+    pub sidekick_path: String,
 
     /// Python interpreter command (must be on PATH or an absolute path).
     pub python_path: String,
 
-    /// Preferred port for the Hermes WebUI.
+    /// Preferred port for the Sidekick WebUI.
     pub preferred_port: u16,
 
-    /// Automatically start Hermes when the app launches.
+    /// Automatically start Sidekick when the app launches.
     pub auto_start: bool,
 
-    /// Automatically restart Hermes if it crashes.
+    /// Automatically restart Sidekick if it crashes.
     pub auto_restart: bool,
 }
 
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            hermes_path: default_hermes_path(),
+            sidekick_path: default_sidekick_path(),
             python_path: "python".to_string(),
             preferred_port: 8787,
             auto_start: false,
@@ -154,14 +154,14 @@ fn to_windows_path(path: PathBuf) -> String {
     path.to_string_lossy().replace('/', "\\")
 }
 
-/// Compute the default `hermes_path`:
+/// Compute the default `sidekick_path`:
 ///
 /// 1. Try to resolve `../vendor/hermes-webui` relative to the executable
 ///    directory (as specified by "relativ zum EXE-Pfad").
 /// 2. If that fails, walk up the directory tree looking for a `vendor/hermes-webui`
 ///    directory.
 /// 3. As a last resort, return the literal relative path `..\\vendor\\hermes-webui`.
-fn default_hermes_path() -> String {
+fn default_sidekick_path() -> String {
     // Strategy 1: resolve ../vendor/hermes-webui relative to the exe dir
     if let Ok(exe_path) = std::env::current_exe() {
         if let Some(exe_dir) = exe_path.parent() {
@@ -206,8 +206,8 @@ mod tests {
         assert_eq!(s.preferred_port, 8787);
         assert!(!s.auto_start);
         assert!(!s.auto_restart);
-        // hermes_path should not be empty
-        assert!(!s.hermes_path.is_empty());
+        // sidekick_path should not be empty
+        assert!(!s.sidekick_path.is_empty());
     }
 
     #[test]
@@ -249,7 +249,7 @@ mod tests {
     #[test]
     fn test_save_and_load_settings() {
         let settings = Settings {
-            hermes_path: "C:\\vendor\\hermes-webui".to_string(),
+            sidekick_path: "C:\\vendor\\hermes-webui".to_string(),
             python_path: "python3".to_string(),
             preferred_port: 9999,
             auto_start: true,
@@ -261,7 +261,7 @@ mod tests {
 
         // Load
         let loaded = load_settings();
-        assert_eq!(loaded.hermes_path, "C:\\vendor\\hermes-webui");
+        assert_eq!(loaded.sidekick_path, "C:\\vendor\\hermes-webui");
         assert_eq!(loaded.python_path, "python3");
         assert_eq!(loaded.preferred_port, 9999);
         assert!(loaded.auto_start);

@@ -1,5 +1,5 @@
 // Sidekick — Tauri 2 Desktop App
-// Windows-Desktop-App mit WebView2, die Hermes WebUI als Sidecar startet.
+// Windows-Desktop-App mit WebView2, die Sidekick als Sidecar startet.
 
 mod supervisor;
 mod settings;
@@ -13,31 +13,31 @@ use tauri::Manager;
 // Tauri 2 Commands
 // ---------------------------------------------------------------------------
 
-/// Startet den Hermes WebUI-Prozess über den Supervisor.
+/// Startet den Sidekick-Prozess über den Supervisor.
 #[tauri::command]
-fn start_hermes() -> Result<String, String> {
-    supervisor::start_hermes().map_err(|e| e.to_string())
+fn start_sidekick() -> Result<String, String> {
+    supervisor::start_sidekick().map_err(|e| e.to_string())
 }
 
-/// Stoppt den Hermes WebUI-Prozess.
+/// Stoppt den Sidekick-Prozess.
 #[tauri::command]
-fn stop_hermes() -> Result<String, String> {
-    supervisor::stop_hermes().map_err(|e| e.to_string())
+fn stop_sidekick() -> Result<String, String> {
+    supervisor::stop_sidekick().map_err(|e| e.to_string())
 }
 
-/// Startet den Hermes WebUI-Prozess neu (stop + start).
+/// Startet den Sidekick-Prozess neu (stop + start).
 #[tauri::command]
-fn restart_hermes() -> Result<String, String> {
-    supervisor::restart_hermes().map_err(|e| e.to_string())
+fn restart_sidekick() -> Result<String, String> {
+    supervisor::restart_sidekick().map_err(|e| e.to_string())
 }
 
-/// Gibt den aktuellen Status des Hermes-Prozesses zurück.
+/// Gibt den aktuellen Status des Sidekick-Prozesses zurück.
 #[tauri::command]
 fn get_status() -> String {
     supervisor::get_status()
 }
 
-/// Gibt die aktuellen Logs des Hermes-Prozesses zurück.
+/// Gibt die aktuellen Logs des Sidekick-Prozesses zurück.
 #[tauri::command]
 fn get_logs() -> Result<Vec<String>, String> {
     supervisor::get_logs().map_err(|e| e.to_string())
@@ -57,7 +57,7 @@ fn open_appdata() -> Result<(), String> {
     Ok(())
 }
 
-/// Öffnet die Hermes WebUI im Standard-Browser.
+/// Öffnet die Sidekick WebUI im Standard-Browser.
 #[tauri::command]
 fn open_external_browser(port: u16) -> Result<(), String> {
     let url = format!("http://localhost:{}", port);
@@ -68,14 +68,14 @@ fn open_external_browser(port: u16) -> Result<(), String> {
     Ok(())
 }
 
-/// Öffnet Hermes WebUI in einem eigenen nativen Tauri WebviewWindow.
-/// Wenn bereits ein Fenster mit Label "hermes-webui" existiert, wird es
+/// Öffnet Sidekick in einem eigenen nativen Tauri WebviewWindow.
+/// Wenn bereits ein Fenster mit Label "sidekick-webui" existiert, wird es
 /// fokussiert statt ein neues zu öffnen.
 #[tauri::command]
-fn open_hermes_window(app: tauri::AppHandle, port: u16) -> Result<(), String> {
+fn open_sidekick_window(app: tauri::AppHandle, port: u16) -> Result<(), String> {
     let status = supervisor::get_status();
     if status != supervisor::STATUS_RUNNING {
-        return Err("Hermes WebUI ist nicht gestartet".to_string());
+        return Err("Sidekick ist nicht gestartet".to_string());
     }
 
     let url = format!("http://127.0.0.1:{}/", port);
@@ -83,7 +83,7 @@ fn open_hermes_window(app: tauri::AppHandle, port: u16) -> Result<(), String> {
         .map_err(|e| format!("Ungültige URL: {}", e))?;
 
     // Prüfen ob Fenster bereits existiert -> fokussieren
-    if let Some(window) = app.get_webview_window("hermes-webui") {
+    if let Some(window) = app.get_webview_window("sidekick-webui") {
         window.set_focus().map_err(|e| format!("Fokussieren fehlgeschlagen: {}", e))?;
         return Ok(());
     }
@@ -91,10 +91,10 @@ fn open_hermes_window(app: tauri::AppHandle, port: u16) -> Result<(), String> {
     // Neues WebviewWindow erstellen
     tauri::WebviewWindowBuilder::new(
         &app,
-        "hermes-webui",
+        "sidekick-webui",
         tauri::WebviewUrl::External(parsed_url),
     )
-    .title("Hermes WebUI")
+    .title("Sidekick")
     .inner_size(1200.0, 800.0)
     .resizable(true)
     .build()
@@ -103,10 +103,10 @@ fn open_hermes_window(app: tauri::AppHandle, port: u16) -> Result<(), String> {
     Ok(())
 }
 
-/// Schliesst das Hermes WebUI-Fenster, falls es offen ist.
+/// Schliesst das Sidekick-Fenster, falls es offen ist.
 #[tauri::command]
-fn close_hermes_window(app: tauri::AppHandle) -> Result<(), String> {
-    if let Some(window) = app.get_webview_window("hermes-webui") {
+fn close_sidekick_window(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("sidekick-webui") {
         window.close().map_err(|e| format!("Schliessen fehlgeschlagen: {}", e))?;
     }
     Ok(())
@@ -136,15 +136,15 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            start_hermes,
-            stop_hermes,
-            restart_hermes,
+            start_sidekick,
+            stop_sidekick,
+            restart_sidekick,
             get_status,
             get_logs,
             open_appdata,
             open_external_browser,
-            open_hermes_window,
-            close_hermes_window,
+            open_sidekick_window,
+            close_sidekick_window,
             get_settings,
             save_settings,
         ])

@@ -1,6 +1,6 @@
 # Windows Startstrategie-Bericht — Sidekick
 
-> Erstellt: 2026-05-15 | Basis: Tauri 2 + WebView2 + Hermes WebUI vendor
+> Erstellt: 2026-05-15 | Basis: Tauri 2 + WebView2 + Hermes WebUI
 
 ---
 

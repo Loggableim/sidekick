@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Sidekick Runtime Bootstrap — erzeugt venv und installiert Hermes-WebUI-Abhaengigkeiten.
+    Sidekick Runtime Bootstrap — erzeugt venv und installiert Sidekick-Abhaengigkeiten.
 .DESCRIPTION
     Prueft Python-Verfuegbarkeit, erzeugt venv unter %APPDATA%\Sidekick\runtime\venv,
     installiert pyyaml via pip.

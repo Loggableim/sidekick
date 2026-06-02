@@ -1,14 +1,14 @@
-//! # Hermes WebUI Process Supervisor
+//! # Sidekick Process Supervisor
 //!
-//! Startet, stoppt und überwacht den Hermes WebUI Python-Server als
-//! Child-Prozess. Thread-safe implementiert mit `Mutex<HermesSupervisor>`
+//! Startet, stoppt und überwacht den Sidekick Python-Server als
+//! Child-Prozess. Thread-safe implementiert mit `Mutex<SidekickSupervisor>`
 //! und einem separaten Log-Ringbuffer (`Arc<Mutex<Vec<String>>>`) für die
 //! stdout/stderr Reader-Threads.
 //!
 //! ## Sicherheit / Defensive Programmierung
 //!
 //! - Alle öffentlichen Funktionen behandeln Fehler defensiv — die App crashed
-//!   nicht wenn Hermes nicht starten kann.
+//!   nicht wenn Sidekick nicht starten kann.
 //! - Keine Unix-only APIs (`signal`, `nix` crate, etc.) — volle Windows-Kompatibilität.
 //! - `taskkill` wird für sanftes + hartes Kill verwendet (Ctrl+C via taskkill /PID,
 //!   Force via taskkill /F).
@@ -53,21 +53,21 @@ pub const STATUS_ERROR: &str = "error";
 // Supervisor-Struct
 // ---------------------------------------------------------------------------
 
-/// Verwaltet den Hermes WebUI Child-Prozess inkl. Log-Erfassung.
+/// Verwaltet den Sidekick Child-Prozess inkl. Log-Erfassung.
 ///
 /// Thread-safety:
-/// - `HermesSupervisor` selbst wird von `Mutex<HermesSupervisor>` geschützt.
+/// - `SidekickSupervisor` selbst wird von `Mutex<SidekickSupervisor>` geschützt.
 /// - Das `logs`-Feld hat einen **eigenen** `Arc<Mutex<Vec<String>>>` damit
 ///   die Reader-Threads (stdout/stderr) Logs schreiben können ohne den
 ///   Supervisor-Mutex zu benötigen → kein Deadlock-Risiko.
-pub struct HermesSupervisor {
+pub struct SidekickSupervisor {
     /// Child-Prozess-Handle (None wenn gestoppt).
     child: Option<Child>,
     /// Aktueller Betriebsstatus.
     status: String,
     /// Ringbuffer für stdout/stderr (eigener Mutex, siehe oben).
     logs: Arc<Mutex<Vec<String>>>,
-    /// Port auf dem Hermes WebUI zuletzt gestartet wurde.
+    /// Port auf dem Sidekick zuletzt gestartet wurde.
     port: u16,
 }
 
@@ -75,13 +75,13 @@ pub struct HermesSupervisor {
 // Globaler Singleton (OnceLock — kein `once_cell`-Crate nötig)
 // ---------------------------------------------------------------------------
 
-/// Gibt die `&'static Mutex<HermesSupervisor>` Instanz zurück.
+/// Gibt die `&'static Mutex<SidekickSupervisor>` Instanz zurück.
 /// Lazy-initialisiert beim ersten Aufruf via `OnceLock::get_or_init`.
-fn supervisor() -> &'static Mutex<HermesSupervisor> {
-    static SUPERVISOR: std::sync::OnceLock<Mutex<HermesSupervisor>> =
+fn supervisor() -> &'static Mutex<SidekickSupervisor> {
+    static SUPERVISOR: std::sync::OnceLock<Mutex<SidekickSupervisor>> =
         std::sync::OnceLock::new();
     SUPERVISOR.get_or_init(|| {
-        Mutex::new(HermesSupervisor {
+        Mutex::new(SidekickSupervisor {
             child: None,
             status: STATUS_STOPPED.to_string(),
             logs: Arc::new(Mutex::new(Vec::new())),
@@ -219,26 +219,26 @@ fn wait_for_port(port: u16, timeout: Duration) -> bool {
 // Öffentliche API — Kernfunktionen mit Parametern
 // ---------------------------------------------------------------------------
 
-/// Startet Hermes WebUI als Child-Prozess.
+/// Startet Sidekick als Child-Prozess.
 ///
 /// # Parameter
 ///
 /// * `state_dir` — Basis-Verzeichnis für App-State (z. B. `%APPDATA%/Sidekick`).
-///   Darin wird automatisch `hermes-webui/` als `HERMES_WEBUI_STATE_DIR` genutzt.
-/// * `hermes_dir` — Verzeichnis in dem `server.py` liegt (vendor/hermes-webui).
+///   Darin wird automatisch `sidekick-webui/` als `HERMES_WEBUI_STATE_DIR` genutzt.
+/// * `sidekick_dir` — Verzeichnis in dem `server.py` liegt (vendor/hermes-webui).
 /// * `python_path` — Vollständiger Pfad zur Python-Executable (z. B.
 ///   `.../runtime/.venv/Scripts/python.exe` oder `python` falls auf PATH).
 /// * `port` — Gewünschter Port (z. B. `8787`).
 ///
 /// # Fehler
 ///
-/// - Wenn Hermes bereits läuft.
+/// - Wenn Sidekick bereits läuft.
 /// - Wenn `python_path` nicht existiert oder nicht ausführbar ist.
 /// - Wenn `Command::spawn` fehlschlägt (z. B. Working-Dir existiert nicht).
 #[allow(dead_code)]
-pub fn start_hermes_with(
+pub fn start_sidekick_with(
     state_dir: &str,
-    hermes_dir: &str,
+    sidekick_dir: &str,
     python_path: &str,
     port: u16,
 ) -> Result<String, String> {
@@ -249,7 +249,7 @@ pub fn start_hermes_with(
 
     // ── 2. Zustandsprüfung ──────────────────────────────────────────────
     if guard.status == STATUS_RUNNING || guard.status == STATUS_STARTING {
-        return Err("Hermes WebUI läuft bereits".to_string());
+        return Err("Sidekick läuft bereits".to_string());
     }
 
     // ── 3. Python-Existenzprüfung ───────────────────────────────────────
@@ -265,7 +265,7 @@ pub fn start_hermes_with(
     guard.status = STATUS_STARTING.to_string();
     guard.port = port;
 
-    let hermes_state_dir = format!("{}/hermes-webui", state_dir.trim_end_matches('/'));
+    let sidekick_state_dir = format!("{}/sidekick-webui", state_dir.trim_end_matches('/'));
     let port_str = port.to_string();
 
     // ── 5. Child-Prozess starten ────────────────────────────────────────
@@ -273,9 +273,9 @@ pub fn start_hermes_with(
         .arg("server.py")
         .env("HERMES_WEBUI_HOST", "127.0.0.1")
         .env("HERMES_WEBUI_PORT", &port_str)
-        .env("HERMES_WEBUI_STATE_DIR", &hermes_state_dir)
+        .env("HERMES_WEBUI_STATE_DIR", &sidekick_state_dir)
         .env("PYTHONIOENCODING", "utf-8")
-        .current_dir(hermes_dir)
+        .current_dir(sidekick_dir)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
@@ -284,7 +284,7 @@ pub fn start_hermes_with(
         Err(e) => {
             guard.status = STATUS_ERROR.to_string();
             return Err(format!(
-                "Fehler beim Starten von Hermes WebUI (server.py): {}",
+                "Fehler beim Starten von Sidekick (server.py): {}",
                 e
             ));
         }
@@ -302,28 +302,28 @@ pub fn start_hermes_with(
     // ── 7. Auf Port-Öffnung warten ─────────────────────────────────────
     append_log(
         &logs,
-        format!("Warte auf Hermes WebUI (Port {}, max 15s)...", port),
+        format!("Warte auf Sidekick (Port {}, max 15s)...", port),
     );
 
     let port_ready = wait_for_port(port, Duration::from_secs(15));
 
     if port_ready {
-        append_log(&logs, format!("Hermes WebUI antwortet auf Port {}", port));
+        append_log(&logs, format!("Sidekick antwortet auf Port {}", port));
         guard.child = Some(child);
         guard.status = STATUS_RUNNING.to_string();
-        Ok(format!("Hermes WebUI gestartet auf Port {}", port))
+        Ok(format!("Sidekick gestartet auf Port {}", port))
     } else {
         // Server läuft nicht richtig — aufräumen
         let _ = child.kill();
         let _ = child.wait();
         guard.child = None;
         guard.status = STATUS_ERROR.to_string();
-        append_log(&logs, "Hermes WebUI konnte nicht rechtzeitig gestartet werden (Timeout)".to_string());
-        Err("Hermes WebUI antwortet nicht – Timeout beim Warten auf Port".to_string())
+        append_log(&logs, "Sidekick konnte nicht rechtzeitig gestartet werden (Timeout)".to_string());
+        Err("Sidekick antwortet nicht – Timeout beim Warten auf Port".to_string())
     }
 }
 
-/// Stoppt den Hermes WebUI Prozess.
+/// Stoppt den Sidekick Prozess.
 ///
 /// Strategie (Windows-kompatibel):
 /// 1. `taskkill /PID <pid>` — sendet Ctrl+C für sauberen Shutdown.
@@ -336,7 +336,7 @@ pub fn start_hermes_with(
 ///
 /// Gibt einen Fehler zurück wenn kein Prozess läuft. Der Status wird
 /// dennoch auf `"stopped"` gesetzt.
-pub fn stop_hermes() -> Result<String, String> {
+pub fn stop_sidekick() -> Result<String, String> {
     // ── 1. Supervisor-Lock ──────────────────────────────────────────────
     let mut guard = supervisor()
         .lock()
@@ -348,14 +348,14 @@ pub fn stop_hermes() -> Result<String, String> {
         None => {
             guard.status = STATUS_STOPPED.to_string();
             guard.port = 0;
-            return Err("Kein laufender Hermes WebUI Prozess".to_string());
+            return Err("Kein laufender Sidekick Prozess".to_string());
         }
     };
 
     let pid = child.id();
     let logs = guard.logs.clone();
 
-    append_log(&logs, format!("Stoppe Hermes WebUI (PID: {})...", pid));
+    append_log(&logs, format!("Stoppe Sidekick (PID: {})...", pid));
 
     // Status auf stopping setzen (UI sieht den Übergang)
     guard.status = STATUS_STOPPING.to_string();
@@ -382,7 +382,7 @@ pub fn stop_hermes() -> Result<String, String> {
         {
             append_log(
                 &logs_arc,
-                format!("Force-Kill Hermes WebUI (PID: {})...", pid),
+                format!("Force-Kill Sidekick (PID: {})...", pid),
             );
         }
 
@@ -398,62 +398,62 @@ pub fn stop_hermes() -> Result<String, String> {
     {
         append_log(
             &logs_arc,
-            format!("Hermes WebUI gestoppt (PID: {})", pid),
+            format!("Sidekick gestoppt (PID: {})", pid),
         );
     }
 
-    Ok("Hermes WebUI gestoppt".to_string())
+    Ok("Sidekick gestoppt".to_string())
 }
 
-/// Startet Hermes WebUI neu (stop + start).
+/// Startet Sidekick neu (stop + start).
 ///
-/// Ruft zuerst `stop_hermes()` auf (ignoriert Fehler falls nicht gestartet)
-/// und dann `start_hermes_with()` mit den gegebenen Parametern.
+/// Ruft zuerst `stop_sidekick()` auf (ignoriert Fehler falls nicht gestartet)
+/// und dann `start_sidekick_with()` mit den gegebenen Parametern.
 #[allow(dead_code)]
-pub fn restart_hermes_with(
+pub fn restart_sidekick_with(
     state_dir: &str,
-    hermes_dir: &str,
+    sidekick_dir: &str,
     python_path: &str,
     port: u16,
 ) -> Result<String, String> {
-    let _ = stop_hermes();
-    start_hermes_with(state_dir, hermes_dir, python_path, port)
+    let _ = stop_sidekick();
+    start_sidekick_with(state_dir, sidekick_dir, python_path, port)
 }
 
 // ---------------------------------------------------------------------------
 // Öffentliche API — Tauri-Kommandos (parameterlos, laden Settings intern)
 // ---------------------------------------------------------------------------
 
-/// Startet Hermes WebUI mit Werten aus den gespeicherten Settings.
+/// Startet Sidekick mit Werten aus den gespeicherten Settings.
 ///
 /// Lädt `Settings` via `crate::settings`, sucht einen freien Port via
-/// `crate::ports`, und delegiert an `start_hermes_with`.
+/// `crate::ports`, und delegiert an `start_sidekick_with`.
 ///
-/// Aufrufbar als Tauri-Kommando `start_hermes`.
-pub fn start_hermes() -> Result<String, String> {
+/// Aufrufbar als Tauri-Kommando `start_sidekick`.
+pub fn start_sidekick() -> Result<String, String> {
     let settings = crate::settings::load_settings();
     let state_dir = crate::settings::get_state_dir();
     let port = crate::ports::find_free_port(settings.preferred_port);
 
-    start_hermes_with(
+    start_sidekick_with(
         &state_dir,
-        &settings.hermes_path,
+        &settings.sidekick_path,
         &settings.python_path,
         port,
     )
 }
 
-/// Startet Hermes WebUI neu mit Werten aus den gespeicherten Settings.
+/// Startet Sidekick neu mit Werten aus den gespeicherten Settings.
 ///
-/// Aufrufbar als Tauri-Kommando `restart_hermes`.
-pub fn restart_hermes() -> Result<String, String> {
+/// Aufrufbar als Tauri-Kommando `restart_sidekick`.
+pub fn restart_sidekick() -> Result<String, String> {
     let settings = crate::settings::load_settings();
     let state_dir = crate::settings::get_state_dir();
     let port = crate::ports::find_free_port(settings.preferred_port);
 
-    restart_hermes_with(
+    restart_sidekick_with(
         &state_dir,
-        &settings.hermes_path,
+        &settings.sidekick_path,
         &settings.python_path,
         port,
     )
@@ -509,7 +509,7 @@ pub fn get_logs() -> Result<Vec<String>, String> {
     Ok(guard[start..].to_vec())
 }
 
-/// Gibt den aktuellen Port zurück auf dem Hermes WebUI läuft (0 wenn gestoppt).
+/// Gibt den aktuellen Port zurück auf dem Sidekick läuft (0 wenn gestoppt).
 pub fn get_port() -> u16 {
     supervisor()
         .lock()
@@ -624,8 +624,8 @@ mod tests {
 
     #[test]
     fn test_stop_when_not_running() {
-        // stop_hermes sollte keinen Crash verursachen
-        let result = stop_hermes();
+        // stop_sidekick sollte keinen Crash verursachen
+        let result = stop_sidekick();
         // Kann Ok oder Err sein — Hauptsache kein Panic
         let _ = result;
     }
@@ -641,7 +641,7 @@ mod tests {
         }
 
         // start mit ungültigem Python-Pfad → Fehler, kein Crash
-        let result = start_hermes_with(
+        let result = start_sidekick_with(
             "C:/tmp",
             "F:/finalbrowser/vendor/hermes-webui",
             "C:/does/not/exist/python_invalid.exe",
@@ -666,7 +666,7 @@ mod tests {
         assert_eq!(get_status(), STATUS_ERROR);
 
         // Start sollte error zurückgeben weil vorheriger Fehler
-        let result = start_hermes_with(
+        let result = start_sidekick_with(
             "C:/tmp",
             "F:/finalbrowser/vendor/hermes-webui",
             "C:/does/not/exist/python_invalid.exe",
@@ -679,7 +679,7 @@ mod tests {
             let mut guard = supervisor().lock().unwrap();
             guard.status = STATUS_RUNNING.to_string();
         }
-        let result = start_hermes_with(
+        let result = start_sidekick_with(
             "C:/tmp",
             "F:/finalbrowser/vendor/hermes-webui",
             "C:/does/not/exist/python_invalid.exe",

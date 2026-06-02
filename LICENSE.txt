@@ -1,0 +1,39 @@
+SIDEKICK SOFTWARE LICENSE
+Version 1.0, June 2026
+
+Copyright (c) 2026 Lastbrowser
+
+TERMS AND CONDITIONS
+
+1. DEFINITIONS
+   "Software" means the Sidekick application and all associated source code,
+   documentation, and assets.
+   "Non-Commercial Use" means personal, educational, hobby, or research use
+   that does not generate revenue or business value.
+   "Commercial Use" means any use that is not Non-Commercial Use, including
+   but not limited to: use within a business or organization for internal
+   operations, resale or distribution of the Software, integration into a
+   commercial product or service, or providing services based on the Software.
+
+2. NON-COMMERCIAL LICENSE
+   The Software is free to use, copy, modify, and distribute for
+   Non-Commercial Use only. This includes:
+   - Personal projects and learning
+   - Academic research and education
+   - Open-source contributions
+   - Hobby and experimentation
+
+3. COMMERCIAL LICENSE
+   Commercial Use of the Software requires a separate written agreement
+   with Lastbrowser. Contact: vertrag@lastbrowser.com
+
+4. DISCLAIMER OF WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+
+5. LIMITATION OF LIABILITY
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

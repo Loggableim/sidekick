@@ -196,10 +196,10 @@
     addLog('[STATUS] Logs kopiert');
   }
 
-  // ---------- Hermes Actions ----------
+  // ---------- Sidekick Actions ----------
 
-  async function startHermes() {
-    addLog(MODE === 'DEMO' ? '[DEV] [AKTION] Hermes starten (simuliert)' : '[AKTION] Hermes wird gestartet…');
+  async function startSidekick() {
+    addLog(MODE === 'DEMO' ? '[DEV] [AKTION] Sidekick starten (simuliert)' : '[AKTION] Sidekick wird gestartet…');
     updateStatus('starting');
     showError(null);
     hideWebUIError();
@@ -212,7 +212,7 @@
       return;
     }
     try {
-      var result = await invoke('start_hermes', {});
+      var result = await invoke('start_sidekick', {});
       addLog('[AKTION] ' + result);
       webviewStatus.textContent = 'Bereit';
       webviewStatus.className = 'badge badge-running';
@@ -226,15 +226,15 @@
     }
   }
 
-  async function stopHermes() {
-    addLog(MODE === 'DEMO' ? '[DEV] [AKTION] Hermes stoppen (simuliert)' : '[AKTION] Hermes wird gestoppt…');
+  async function stopSidekick() {
+    addLog(MODE === 'DEMO' ? '[DEV] [AKTION] Sidekick stoppen (simuliert)' : '[AKTION] Sidekick wird gestoppt…');
     updateStatus('stopping');
     if (MODE === 'DEMO') {
       setTimeout(function() { updateStatus('idle'); }, 1000);
       return;
     }
     try {
-      await invoke('stop_hermes', {});
+      await invoke('stop_sidekick', {});
       updateStatus('idle');
       webviewStatus.textContent = 'Nicht geladen';
       webviewStatus.className = 'badge badge-idle';
@@ -245,8 +245,8 @@
     }
   }
 
-  async function restartHermes() {
-    addLog(MODE === 'DEMO' ? '[DEV] [AKTION] Hermes neu starten (simuliert)' : '[AKTION] Hermes wird neu gestartet…');
+  async function restartSidekick() {
+    addLog(MODE === 'DEMO' ? '[DEV] [AKTION] Sidekick neu starten (simuliert)' : '[AKTION] Sidekick wird neu gestartet…');
     updateStatus('restarting');
     showError(null);
     hideWebUIError();
@@ -256,7 +256,7 @@
       return;
     }
     try {
-      var result = await invoke('restart_hermes', {});
+      var result = await invoke('restart_sidekick', {});
       addLog('[AKTION] ' + result);
       webviewStatus.textContent = 'Bereit';
       webviewStatus.className = 'badge badge-running';
@@ -266,10 +266,10 @@
     }
   }
 
-  async function openHermesWebUI() {
+  async function openWebUI() {
     var port = document.getElementById('port').value || 8787;
     var webuiMode = document.getElementById('webui-mode').value;
-    addLog('[WEBUI] Öffne Hermes WebUI (Modus: ' + webuiMode + ')');
+    addLog('[WEBUI] Öffne Sidekick WebUI (Modus: ' + webuiMode + ')');
 
     if (MODE === 'DEMO') {
       window.open('http://127.0.0.1:' + port + '/', '_blank');
@@ -288,8 +288,8 @@
     } else {
       // Default: separates Tauri-Fenster
       try {
-        await invoke('open_hermes_window', { port: parseInt(port, 10) });
-        addLog('[WEBUI] Hermes WebUI in eigenem Fenster geöffnet');
+        await invoke('open_sidekick_window', { port: parseInt(port, 10) });
+        addLog('[WEBUI] Sidekick WebUI in eigenem Fenster geöffnet');
         webviewStatus.textContent = 'Eigenes Fenster';
         webviewStatus.className = 'badge badge-running';
         hideWebUIError();
@@ -299,18 +299,18 @@
     }
   }
 
-  async function focusHermesWebUI() {
+  async function focusWebUI() {
     if (MODE === 'DEMO') {
       addLog('[DEV] [WEBUI] Fokussieren (Demo)');
       return;
     }
     var port = document.getElementById('port').value || 8787;
     try {
-      await invoke('open_hermes_window', { port: parseInt(port, 10) });
+      await invoke('open_sidekick_window', { port: parseInt(port, 10) });
       addLog('[WEBUI] WebUI-Fenster fokussiert');
     } catch (err) {
       if ((err.message || err).indexOf('nicht gestartet') !== -1) {
-        showWebUIError('Hermes WebUI ist nicht gestartet. Starte zuerst das Backend.');
+        showWebUIError('Sidekick WebUI ist nicht gestartet. Starte zuerst das Backend.');
       } else {
         showWebUIError('Fenster fokussieren fehlgeschlagen: ' + (err.message || err));
       }
@@ -390,7 +390,7 @@
 
   function collectSettings() {
     return {
-      hermes_path: document.getElementById('hermes-path').value || './vendor/hermes-webui',
+      sidekick_path: document.getElementById('sidekick-path').value || './vendor/hermes-webui',
       python_path: document.getElementById('python-path').value || 'python',
       preferred_port: parseInt(document.getElementById('port').value, 10) || 8787,
       auto_start: document.getElementById('autostart').checked,
@@ -402,7 +402,7 @@
     if (s.preferred_port !== undefined) document.getElementById('port').value = s.preferred_port;
     if (s.auto_start !== undefined) document.getElementById('autostart').checked = s.auto_start;
     if (s.python_path !== undefined) document.getElementById('python-path').value = s.python_path;
-    if (s.hermes_path !== undefined) document.getElementById('hermes-path').value = s.hermes_path;
+    if (s.sidekick_path !== undefined) document.getElementById('sidekick-path').value = s.sidekick_path;
     webuiUrl.textContent = 'http://127.0.0.1:' + (s.preferred_port || 8787);
   }
 
@@ -463,7 +463,7 @@
     if (e.ctrlKey && e.key === 'Enter') {
       e.preventDefault();
       if (currentStatus === 'idle' || currentStatus === 'error') {
-        startHermes();
+        startSidekick();
       }
     }
   });
@@ -488,11 +488,11 @@
   }
 
   // ---------- Expose Globals ----------
-  window.startHermes = startHermes;
-  window.stopHermes = stopHermes;
-  window.restartHermes = restartHermes;
-  window.openHermesWebUI = openHermesWebUI;
-  window.focusHermesWebUI = focusHermesWebUI;
+  window.startSidekick = startSidekick;
+  window.stopSidekick = stopSidekick;
+  window.restartSidekick = restartSidekick;
+  window.openWebUI = openWebUI;
+  window.focusWebUI = focusWebUI;
   window.openLogs = openLogs;
   window.openAppData = openAppData;
   window.openBrowser = openBrowser;

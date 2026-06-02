@@ -1,4 +1,4 @@
-# Environment-Variablen-Referenz — Sidekick + Hermes WebUI
+# Environment-Variablen-Referenz — Sidekick
 
 > Stand: 2026-05-15 | Quelle: `supervisor.rs`, `config.py`, `settings.rs`
 
@@ -76,7 +76,7 @@ auto-discover Logik bestimmt.
 
 ## 3. Von Sidekick (Rust) genutzte Variablen
 
-Diese Umgebungsvariablen werden vom Sidekick-Supervisor und den Settings-Komponenten
+Diese Umgebungsvariablen werden vom Supervisor und den Settings-Komponenten
 verwendet.
 
 | Variable | Default | Beschreibung |
@@ -89,7 +89,7 @@ verwendet.
 
 ---
 
-## 4. Von Hermes WebUI (agent-seitig) genutzte Variablen
+## 4. Vom WebUI (agent-seitig) genutzte Variablen
 
 | Variable | Default | Beschreibung |
 |---|---|---|

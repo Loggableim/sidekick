@@ -1,77 +1,69 @@
 # Sidekick
 
-Eine einfache, stabile Windows-Desktop-App die Hermes WebUI lokal startet, überwacht und in einer nativen Tauri + WebView2 Hülle anzeigt.
+Dein lokaler KI-Assistent für Windows. Läuft standalone, ohne Cloudzwang.
 
-**Status:** Initiale Projektstruktur — MVP 1 in Entwicklung.
+**Status:** Open Beta · [Jetzt herunterladen](https://lastbrowser.com/sidekick/)
 
-## Ziel
+Sidekick ist eine **native Windows-Desktop-App**, die dir einen vollwertigen KI-Assistenten direkt auf deinen Rechner bringt. Chat, Tasks, Skills, Spaces — alles in einer App, ohne Browser, ohne Cloud.
 
-Sidekick wandelt das bestehende [Hermes WebUI](https://github.com/nesquena/hermes-webui) (Python) in eine Windows-Desktop-App um. Der Fokus liegt auf einer simplen, stabilen Native-Hülle, NICHT auf einem vollständigen Browser.
+![Sidekick](assets/sidekick/sidekick-logo-01-smile-spark.svg)
 
-## Architektur (geplant)
+## Features
+
+- **Chat** – Fragen stellen, Texte entwerfen, Inhalte analysieren
+- **Tasks & Todos** – Aufgaben mit Kontext aus Gesprächen verwalten
+- **Skills** – Vorgefertigte Workflows für Recherche, Schreiben, Analyse
+- **Spaces** – Projekte sauber trennen mit eigenem Kontext und Verlauf
+- **Lokale Modelle** – Nutze llama.cpp, Ollama & Co. – deine Daten bleiben bei dir
+- **API-Connect** – Alternativ mit eigenen API-Keys (OpenAI, Anthropic, …)
+
+## Architektur
 
 ```
 sidekick/
 ├── src-tauri/           # Tauri 2 Rust-App
 │   ├── src/
 │   │   ├── main.rs      # App-Einstieg + Tauri-Commands
-│   │   ├── supervisor.rs # Hermes-WebUI-Child-Prozess-Manager + Logs
+│   │   ├── supervisor.rs # Sidekick-Prozess-Manager + Logs
 │   │   ├── ports.rs     # Port-Auswahl/Fallback
 │   │   ├── health.rs    # Healthcheck-Polling
 │   │   └── settings.rs  # Persistente Settings
 │   └── tauri.conf.json
-├── app/                 # Control-UI (eingebettet in WebView)
+├── app/                 # Control-UI (WebView2)
 │   ├── index.html
 │   ├── app.js
+│   ├── sidekick-icons.html
 │   └── styles.css
-├── vendor/              # Externe Komponenten (read-only)
-│   └── hermes-webui/    # Hermes WebUI als Upstream-Vendor
-├── runtime/             # Python-Runtime-Management
+├── vendor/
+│   └── hermes-webui/    # Upstream Hermes WebUI (Vendor, read-only)
+├── runtime/
 │   ├── bootstrap_venv.ps1
 │   └── requirements.lock.txt
-├── scripts/             # Dev/Build-Skripte
+├── scripts/
 │   ├── dev_start.ps1
 │   ├── build_windows.ps1
+│   ├── kill_sidekick.ps1
 │   └── package_windows.ps1
-├── docs/                # Dokumentation
-│   ├── WINDOWS_APP.md
-│   ├── ARCHITECTURE.md
-│   ├── HERMES_INTEGRATION.md
-│   ├── ENV_REFERENCE.md
-│   ├── QA_REPORT.md
-│   ├── TROUBLESHOOTING.md
-│   └── WINDOWS_STARTUP_STRATEGY.md
+├── docs/
 └── README.md
 ```
+
 ### Prinzipien
 
-- **Hermes WebUI bleibt Upstream/Vendor** — minimale Änderungen, eigenes Projekt drumherum
-- **Kein WSL, kein Docker** — alles native Windows (Python venv + WebView2)
-- **AppData für State** — `%APPDATA%\Sidekick\`
-- **Port-Fallback** — 8787 → 8788 → 8789 → freier Port
-- **Supervisor** — startet/stoppt/überwacht Hermes-Prozess sauber
-- **Defensive Prozessführung** — keine Zombies, sauberes Kill beim App-Exit
+- **Native Windows-App** – Kein WSL, kein Docker, kein Browser nötig
+- **Hermes WebUI als Vendor** – Upstream bleibt unverändert
+- **AppData für State** – `%APPDATA%\Sidekick\`
+- **Port-Fallback** – 8787 → 8788 → 8789 → freier Port
+- **Prozess-Supervisor** – Sauberes Start/Stopp/Restart des Backends
+- **Defensiv** – Keine Zombie-Prozesse, sauberes Kill beim Exit
 
-### MVP 1 Akzeptanzkriterien
+## Download
 
-- [ ] App startet unter Windows per Dev-Kommando
-- [ ] Hermes WebUI startet aus der App heraus
-- [ ] App findet freien Port
-- [ ] WebUI wird nach Healthcheck eingebettet
-- [ ] Logs sind sichtbar (Button)
-- [ ] Restart/Stop funktionieren
-- [ ] AppData wird genutzt
-- [ ] Keine WSL/Docker-Pflicht
-- [ ] README erklärt Setup und Build
-
-### MVP 2 (nur nach stabiler MVP 1)
-
-- Tray-Icon
-- Auto-Start/Auto-Restart
-- Settings-Seite
-- In-Browser öffnen
-- AppData-Ordner öffnen
-- Session-Reset
+| Version | Link |
+|---------|------|
+| **Setup** (mit Auto-Update) | [lastbrowser.com/downloads/sidekick-setup.exe](https://lastbrowser.com/downloads/sidekick-setup.exe) |
+| **Portable** (ohne Installation) | [lastbrowser.com/downloads/sidekick-portable.exe](https://lastbrowser.com/downloads/sidekick-portable.exe) |
+| **Update-Manifest** | [sidekick-latest.yml](https://lastbrowser.com/downloads/sidekick-latest.yml) |
 
 ## Entwicklung
 
@@ -79,4 +71,9 @@ Siehe `docs/WINDOWS_APP.md` für Setup und Build.
 
 ## Lizenz
 
-MIT
+**Non-Commercial:** Kostenlos für private Projekte, Studium, Hobby und nicht-kommerzielle Nutzung. Alle Features inklusive.
+
+**Commercial:** Für gewerbliche Nutzung, Vertrieb oder Team-Einsatz ist eine individuelle Vereinbarung erforderlich.  
+Kontakt: **vertrag@lastbrowser.com**
+
+Sidekick © 2026 · Ein Produkt von [Lastbrowser](https://lastbrowser.com)

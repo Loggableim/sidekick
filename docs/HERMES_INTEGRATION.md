@@ -1,4 +1,4 @@
-# Hermes WebUI Integration in Sidekick
+# Sidekick – Hermes WebUI Integration
 
 > Stand: 2026-05-15 | Projekt: Sidekick (F:/finalbrowser)
 

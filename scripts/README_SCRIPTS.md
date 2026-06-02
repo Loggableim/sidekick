@@ -25,7 +25,7 @@ Paketierung von Sidekick.
 1. **Voraussetzungsprüfung** – Prüft ob Python, Rust und Cargo installiert sind
 2. **Bootstrap** – Führt `runtime/bootstrap_venv.ps1` aus (venv + Python-Deps)
 3. **Port-Konfiguration** – Nutzt Port 8787 (überschreibbar via `$env:SIDEKICK_PORT`)
-4. **Hermes WebUI starten** – Startet `vendor/hermes-webui/server.py` im Hintergrund
+4. **Sidekick WebUI starten** – Startet `vendor/hermes-webui/server.py` im Hintergrund
    - Setzt `HERMES_WEBUI_HOST=127.0.0.1`
    - Setzt `HERMES_WEBUI_PORT` (aus `$env:SIDEKICK_PORT` oder 8787)
    - Setzt `HERMES_WEBUI_STATE_DIR=%APPDATA%\Sidekick\webui`
@@ -131,7 +131,7 @@ cd F:\finalbrowser
 
 | Variable        | Beschreibung                       | Standard     |
 |-----------------|------------------------------------|--------------|
-| SIDEKICK_PORT   | Port für Hermes WebUI              | 8787         |
+| SIDEKICK_PORT   | Port für WebUI              | 8787         |
 | HERMES_WEBUI_HOST | Host-Adresse                      | 127.0.0.1    |
 | HERMES_WEBUI_STATE_DIR | Zustandsverzeichnis         | %APPDATA%\Sidekick\webui |
 

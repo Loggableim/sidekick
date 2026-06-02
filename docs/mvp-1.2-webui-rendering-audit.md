@@ -1,4 +1,4 @@
-# MVP 1.2 — WebUI Rendering Audit
+# MVP 1.2 — Sidekick Rendering Audit
 
 ## Status: ABGESCHLOSSEN
 

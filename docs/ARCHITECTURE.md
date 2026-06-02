@@ -22,7 +22,7 @@ F:/finalbrowser/
 ├── src-tauri/              # Tauri 2 Rust-App
 │   ├── src/
 │   │   ├── main.rs         # App-Einstieg + Tauri-Commands
-│   │   ├── supervisor.rs   # Hermes-Child-Prozess-Manager
+│   │   ├── supervisor.rs   # Sidekick-Child-Prozess-Manager
 │   │   ├── ports.rs        # Port-Auswahl/Fallback
 │   │   ├── health.rs       # Healthcheck-Polling (HTTP)
 │   │   ├── settings.rs     # Settings-Persistenz + AppData-Pfade
@@ -105,7 +105,7 @@ F:/finalbrowser/
 2. Tauri öffnet WebView2-Fenster mit app/index.html (Control UI)
 3. Control UI lädt Settings aus %APPDATA%\Sidekick\config\settings.json
 4. Status-Polling startet (alle 2s, Tauri-IPC)
-5. Nutzer klickt »Hermes starten«
+5. Nutzer klickt »Sidekick starten«
    ↓
 6. invoke('start_hermes')
    ↓
@@ -148,7 +148,7 @@ Control UI (letzte 100 Einträge)
 ### 3.3 App-Stopp
 
 ```
-1. Nutzer klickt »Hermes stoppen«
+1. Nutzer klickt »Sidekick stoppen«
    ↓
 2. invoke('stop_hermes')
    ↓
@@ -344,7 +344,7 @@ STARTING ──→ ERROR (Python nicht gefunden / Spawn fehlgeschlagen)
 
 ### Thread-Safety
 
-- Supervisor-Struct wird von `Mutex<HermesSupervisor>` geschützt.
+- Supervisor-Struct wird von `Mutex<SidekickSupervisor>` geschützt.
 - Logs haben einen **eigenen** `Arc<Mutex<Vec<String>>>` – Reader-Threads und API blockieren sich nicht gegenseitig.
 - Singleton via `OnceLock` (kein externes Crate nötig).
 
@@ -377,9 +377,9 @@ Die Control UI kommuniziert über Tauri IPC (`window.__TAURI__.invoke`) mit dem 
 
 | Command | Funktion | Rückgabe |
 |---------|----------|----------|
-| `start_hermes` | Hermes-Prozess starten | `Result<String, String>` |
-| `stop_hermes` | Hermes-Prozess stoppen | `Result<String, String>` |
-| `restart_hermes` | Hermes-Prozess neustarten | `Result<String, String>` |
+| `start_hermes` | Sidekick-Prozess starten | `Result<String, String>` |
+| `stop_hermes` | Sidekick-Prozess stoppen | `Result<String, String>` |
+| `restart_hermes` | Sidekick-Prozess neustarten | `Result<String, String>` |
 | `get_status` | Aktuellen Status abfragen | `String` ("stopped", ...) |
 | `get_logs` | Letzte Logzeilen abrufen | `Result<Vec<String>, String>` |
 | `open_appdata` | AppData-Ordner im Explorer öffnen | `Result<(), String>` |

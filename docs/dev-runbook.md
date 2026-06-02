@@ -67,8 +67,8 @@ cargo tauri dev
 |---|---|---|
 | `start_hermes` | Startet Hermes WebUI | ✅ |
 | `stop_hermes` | Stoppt Hermes WebUI | ✅ |
-| `restart_hermes` | Startet Hermes neu | ✅ |
-| `get_status` | Hermes-Status ("stopped"/"starting"/"running"/"error") | ✅ |
+| `restart_hermes` | Startet WebUI neu | ✅ |
+| `get_status` | WebUI-Status ("stopped"/"starting"/"running"/"error") | ✅ |
 | `get_logs` | Letzte Logzeilen | ✅ |
 | `open_appdata` | %APPDATA%\Sidekick im Explorer | ✅ |
 | `open_external_browser` | Hermes WebUI im Standard-Browser | ✅ |
