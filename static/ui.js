@@ -629,7 +629,7 @@ async function toggleHubCast(){
     _castAvailable=r.ok && s.available!==false;
     _castActive=_castAvailable && s.active===true;
     _castLastError=_castAvailable?'':(s.error||'Hub nicht erreichbar');
-    if(!_castAvailable&&typeof showToast==='function')showToast('Hub Cast nicht erreichbar. Prüfe HERMES_CAST_API_HOST.', 'error');
+    if(!_castAvailable&&typeof showToast==='function')showToast('Hub Cast nicht erreichbar. Prüfe SIDECKICK_CAST_API_HOST.', 'error');
   }catch(e){
     _castAvailable=false;
     _castActive=false;

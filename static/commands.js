@@ -238,7 +238,7 @@ function cliOnlyCommandResponse(cmdName, meta){
   const detail=desc?`\n\n${desc}`:'';
   let extra='';
   if(name==='browser'){
-    extra='\n\nBrowser tools in WebUI must be configured server-side with the agent/browser environment. Once configured, ask the model to use browser tools directly; `/browser` itself only works in `hermes chat`.';
+    extra='\n\nBrowser tools in WebUI must be configured server-side with the agent/browser environment. Once configured, ask the model to use browser tools directly; `/browser` itself only works in Sidekick chat.';
   }
   return `\`/${name}\` is a Sidekick CLI-only command and cannot run inside the WebUI.${detail}${extra}`;
 }
@@ -765,7 +765,7 @@ async function cmdInterrupt(args){
  * next iteration — same pathway as the CLI's /steer command.
  *
  * Falls back to interrupt mode when the agent isn't running, isn't cached,
- * or doesn't support steer (older hermes-agent versions).
+ * or doesn't support steer (older Sidekick versions).
  */
 async function cmdSteer(args){
   const msg=(args||'').trim();
