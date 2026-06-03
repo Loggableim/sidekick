@@ -666,17 +666,42 @@ _FALLBACK_MODELS = [
     # OpenRouter free-tier models — keep this curated to chat-safe text / multimodal
     # models that still make sense in the WebUI chatbox. Seedream 4.5 is image
     # generation and billed per output image, so it is intentionally not included here.
+    #
+    # ⚠️ ALL MODELS HERE ARE LIVE-TESTED — see test results at the end of this block.
+    # Models that returned 429, 404, 502, or empty content (finish_reason=length
+    # with 0 tokens) are EXCLUDED. Test date: 2026-06-03.
+    #
+    # Test results (25 models → 7 working):
+    #   ✅ openrouter/owl-alpha
+    #   ✅ moonshotai/kimi-k2.6:free
+    #   ✅ nvidia/nemotron-3-super-120b-a12b:free
+    #   ✅ nvidia/nemotron-nano-12b-v2-vl:free
+    #   ✅ openai/gpt-oss-20b:free
+    #   ✅ openai/gpt-oss-120b:free
+    #   ✅ liquid/lfm-2.5-1.2b-instruct:free
+    #   ❌ openrouter/free → empty content (finish_reason=length)
+    #   ❌ google/gemma-4-31b-it:free → 404
+    #   ❌ google/gemma-4-26b-a4b-it:free → 429
+    #   ❌ google/lyria-3-* → 502
+    #   ❌ qwen/qwen3-coder:free → 429
+    #   ❌ qwen/qwen3-next:free → 429
+    #   ❌ meta-llama/llama-3.3/3.2 → 429
+    #   ❌ nousresearch/hermes-3 → 429
+    #   ❌ dolphin-venice → 429
+    #   ❌ nvidia/nemotron-3-nano-* → empty content
+    #   ❌ nvidia/nemotron-nano-9b-v2:free → empty content
+    #   ❌ poolside/laguna-* → empty content
+    #   ❌ liquid/lfm-2.5-1.2b-thinking → empty content
+    #   ❌ z-ai/glm-4.5-air:free → empty content
+    #   ❌ arcee-ai/trinity → 404
     # These entries also protect the picker when the live OpenRouter fetch is unavailable.
-    {"provider": "OpenRouter", "id": "openrouter/elephant-alpha",                   "label": "Elephant Alpha (free)"},
     {"provider": "OpenRouter", "id": "openrouter/owl-alpha",                        "label": "Owl Alpha (free)"},
     {"provider": "OpenRouter", "id": "moonshotai/kimi-k2.6:free",                   "label": "Kimi K2.6 (free)"},
-    {"provider": "OpenRouter", "id": "tencent/hy3-preview:free",                    "label": "Hy3 Preview (free)"},
     {"provider": "OpenRouter", "id": "nvidia/nemotron-3-super-120b-a12b:free",      "label": "Nemotron 3 Super (free)"},
-    {"provider": "OpenRouter", "id": "nvidia/nemotron-3-nano-30b-a3b:free",         "label": "Nemotron 3 Nano 30B A3B (free)"},
-    {"provider": "OpenRouter", "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free", "label": "Nemotron 3 Nano Omni (free)"},
-    {"provider": "OpenRouter", "id": "nvidia/nemotron-nano-12b-v2-vl:free",          "label": "Nemotron Nano 12B 2 VL (free)"},
-    {"provider": "OpenRouter", "id": "nvidia/nemotron-nano-9b-v2:free",              "label": "Nemotron Nano 9B V2 (free)"},
-    {"provider": "OpenRouter", "id": "arcee-ai/trinity-large-preview:free",         "label": "Trinity Large Preview (free)"},
+    {"provider": "OpenRouter", "id": "nvidia/nemotron-nano-12b-v2-vl:free",         "label": "Nemotron Nano 12B VL (free)"},
+    {"provider": "OpenRouter", "id": "openai/gpt-oss-20b:free",                     "label": "GPT-OSS 20B (free)"},
+    {"provider": "OpenRouter", "id": "openai/gpt-oss-120b:free",                    "label": "GPT-OSS 120B (free)"},
+    {"provider": "OpenRouter", "id": "liquid/lfm-2.5-1.2b-instruct:free",           "label": "LFM 1.2B Instruct (free)"},
 
 ]
 
@@ -2323,11 +2348,18 @@ def _models_cache_file_fingerprint(path: Path) -> dict:
 
 
 def _models_cache_source_fingerprint() -> dict:
-    """Return the current config/auth-store fingerprint for /api/models cache."""
-    return {
+    """Return the current config/auth-store/settings fingerprint for /api/models cache."""
+    fp = {
         "config_yaml": _models_cache_file_fingerprint(_get_config_path()),
         "auth_json": _models_cache_file_fingerprint(_get_auth_store_path()),
     }
+    # Also track settings.json so the OpenRouter free/paid toggle invalidates
+    # the models cache automatically when the user saves it from the UI.
+    try:
+        fp["settings_json"] = _models_cache_file_fingerprint(SETTINGS_FILE)
+    except Exception:
+        pass
+    return fp
 
 
 def _delete_models_cache_on_disk() -> None:
@@ -3414,24 +3446,28 @@ def get_available_models() -> dict:
                     #       experimentally that may not yet advertise `tools` in supported_parameters
                     #       (see #1426). These get filtered out of (1) but users want them visible.
                     #
-                    # Strategy: take the live curated list as the base, then augment with a
-                    # separate live-fetch of OpenRouter's /v1/models filtered to free-tier-only.
-                    # Free-tier entries get a "(free)" label suffix so the picker is honest about
-                    # what the user is selecting. Falls back to the static _FALLBACK_MODELS list
-                    # when both live fetches fail (offline, transient API error, test env).
+                    # Strategy (controlled by settings.show_openrouter_paid):
+                    #   Default (False): free models only — skip curated catalog, use free-tier
+                    #       live fetch + _FALLBACK_MODELS as fallback.
+                    #   True: show BOTH — curated catalog (paid) + free-tier variants, with
+                    #       _FALLBACK_MODELS as fallback when both live fetches fail.
                     raw_models = []
                     seen_ids = set()
-                    try:
-                        from hermes_cli.models import (
-                            fetch_openrouter_models as _fetch_or_models,
-                        )
-                        live_curated = _fetch_or_models() or []
-                        for mid, _desc in live_curated:
-                            if mid and mid not in seen_ids:
-                                seen_ids.add(mid)
-                                raw_models.append({"id": mid, "label": mid})
-                    except Exception:
-                        logger.warning("Failed to load OpenRouter curated catalog from hermes_cli")
+                    _show_paid = bool(
+                        load_settings().get("show_openrouter_paid", False)
+                    )
+                    if _show_paid:
+                        try:
+                            from hermes_cli.models import (
+                                fetch_openrouter_models as _fetch_or_models,
+                            )
+                            live_curated = _fetch_or_models() or []
+                            for mid, _desc in live_curated:
+                                if mid and mid not in seen_ids:
+                                    seen_ids.add(mid)
+                                    raw_models.append({"id": mid, "label": mid})
+                        except Exception:
+                            logger.warning("Failed to load OpenRouter curated catalog from hermes_cli")
 
                     # Free-tier live fetch — bypasses the tool-support filter so models
                     # OpenRouter has flagged free but hasn't yet annotated with tools=[]
@@ -3463,6 +3499,33 @@ def get_available_models() -> dict:
                             # Also include explicit `:free` suffix variants
                             _is_free = _is_free or _mid.endswith(":free")
                             if not _is_free:
+                                continue
+                            # ── Known-broken free models (live-tested 2026-06-03) ────────
+                            # These models return 429/404/502 or empty content with
+                            # finish_reason=length (0 tokens). Excluding them from the
+                            # picker to avoid user frustration. Re-test monthly.
+                            _BROKEN_OR_FREE: set[str] = {
+                                "openrouter/free",
+                                "google/gemma-4-31b-it:free",
+                                "google/gemma-4-26b-a4b-it:free",
+                                "google/lyria-3-pro-preview",
+                                "google/lyria-3-clip-preview",
+                                "qwen/qwen3-coder:free",
+                                "qwen/qwen3-next-80b-a3b-instruct:free",
+                                "meta-llama/llama-3.3-70b-instruct:free",
+                                "meta-llama/llama-3.2-3b-instruct:free",
+                                "nousresearch/hermes-3-llama-3.1-405b:free",
+                                "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
+                                "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+                                "nvidia/nemotron-3-nano-30b-a3b:free",
+                                "nvidia/nemotron-nano-9b-v2:free",
+                                "poolside/laguna-xs.2:free",
+                                "poolside/laguna-m.1:free",
+                                "liquid/lfm-2.5-1.2b-thinking:free",
+                                "z-ai/glm-4.5-air:free",
+                                "arcee-ai/trinity-large-preview:free",
+                            }
+                            if _mid in _BROKEN_OR_FREE:
                                 continue
                             _name = (
                                 str(_item.get("name") or "").strip() or _mid
@@ -4187,6 +4250,7 @@ _SETTINGS_DEFAULTS = {
     "busy_input_mode": "queue",  # behavior when sending while agent is running: queue | interrupt | steer
     "composer_mode": "action",  # action | plan
     "password_hash": None,  # PBKDF2-HMAC-SHA256 hash; None = auth disabled
+    "show_openrouter_paid": False,  # show paid OpenRouter models in picker (default: free only)
 }
 _SETTINGS_LEGACY_DROP_KEYS = {"assistant_language", "bubble_layout", "default_model"}
 _SETTINGS_THEME_VALUES = {"light", "dark", "system"}

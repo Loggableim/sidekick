@@ -2,9 +2,11 @@ from pathlib import Path
 
 
 REPO = Path(__file__).resolve().parents[1]
+ROOT = REPO.parent
 WORKSPACE_JS = (REPO / "static" / "workspace.js").read_text(encoding="utf-8")
 SPACES_JS = (REPO / "static" / "spaces.js").read_text(encoding="utf-8")
 SESSIONS_JS = (REPO / "static" / "sessions.js").read_text(encoding="utf-8")
+ROOT_GITIGNORE = (ROOT / ".gitignore").read_text(encoding="utf-8")
 
 
 def test_workspace_tree_loads_are_timeout_guarded_and_stale_safe():
@@ -141,3 +143,37 @@ def test_loading_session_is_optimistically_active_in_sidebar():
     loading_pos = load_session.find("_loadingSessionId = sid")
     render_pos = load_session.find("renderSessionListFromCache()", loading_pos)
     assert loading_pos >= 0 and render_pos > loading_pos
+
+
+def test_root_gitignore_ignores_webui_atomic_model_cache_tempfiles():
+    assert "home/webui/models_cache.json.*.tmp" in ROOT_GITIGNORE
+
+
+def test_space_switch_updates_visible_spaces_panel_before_network_roundtrips():
+    select_start = SPACES_JS.find("async function selectSpace")
+    select_end = SPACES_JS.find("\nasync function createSpace", select_start)
+    assert select_start >= 0 and select_end > select_start
+    select_space = SPACES_JS[select_start:select_end]
+    active_pos = select_space.find("_activeSpace = slug")
+    sync_pos = select_space.find("_syncSpacesPanelActiveState(slug)")
+    loading_pos = select_space.find("_showSpaceSwitchLoading(slug)")
+    config_pos = select_space.find("/api/space/config")
+    assert active_pos >= 0 and sync_pos > active_pos
+    assert loading_pos >= 0 and sync_pos < config_pos
+    assert "function _syncSpacesPanelActiveState" in SPACES_JS
+
+
+def test_space_dropdowns_are_positioned_against_viewport_after_render():
+    assert "function _positionSpaceDropdown" in SPACES_JS
+    assert "const _originalToggleTitlebarSpaceDropdown = toggleTitlebarSpaceDropdown" in SPACES_JS
+    assert "const _originalToggleSidebarSpaceDropdown = toggleSidebarSpaceDropdown" in SPACES_JS
+    assert "requestAnimationFrame(() =>" in SPACES_JS
+    assert "document.getElementById('titlebarSpaceDropdown')" in SPACES_JS
+    assert "document.getElementById('sidebarSpaceDropdown')" in SPACES_JS
+    assert "if (dd && !dd.hidden) _positionSpaceDropdown(dd, btn)" in SPACES_JS
+    helper_start = SPACES_JS.find("function _positionSpaceDropdown")
+    helper_end = SPACES_JS.find("\nfunction toggleTitlebarSpaceDropdown", helper_start)
+    helper = SPACES_JS[helper_start:helper_end]
+    assert "window.innerWidth" in helper
+    assert "window.innerHeight" in helper
+    assert "position = 'fixed'" in helper

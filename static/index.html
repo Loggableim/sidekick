@@ -1697,6 +1697,13 @@
               </div>
             </div>
             <div id="providersList" style="display:flex;flex-direction:column;margin-top:4px">
+            <div class="settings-field" style="border-bottom:1px solid var(--border2);padding-bottom:12px;margin-bottom:8px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="settingsShowOpenrouterPaid" style="width:15px;height:15px;accent-color:var(--accent)">
+                <span>OpenRouter Paid-Modelle anzeigen</span>
+              </label>
+              <div style="font-size:11px;color:var(--muted);margin-top:4px">Wenn aktiviert, werden alle OpenRouter-Modelle (kostenpflichtig + kostenlos) in der Modellauswahl angezeigt. Standardmäßig nur kostenlose Modelle.</div>
+            </div>
               <!-- Populated dynamically by loadProvidersPanel() -->
             </div>
             <div id="providersEmpty" style="display:none;text-align:center;padding:32px 0;color:var(--muted);font-size:13px" data-i18n="providers_empty">

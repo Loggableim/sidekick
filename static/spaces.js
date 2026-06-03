@@ -187,6 +187,7 @@ async function selectSpace(slug) {
     const switchRev = _beginSpaceSwitch();
     localStorage.setItem('hermes-active-workspace', slug);
     _showSpaceSwitchLoading(slug);
+    _syncSpacesPanelActiveState(slug);
     // ── Space Default Config laden ──
     let nextSpaceConfig = null;
     try {
@@ -606,6 +607,26 @@ function renderSpaceDetail(space) {
   _setSpaceDetailActions(space);
 }
 
+function _syncSpacesPanelActiveState(slug) {
+  const container = document.getElementById('workspacesPanel');
+  if (!container) return;
+  container.querySelectorAll('.space-item').forEach(item => {
+    const isActive = item.dataset.slug === slug;
+    item.classList.toggle('active', isActive);
+    let activeBadge = item.querySelector('.space-item-active');
+    if (isActive && !activeBadge) {
+      activeBadge = document.createElement('span');
+      activeBadge.className = 'space-item-active';
+      activeBadge.textContent = 'Active';
+      item.appendChild(activeBadge);
+    } else if (!isActive && activeBadge) {
+      activeBadge.remove();
+    }
+  });
+  const space = _spaceBySlug(slug);
+  if (space) renderSpaceDetail(space);
+}
+
 async function saveActiveSpaceDetails() {
   const space = _spaceBySlug(_activeSpace);
   if (!space) return;
@@ -948,6 +969,34 @@ function updateTitlebarSpace() {
   if (btn) btn.setAttribute('title', `Switch space (${ws ? (ws.name || ws.slug) : _activeSpace})`);
 }
 
+function _positionSpaceDropdown(dd, anchor) {
+  if (!dd) return;
+  const margin = 8;
+  const rect = anchor && typeof anchor.getBoundingClientRect === 'function'
+    ? anchor.getBoundingClientRect()
+    : { left: margin, top: margin, bottom: margin, width: 230 };
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 1280;
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 720;
+  const width = Math.min(Math.max(dd.offsetWidth || 230, 220), Math.max(220, viewportWidth - margin * 2));
+  let left = rect.left;
+  if (left + width > viewportWidth - margin) left = viewportWidth - margin - width;
+  left = Math.max(margin, left);
+  let top = rect.bottom + 6;
+  let maxHeight = viewportHeight - top - margin;
+  if (maxHeight < 160) {
+    const fallbackHeight = Math.min(320, viewportHeight - margin * 2);
+    top = Math.max(margin, rect.top - fallbackHeight - 6);
+    maxHeight = viewportHeight - top - margin;
+  }
+  dd.style.position = 'fixed';
+  dd.style.left = left + 'px';
+  dd.style.right = 'auto';
+  dd.style.top = Math.max(margin, top) + 'px';
+  dd.style.width = width + 'px';
+  dd.style.maxHeight = Math.max(160, maxHeight) + 'px';
+  dd.style.overflowY = 'auto';
+}
+
 function toggleTitlebarSpaceDropdown() {
   const dd = document.getElementById('titlebarSpaceDropdown');
   const btn = document.getElementById('titlebarSpaceBtn');
@@ -1112,6 +1161,26 @@ function _bindSidebarSpaceButton() {
     toggleSidebarSpaceDropdown();
   });
 }
+
+const _originalToggleTitlebarSpaceDropdown = toggleTitlebarSpaceDropdown;
+toggleTitlebarSpaceDropdown = function() {
+  _originalToggleTitlebarSpaceDropdown();
+  requestAnimationFrame(() => {
+    const dd = document.getElementById('titlebarSpaceDropdown');
+    const btn = document.getElementById('titlebarSpaceBtn');
+    if (dd && !dd.hidden) _positionSpaceDropdown(dd, btn);
+  });
+};
+
+const _originalToggleSidebarSpaceDropdown = toggleSidebarSpaceDropdown;
+toggleSidebarSpaceDropdown = function() {
+  _originalToggleSidebarSpaceDropdown();
+  requestAnimationFrame(() => {
+    const dd = document.getElementById('sidebarSpaceDropdown');
+    const btn = document.getElementById('sidebarSpaceBtn');
+    if (dd && !dd.hidden) _positionSpaceDropdown(dd, btn);
+  });
+};
 
 // Update both selectors when space changes
 const originalUpdateTitlebarSpace = updateTitlebarSpace;

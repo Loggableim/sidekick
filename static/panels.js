@@ -5678,6 +5678,8 @@ function _preferencesPayloadFromUi(){
   if(apiRedactCb) payload.api_redact_enabled=apiRedactCb.checked;
   const showCliCb=$('settingsShowCliSessions');
   if(showCliCb) payload.show_cli_sessions=showCliCb.checked;
+  const showOpenrouterPaidCb=$('settingsShowOpenrouterPaid');
+  if(showOpenrouterPaidCb) payload.show_openrouter_paid=showOpenrouterPaidCb.checked;
   const syncCb=$('settingsSyncInsights');
   if(syncCb) payload.sync_to_insights=syncCb.checked;
   const updateCb=$('settingsCheckUpdates');
@@ -5917,6 +5919,8 @@ async function loadSettingsPanel(){
     if(apiRedactCb){apiRedactCb.checked=settings.api_redact_enabled!==false;apiRedactCb.addEventListener('change',_schedulePreferencesAutosave,{once:false});}
     const showCliCb=$('settingsShowCliSessions');
     if(showCliCb){showCliCb.checked=!!settings.show_cli_sessions;showCliCb.addEventListener('change',_schedulePreferencesAutosave,{once:false});}
+    const showOpenrouterPaidCb=$('settingsShowOpenrouterPaid');
+    if(showOpenrouterPaidCb){showOpenrouterPaidCb.checked=!!settings.show_openrouter_paid;showOpenrouterPaidCb.addEventListener('change',_schedulePreferencesAutosave,{once:false});}
     const syncCb=$('settingsSyncInsights');
     if(syncCb){syncCb.checked=!!settings.sync_to_insights;syncCb.addEventListener('change',_schedulePreferencesAutosave,{once:false});}
     const updateCb=$('settingsCheckUpdates');
@@ -8270,6 +8274,7 @@ async function saveSettings(andClose){
   body.simplified_tool_calling=!!($('settingsSimplifiedToolCalling')||{}).checked;
   body.api_redact_enabled=!!($('settingsApiRedact')||{}).checked;
   body.show_cli_sessions=showCliSessions;
+  body.show_openrouter_paid=!!($('settingsShowOpenrouterPaid')||{}).checked;
   body.sync_to_insights=!!($('settingsSyncInsights')||{}).checked;
   body.check_for_updates=!!($('settingsCheckUpdates')||{}).checked;
   body.sound_enabled=!!($('settingsSoundEnabled')||{}).checked;
