@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="360" viewBox="0 0 800 360" role="img" aria-labelledby="title desc">
+  <title id="title">Sidekick Model Auxiliary Provider Expanded</title>
+  <desc id="desc">Expanded configuration panel for auxiliary model provider showing options and fallback chain.</desc>
+  <rect width="800" height="360" rx="16" fill="#0f0f18" stroke="#2b2410" stroke-width="1"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="800" height="48" rx="16" fill="#11111a"/>
+  <text x="40" y="30" fill="#e8e4dc" font-family="'Inter', sans-serif" font-size="16" font-weight="600">⚙ Auxiliary Model Configuration</text>
+
+  <!-- Main card -->
+  <rect x="40" y="64" width="720" height="140" rx="12" fill="#1a1a28" stroke="#3a3217" stroke-width="1"/>
+
+  <!-- Provider selector -->
+  <text x="60" y="90" fill="#bababa" font-family="'Inter', sans-serif" font-size="12">Fallback Provider</text>
+  <rect x="60" y="100" width="240" height="32" rx="8" fill="#0f0f18" stroke="#F5C542" stroke-width="1"/>
+  <text x="76" y="120" fill="#FFD700" font-family="'Inter', sans-serif" font-size="13">opencode-go → nvidia → chutes</text>
+  <polygon points="284,114 290,124 296,114" fill="#F5C542"/>
+
+  <!-- Model -->
+  <text x="380" y="90" fill="#bababa" font-family="'Inter', sans-serif" font-size="12">Fallback Model</text>
+  <rect x="380" y="100" width="160" height="32" rx="8" fill="#0f0f18" stroke="#3a3217" stroke-width="1"/>
+  <text x="396" y="120" fill="#e8e4dc" font-family="'Inter', sans-serif" font-size="13">codestral-latest</text>
+
+  <!-- Enabled toggle -->
+  <rect x="620" y="100" width="110" height="32" rx="16" fill="#27c93f"/>
+  <circle cx="636" cy="116" r="12" fill="#0a0a12"/>
+  <text x="656" y="120" fill="#0a0a12" font-family="'Inter', sans-serif" font-size="12" font-weight="600">Enabled</text>
+
+  <!-- Fallback chain visual -->
+  <text x="60" y="158" fill="#6a6a7a" font-family="'Inter', sans-serif" font-size="11" font-weight="600" letter-spacing="1">FALLBACK CHAIN</text>
+  <rect x="60" y="172" width="670" height="28" rx="8" fill="#0f0f18"/>
+  <g transform="translate(72, 180)">
+    <rect x="0" y="0" width="120" height="14" rx="7" fill="#1a3a1a" stroke="#27c93f" stroke-width="0.5"/>
+    <text x="60" y="11" text-anchor="middle" fill="#27c93f" font-family="'Inter', sans-serif" font-size="9">opencode-go</text>
+    <polygon points="128,2 136,7 128,12" fill="#4a4a5a"/>
+    <rect x="144" y="0" width="100" height="14" rx="7" fill="#1a1a28" stroke="#F5C542" stroke-width="0.5"/>
+    <text x="194" y="11" text-anchor="middle" fill="#F5C542" font-family="'Inter', sans-serif" font-size="9">nvidia (8B)</text>
+    <polygon points="252,2 260,7 252,12" fill="#4a4a5a"/>
+    <rect x="268" y="0" width="110" height="14" rx="7" fill="#1a1a28" stroke="#F5C542" stroke-width="0.5"/>
+    <text x="323" y="11" text-anchor="middle" fill="#F5C542" font-family="'Inter', sans-serif" font-size="9">chutes (Qwen3)</text>
+    <polygon points="386,2 394,7 386,12" fill="#4a4a5a"/>
+    <rect x="402" y="0" width="100" height="14" rx="7" fill="#1a1a28" stroke="#8b5cf6" stroke-width="0.5"/>
+    <text x="452" y="11" text-anchor="middle" fill="#8b5cf6" font-family="'Inter', sans-serif" font-size="9">local-gpu</text>
+    <polygon points="510,2 518,7 510,12" fill="#4a4a5a"/>
+    <rect x="526" y="0" width="90" height="14" rx="7" fill="#331a1a" stroke="#ef4444" stroke-width="0.5"/>
+    <text x="571" y="11" text-anchor="middle" fill="#ef4444" font-family="'Inter', sans-serif" font-size="9">local-cpu</text>
+  </g>
+
+  <!-- Info -->
+  <text x="60" y="216" fill="#6a6a7a" font-family="'Inter', sans-serif" font-size="11">The auxiliary model handles lightweight tasks — summarization, tool routing, and context compression.</text>
+  <text x="60" y="234" fill="#6a6a7a" font-family="'Inter', sans-serif" font-size="11">Each fallback activates only when the previous provider is unavailable or rate-limited.</text>
+
+  <!-- Bottom section -->
+  <rect x="40" y="260" width="720" height="80" rx="12" fill="#1a1a28" stroke="#3a3217" stroke-width="1"/>
+  <text x="60" y="286" fill="#bababa" font-family="'Inter', sans-serif" font-size="13" font-weight="600">Provider Health</text>
+
+  <g transform="translate(60, 300)">
+    <circle cx="8" cy="8" r="5" fill="#27c93f"/>
+    <text x="20" y="12" fill="#6a6a7a" font-family="'Inter', sans-serif" font-size="11">opencode-go: OK</text>
+  </g>
+  <g transform="translate(260, 300)">
+    <circle cx="8" cy="8" r="5" fill="#27c93f"/>
+    <text x="20" y="12" fill="#6a6a7a" font-family="'Inter', sans-serif" font-size="11">nvidia: OK</text>
+  </g>
+  <g transform="translate(460, 300)">
+    <circle cx="8" cy="8" r="5" fill="#FFA500"/>
+    <text x="20" y="12" fill="#6a6a7a" font-family="'Inter', sans-serif" font-size="11">chutes: Rate-limited</text>
+  </g>
+</svg>
