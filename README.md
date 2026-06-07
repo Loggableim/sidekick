@@ -1,19 +1,19 @@
-# Sidekick
+﻿# Sidekick
 
-[Nova](https://hermes-agent.nousresearch.com/) is a sophisticated autonomous agent that lives on your server, accessed via a terminal or messaging apps, that remembers what it learns and gets more capable the longer it runs.
+[Nova](https://lastbrowser.com/sidekick/) is a sophisticated autonomous agent that lives on your server, accessed via a terminal or messaging apps, that remembers what it learns and gets more capable the longer it runs.
 
-Sidekick is a lightweight, dark-themed web app interface in your browser for [Nova](https://hermes-agent.nousresearch.com/).
+Sidekick is a lightweight, dark-themed web app interface in your browser for [Nova](https://lastbrowser.com/sidekick/).
 Full parity with the CLI experience - everything you can do from a terminal,
 you can do from this UI. No build step, no framework, no bundler. Just Python
 and vanilla JS.
 
 Layout: three-panel. Left sidebar for sessions and navigation, center for chat,
 right for workspace file browsing. Model, profile, and workspace controls live in
-the **composer footer** — always visible while composing. A circular context ring
+the **composer footer** â€” always visible while composing. A circular context ring
 shows token usage at a glance. All settings and session tools are in the
 **Sidekick Control Center** (launcher at the sidebar bottom).
 
-<img width="2448" height="1748" alt="Sidekick — three-panel layout" src="https://github.com/user-attachments/assets/6bf8af4c-209d-441e-8b92-6515d7a0c369" />
+<img width="2448" height="1748" alt="Sidekick â€” three-panel layout" src="https://github.com/user-attachments/assets/6bf8af4c-209d-441e-8b92-6515d7a0c369" />
 
 <table>
   <tr>
@@ -56,24 +56,24 @@ your existing models, and requires no additional configuration to start.
 
 What makes it different from other agentic tools:
 
-- **Persistent memory** — user profile, agent notes, and a skills system that saves reusable
+- **Persistent memory** â€” user profile, agent notes, and a skills system that saves reusable
   procedures; Sidekick learns your environment and does not have to relearn it
-- **Self-hosted scheduling** — cron jobs that fire while you're offline and deliver results to
+- **Self-hosted scheduling** â€” cron jobs that fire while you're offline and deliver results to
   Telegram, Discord, Slack, Signal, email, and more
-- **10+ messaging platforms** — the same agent available in the terminal is reachable from your phone
-- **Self-improving skills** — Sidekick writes and saves its own skills automatically from experience;
+- **10+ messaging platforms** â€” the same agent available in the terminal is reachable from your phone
+- **Self-improving skills** â€” Sidekick writes and saves its own skills automatically from experience;
   no marketplace to browse, no plugins to install
-- **Provider-agnostic** — OpenAI, Anthropic, Google, DeepSeek, OpenRouter, and more
-- **Orchestrates other agents** — can spawn Claude Code or Codex for heavy coding tasks and bring
+- **Provider-agnostic** â€” OpenAI, Anthropic, Google, DeepSeek, OpenRouter, and more
+- **Orchestrates other agents** â€” can spawn Claude Code or Codex for heavy coding tasks and bring
   the results back into its own memory
-- **Self-hosted** — your conversations, your memory, your hardware
+- **Self-hosted** â€” your conversations, your memory, your hardware
 
-**vs. the field** *(landscape is actively shifting — see [SIDEKICK.md](SIDEKICK.md) for the full breakdown)*:
+**vs. the field** *(landscape is actively shifting â€” see [SIDEKICK.md](SIDEKICK.md) for the full breakdown)*:
 
 | | OpenClaw | Claude Code | Codex CLI | OpenCode | Sidekick |
 |---|---|---|---|---|---|
-| Persistent memory (auto) | Yes | Partial† | Partial | Partial | Yes |
-| Scheduled jobs (self-hosted) | Yes | No‡ | No | No | Yes |
+| Persistent memory (auto) | Yes | Partialâ€  | Partial | Partial | Yes |
+| Scheduled jobs (self-hosted) | Yes | Noâ€¡ | No | No | Yes |
 | Messaging app access | Yes (15+ platforms) | Partial (Telegram/Discord preview) | No | No | Yes (10+) |
 | Web UI (self-hosted) | Dashboard only | No | No | Yes | Yes |
 | Self-improving skills | Partial | No | No | No | Yes |
@@ -81,10 +81,10 @@ What makes it different from other agentic tools:
 | Provider-agnostic | Yes | No (Claude only) | Yes | Yes | Yes |
 | License | Open source | Proprietary | Open source | Open source | Source-available; non-commercial free |
 
-† Claude Code has CLAUDE.md / MEMORY.md project context and rolling auto-memory, but not full automatic cross-session recall  
-‡ Claude Code has cloud-managed scheduling (Anthropic infrastructure) and session-scoped `/loop`; no self-hosted cron
+â€  Claude Code has CLAUDE.md / MEMORY.md project context and rolling auto-memory, but not full automatic cross-session recall  
+â€¡ Claude Code has cloud-managed scheduling (Anthropic infrastructure) and session-scoped `/loop`; no self-hosted cron
 
-**The closest competitor is OpenClaw** — both are always-on, self-hosted agents
+**The closest competitor is OpenClaw** â€” both are always-on, self-hosted agents
 with memory, cron, and messaging. The key differences: Sidekick writes and saves its own skills
 automatically as a core behavior (OpenClaw's skill system centers on a community marketplace);
 Sidekick is more stable across updates (OpenClaw has documented release regressions and ClawHub
@@ -104,7 +104,7 @@ python3 bootstrap.py
 ```
 
 Fresh installs create a clean `nova` Space automatically. It starts isolated with
-no attached project directory; connect a code folder later from **Spaces → Project
+no attached project directory; connect a code folder later from **Spaces â†’ Project
 directory** when you want Nova to work on files.
 
 Or keep using the shell launcher:
@@ -123,11 +123,11 @@ For self-hosted VM or homelab installs, `ctl.sh` wraps the common daemon lifecyc
 ./ctl.sh stop
 ```
 
-`ctl.sh start` runs the bootstrap in foreground/no-browser mode behind the daemon wrapper, writes logs to `~/.hermes/webui.log`, and respects `.env` plus inline overrides such as `HERMES_WEBUI_HOST=0.0.0.0 ./ctl.sh start`.
+`ctl.sh start` runs the bootstrap in foreground/no-browser mode behind the daemon wrapper, writes logs to `~/.hermes/webui.log`, and respects `.env` plus inline overrides such as `SIDEKICK_WEBUI_HOST=0.0.0.0 ./ctl.sh start`.
 
 The bootstrap will:
 
-1. Detect Nova and, if missing, attempt the official installer (`curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash`).
+1. Detect Nova and, if missing, attempt the official installer (`curl -fsSL https://raw.githubusercontent.com/NousResearch/sidekick/main/scripts/install.sh | bash`, or the current upstream install path if it has not moved yet).
 2. Find or create a Python environment with the WebUI dependencies.
 3. Start the web server and wait for `/health`.
 4. Open the browser unless you pass `--no-browser`.
@@ -137,7 +137,7 @@ The bootstrap will:
 > For Windows / WSL auto-start at login, see [`docs/wsl-autostart.md`](docs/wsl-autostart.md).
 > Native Windows support is tracked separately; use WSL2 for the documented first install path today.
 
-If provider setup is still incomplete after install, the onboarding wizard will point you to finish it with `hermes model` instead of trying to replicate the full CLI setup in-browser.
+If provider setup is still incomplete after install, the onboarding wizard will point you to finish it with `sidekick model` instead of trying to replicate the full CLI setup in-browser.
 For a step-by-step walkthrough of the wizard, provider choices, local model server Base URLs, and safe re-runs, see [`docs/onboarding.md`](docs/onboarding.md).
 
 ---
@@ -166,7 +166,7 @@ The container auto-detects your UID/GID from the mounted `~/.hermes` volume so f
 To enable password protection (required if you expose the port outside `127.0.0.1`):
 
 ```bash
-echo "HERMES_WEBUI_PASSWORD=change-me-to-something-strong" >> .env
+echo "SIDEKICK_WEBUI_PASSWORD=change-me-to-something-strong" >> .env
 docker compose up -d --force-recreate
 ```
 
@@ -176,9 +176,9 @@ docker compose up -d --force-recreate
 docker pull ghcr.io/loggableim/sidekick:latest
 docker run -d \
   -e WANTED_UID=$(id -u) -e WANTED_GID=$(id -g) \
-  -e HERMES_WEBUI_DEFAULT_SPACE=nova \
+  -e SIDEKICK_WEBUI_DEFAULT_SPACE=nova \
   -v ~/.hermes:/home/hermeswebui/.hermes \
-  -e HERMES_WEBUI_STATE_DIR=/home/hermeswebui/.hermes/webui \
+  -e SIDEKICK_WEBUI_STATE_DIR=/home/hermeswebui/.hermes/webui \
   -v ~/workspace:/workspace \
   -p 127.0.0.1:8787:8787 \
   ghcr.io/loggableim/sidekick:latest
@@ -190,9 +190,9 @@ docker run -d \
 docker build -t sidekick .
 docker run -d \
   -e WANTED_UID=$(id -u) -e WANTED_GID=$(id -g) \
-  -e HERMES_WEBUI_DEFAULT_SPACE=nova \
+  -e SIDEKICK_WEBUI_DEFAULT_SPACE=nova \
   -v ~/.hermes:/home/hermeswebui/.hermes \
-  -e HERMES_WEBUI_STATE_DIR=/home/hermeswebui/.hermes/webui \
+  -e SIDEKICK_WEBUI_STATE_DIR=/home/hermeswebui/.hermes/webui \
   -v ~/workspace:/workspace \
   -p 127.0.0.1:8787:8787 \
   sidekick
@@ -222,14 +222,14 @@ Both compose files use **named Docker volumes** by default, which solves the UID
 | `.env: permission denied` (#1389) | `fix_credential_permissions()` enforced 0600 | Set `HERMES_SKIP_CHMOD=1` in `.env` |
 | Workspace appears empty | UID mismatch on `/workspace` mount | Set `UID=$(id -u)` in `.env` |
 | `git: command not found` in chat | Two-container architectural limit (#681) | Use single-container or extend Dockerfile |
-| WebUI can't find agent source | `hermes-agent-src` volume misconfigured | Use the named volumes from compose files as-is |
+| WebUI can't find agent source | `sidekick-agent-src` volume misconfigured | Use the named volumes from compose files as-is |
 | Podman shared `.hermes` fails | Podman 3.4 `keep-id` limitation | Use Podman 4+ or single-container |
 
 For the deep dive on each of these, see [`docs/docker.md`](docs/docker.md).
 
 > **Note:** By default, Docker Compose binds to `127.0.0.1` (localhost only).
 > To expose on a network, change the port to `"8787:8787"` in `docker-compose.yml`
-> and set `HERMES_WEBUI_PASSWORD` to enable authentication.
+> and set `SIDEKICK_WEBUI_PASSWORD` to enable authentication.
 
 ---
 
@@ -237,11 +237,11 @@ For the deep dive on each of these, see [`docs/docker.md`](docs/docker.md).
 
 | Thing | How it finds it |
 |---|---|
-| Nova agent dir | `HERMES_WEBUI_AGENT_DIR` env, then `~/.hermes/hermes-agent`, then sibling `../hermes-agent` |
+| Nova agent dir | `SIDEKICK_WEBUI_AGENT_DIR` env, then `~/.hermes/sidekick-agent`, then sibling `../sidekick-agent` |
 | Python executable | Agent venv first, then `.venv` in this repo, then system `python3` |
-| State directory | `HERMES_WEBUI_STATE_DIR` env, then `~/.hermes/webui` |
-| Default workspace | `HERMES_WEBUI_DEFAULT_WORKSPACE` env, then `~/workspace`, then state dir |
-| Port | `HERMES_WEBUI_PORT` env or first argument, default `8787` |
+| State directory | `SIDEKICK_WEBUI_STATE_DIR` env, then `~/.hermes/webui` |
+| Default workspace | `SIDEKICK_WEBUI_DEFAULT_WORKSPACE` env, then `~/workspace`, then state dir |
+| Port | `SIDEKICK_WEBUI_PORT` env or first argument, default `8787` |
 
 If discovery finds everything, nothing else is required.
 
@@ -250,34 +250,34 @@ If discovery finds everything, nothing else is required.
 ## Overrides (only needed if auto-detection misses)
 
 ```bash
-export HERMES_WEBUI_AGENT_DIR=/path/to/hermes-agent
-export HERMES_WEBUI_PYTHON=/path/to/python
-export HERMES_WEBUI_PORT=9000
-export HERMES_WEBUI_AUTO_INSTALL=1  # enable auto-install of agent deps (disabled by default)
+export SIDEKICK_WEBUI_AGENT_DIR=/path/to/sidekick-agent
+export SIDEKICK_WEBUI_PYTHON=/path/to/python
+export SIDEKICK_WEBUI_PORT=9000
+export SIDEKICK_WEBUI_AUTO_INSTALL=1  # enable auto-install of agent deps (disabled by default)
 ./start.sh
 ```
 
 Or inline:
 
 ```bash
-HERMES_WEBUI_AGENT_DIR=/custom/path ./start.sh 9000
+SIDEKICK_WEBUI_AGENT_DIR=/custom/path ./start.sh 9000
 ```
 
 Full list of environment variables:
 
 | Variable | Default | Description |
 |---|---|---|
-| `HERMES_WEBUI_AGENT_DIR` | auto-discovered | Path to the hermes-agent checkout |
-| `HERMES_WEBUI_PYTHON` | auto-discovered | Python executable |
-| `HERMES_WEBUI_HOST` | `127.0.0.1` | Bind address (`0.0.0.0` for all IPv4, `::` for all IPv6, `::1` for IPv6 loopback) |
-| `HERMES_WEBUI_PORT` | `8787` | Port |
-| `HERMES_WEBUI_STATE_DIR` | `~/.hermes/webui` | Where sessions and state are stored |
-| `HERMES_WEBUI_DEFAULT_WORKSPACE` | `~/workspace` | Default workspace |
-| `HERMES_WEBUI_DEFAULT_MODEL` | `openai/gpt-5.4-mini` | Default model |
-| `HERMES_WEBUI_PASSWORD` | *(unset)* | Set to enable password authentication |
-| `HERMES_WEBUI_EXTENSION_DIR` | *(unset)* | Optional local directory served at `/extensions/`; must point to an existing directory before extension injection is enabled |
-| `HERMES_WEBUI_EXTENSION_SCRIPT_URLS` | *(unset)* | Optional comma-separated same-origin script URLs to inject; see [WebUI Extensions](docs/EXTENSIONS.md) |
-| `HERMES_WEBUI_EXTENSION_STYLESHEET_URLS` | *(unset)* | Optional comma-separated same-origin stylesheet URLs to inject; see [WebUI Extensions](docs/EXTENSIONS.md) |
+| `SIDEKICK_WEBUI_AGENT_DIR` | auto-discovered | Path to the Sidekick agent checkout |
+| `SIDEKICK_WEBUI_PYTHON` | auto-discovered | Python executable |
+| `SIDEKICK_WEBUI_HOST` | `127.0.0.1` | Bind address (`0.0.0.0` for all IPv4, `::` for all IPv6, `::1` for IPv6 loopback) |
+| `SIDEKICK_WEBUI_PORT` | `8787` | Port |
+| `SIDEKICK_WEBUI_STATE_DIR` | `~/.hermes/webui` | Where sessions and state are stored |
+| `SIDEKICK_WEBUI_DEFAULT_WORKSPACE` | `~/workspace` | Default workspace |
+| `SIDEKICK_WEBUI_DEFAULT_MODEL` | `openai/gpt-5.4-mini` | Default model |
+| `SIDEKICK_WEBUI_PASSWORD` | *(unset)* | Set to enable password authentication |
+| `SIDEKICK_WEBUI_EXTENSION_DIR` | *(unset)* | Optional local directory served at `/extensions/`; must point to an existing directory before extension injection is enabled |
+| `SIDEKICK_WEBUI_EXTENSION_SCRIPT_URLS` | *(unset)* | Optional comma-separated same-origin script URLs to inject; see [WebUI Extensions](docs/EXTENSIONS.md) |
+| `SIDEKICK_WEBUI_EXTENSION_STYLESHEET_URLS` | *(unset)* | Optional comma-separated same-origin stylesheet URLs to inject; see [WebUI Extensions](docs/EXTENSIONS.md) |
 | `HERMES_HOME` | `~/.hermes` | Base directory for Sidekick state (affects all paths) |
 | `HERMES_CONFIG_PATH` | `~/.hermes/config.yaml` | Path to Sidekick config file |
 
@@ -322,7 +322,7 @@ so it works well as a daily-driver agent interface from your phone.
 2. Start the WebUI listening on all interfaces with password auth enabled:
 
 ```bash
-HERMES_WEBUI_HOST=0.0.0.0 HERMES_WEBUI_PASSWORD=your-secret ./start.sh
+SIDEKICK_WEBUI_HOST=0.0.0.0 SIDEKICK_WEBUI_PASSWORD=your-secret ./start.sh
 ```
 
 3. Open `http://<server-tailscale-ip>:8787` in your phone's browser
@@ -333,9 +333,9 @@ That's it. Traffic is encrypted end-to-end by WireGuard, and password auth
 protects the UI at the application level. You can add it to your home screen
 for an app-like experience.
 
-> **Tip:** If using Docker, set `HERMES_WEBUI_HOST=0.0.0.0` in your
+> **Tip:** If using Docker, set `SIDEKICK_WEBUI_HOST=0.0.0.0` in your
 > `docker-compose.yml` environment (already the default) and set
-> `HERMES_WEBUI_PASSWORD`.
+> `SIDEKICK_WEBUI_PASSWORD`.
 
 ---
 
@@ -344,8 +344,8 @@ for an app-like experience.
 If you prefer to launch the server directly:
 
 ```bash
-cd /path/to/hermes-agent          # or wherever sys.path can find Sidekick modules
-HERMES_WEBUI_PORT=8787 venv/bin/python /path/to/hermes-webui/server.py
+cd /path/to/sidekick-agent        # or wherever sys.path can find Sidekick modules
+SIDEKICK_WEBUI_PORT=8787 venv/bin/python /path/to/sidekick-webui/server.py
 ```
 
 Note: use the agent venv Python (or any Python environment that has the Nova agent dependencies installed). System Python will be missing `openai`, `httpx`, and other required packages.
@@ -363,14 +363,14 @@ curl http://127.0.0.1:8787/health
 Tests discover the repo and the Nova agent dynamically -- no hardcoded paths.
 
 ```bash
-cd hermes-webui
+cd sidekick
 pytest tests/ -v --timeout=60
 ```
 
 Or using the agent venv explicitly:
 
 ```bash
-/path/to/hermes-agent/venv/bin/python -m pytest tests/ -v
+/path/to/sidekick-agent/venv/bin/python -m pytest tests/ -v
 ```
 
 Tests run against an isolated server on port 8788 with a separate state directory.
@@ -404,7 +404,7 @@ across 100+ test files.
 
 ### Sessions
 - Create, rename, duplicate, delete, search by title and message content
-- Session actions via `⋯` dropdown per session — pin, move to project, archive, duplicate, delete
+- Session actions via `â‹¯` dropdown per session â€” pin, move to project, archive, duplicate, delete
 - Pin/star sessions to the top of the sidebar (gold indicator)
 - Archive sessions (hide without deleting, toggle to show)
 - Session projects -- named groups with colors for organizing sessions
@@ -413,7 +413,7 @@ across 100+ test files.
 - Download as Markdown transcript, full JSON export, or import from JSON
 - Sessions persist across page reloads and SSH tunnel reconnects
 - Browser tab title reflects the active session name
-- CLI session bridge -- CLI sessions from hermes-agent's SQLite store appear in the sidebar with a gold "cli" badge; click to import with full history and reply normally
+- CLI session bridge -- CLI sessions from the Sidekick agent's SQLite store appear in the sidebar with a gold "cli" badge; click to import with full history and reply normally
 - Token/cost display -- input tokens, output tokens, estimated cost shown per conversation (toggle in Settings or `/usage` command)
 
 ### Workspace file browser
@@ -446,7 +446,7 @@ across 100+ test files.
 
 ### Authentication and security
 - Optional password auth -- off by default, zero friction for localhost
-- Enable via `HERMES_WEBUI_PASSWORD` env var or Settings panel
+- Enable via `SIDEKICK_WEBUI_PASSWORD` env var or Settings panel
 - Signed HMAC HTTP-only cookie with 24h TTL
 - Minimal dark-themed login page at `/login`
 - Security headers on all responses (X-Content-Type-Options, X-Frame-Options, Referrer-Policy)
@@ -457,7 +457,7 @@ across 100+ test files.
 - 7 built-in themes: Dark (default), Light, Slate, Solarized Dark, Monokai, Nord, OLED
 - Switch via Settings panel dropdown (instant live preview) or `/theme` command
 - Persists across reloads (server-side in settings.json + localStorage for flicker-free loading)
-- Custom themes: define a `:root[data-theme="name"]` CSS block and it works — see [THEMES.md](THEMES.md)
+- Custom themes: define a `:root[data-theme="name"]` CSS block and it works â€” see [THEMES.md](THEMES.md)
 
 ### Settings and configuration
 - **Sidekick Control Center** (sidebar launcher button) -- Conversation tab (export/import/clear), Preferences tab (model, send key, theme, language, all toggles), System tab (version, password)
@@ -506,7 +506,7 @@ api/
   onboarding.py         First-run onboarding wizard, OAuth provider support (~507 lines)
   profiles.py           Profile state management, hermes_cli wrapper (~411 lines)
   routes.py             All GET + POST route handlers (~2250 lines)
-  state_sync.py         /insights sync — message_count to state.db (~113 lines)
+  state_sync.py         /insights sync â€” message_count to state.db (~113 lines)
   streaming.py          SSE engine, run_agent, cancel support (~660 lines)
   updates.py            Self-update check and release notes (~257 lines)
   upload.py             Multipart parser, file upload handler (~82 lines)
@@ -530,7 +530,7 @@ docker-compose.yml      Compose with named volume and optional auth
 ```
 
 State lives outside the repo at `~/.hermes/webui/` by default
-(sessions, workspaces, settings, projects, last_workspace). Override with `HERMES_WEBUI_STATE_DIR`.
+(sessions, workspaces, settings, projects, last_workspace). Override with `SIDEKICK_WEBUI_STATE_DIR`.
 
 ---
 
@@ -548,114 +548,114 @@ State lives outside the repo at `~/.hermes/webui/` by default
 
 ## Contributors
 
-Sidekick is built with help from the open-source community. Every PR — whether merged directly, absorbed into a batch release, or salvaged from a larger proposal — shapes the project, and we're grateful to everyone who has taken the time to contribute.
+Sidekick is built with help from the open-source community. Every PR â€” whether merged directly, absorbed into a batch release, or salvaged from a larger proposal â€” shapes the project, and we're grateful to everyone who has taken the time to contribute.
 
 **130 contributors have shipped code that landed in a release tag** as of v0.51.44. The full credit roll lives in [`CONTRIBUTORS.md`](CONTRIBUTORS.md). The highlights:
 
 ### Top contributors (by PR count, including absorbed/batch-released work)
 
-| # | Contributor | PRs | First → latest release |
+| # | Contributor | PRs | First â†’ latest release |
 |---|---|---:|---|
-| 1 | [@franksong2702](https://github.com/franksong2702) | 92 | `v0.49.3` → `v0.51.44` |
-| 2 | [@Michaelyklam](https://github.com/Michaelyklam) | 81 | `v0.50.240` → `v0.51.40` |
-| 3 | [@bergeouss](https://github.com/bergeouss) | 61 | `v0.48.0` → `v0.51.18` |
-| 4 | [@ai-ag2026](https://github.com/ai-ag2026) | 49 | `v0.50.279` → `v0.51.44` |
-| 5 | [@dso2ng](https://github.com/dso2ng) | 21 | `v0.50.227` → `v0.51.37` |
-| 6 | [@jasonjcwu](https://github.com/jasonjcwu) | 13 | `v0.50.227` → `v0.51.43` |
-| 7 | [@aronprins](https://github.com/aronprins) | 10 | `v0.44.0` → `v0.50.233` |
-| 8 | [@JKJameson](https://github.com/JKJameson) | 10 | `v0.50.233` → `v0.51.31` |
-| 9 | [@ccqqlo](https://github.com/ccqqlo) | 9 | `v0.44.0` → `v0.50.270` |
-| 10 | [@24601](https://github.com/24601) | 8 | `v0.50.233` → `v0.51.5` |
+| 1 | [@franksong2702](https://github.com/franksong2702) | 92 | `v0.49.3` â†’ `v0.51.44` |
+| 2 | [@Michaelyklam](https://github.com/Michaelyklam) | 81 | `v0.50.240` â†’ `v0.51.40` |
+| 3 | [@bergeouss](https://github.com/bergeouss) | 61 | `v0.48.0` â†’ `v0.51.18` |
+| 4 | [@ai-ag2026](https://github.com/ai-ag2026) | 49 | `v0.50.279` â†’ `v0.51.44` |
+| 5 | [@dso2ng](https://github.com/dso2ng) | 21 | `v0.50.227` â†’ `v0.51.37` |
+| 6 | [@jasonjcwu](https://github.com/jasonjcwu) | 13 | `v0.50.227` â†’ `v0.51.43` |
+| 7 | [@aronprins](https://github.com/aronprins) | 10 | `v0.44.0` â†’ `v0.50.233` |
+| 8 | [@JKJameson](https://github.com/JKJameson) | 10 | `v0.50.233` â†’ `v0.51.31` |
+| 9 | [@ccqqlo](https://github.com/ccqqlo) | 9 | `v0.44.0` â†’ `v0.50.270` |
+| 10 | [@24601](https://github.com/24601) | 8 | `v0.50.233` â†’ `v0.51.5` |
 
 See [`CONTRIBUTORS.md`](CONTRIBUTORS.md) for the full ranked list of all 130 contributors, including everyone with one or two PRs and the special-thanks roll for design and architectural contributions.
 
 ### Notable contributions
 
-**[@franksong2702](https://github.com/franksong2702)** — Most prolific external contributor (92 PRs, `v0.49.3` → `v0.51.44`)
+**[@franksong2702](https://github.com/franksong2702)** â€” Most prolific external contributor (92 PRs, `v0.49.3` â†’ `v0.51.44`)
 Across the longest tenure of any external contributor: the session title guard (#301), breadcrumb workspace navigation (#302), embedded workspace terminal (#1099), worktree-backed session creation (#2053), onboarding documentation (#2052), composer footer container queries, streaming-session sidebar exemption (#1327), session sidecar repair, cron output preservation (#1295), profile default workspace persistence, and a long tail of polish across mobile/responsive, the session sidebar, and the workspace state machine.
 
-**[@Michaelyklam](https://github.com/Michaelyklam)** — Most prolific contributor of recent releases (81 PRs, `v0.50.240` → `v0.51.40`)
+**[@Michaelyklam](https://github.com/Michaelyklam)** â€” Most prolific contributor of recent releases (81 PRs, `v0.50.240` â†’ `v0.51.40`)
 Production Docker hardening (#1921, drops sudo-capable staging user), profile-scoped skills endpoints (#1903), gateway PID resolution under profile-scoped HERMES_HOME (#1901), profile-aware AIAgent cache (#1898/#1904), backslash LaTeX delimiters (#1848), Codex quota error surfacing (#1770), shell-route HTML 503 (#1836), stale Kanban client recovery (#1828), context auto-compression toast lifetime (#1988), `/goal` command (#1866), Kanban detail-view scrolling (#1916), CLI session tool metadata preservation (#1778), Traditional Chinese kanban locale backfill (#1979).
 
-**[@bergeouss](https://github.com/bergeouss)** — Provider management UI + Docker hardening (61 PRs, `v0.48.0` → `v0.51.18`)
-Provider management UI for adding/editing custom providers from Settings, OAuth provider status detection (#1552), two-container Docker setup, profile isolation hardening (per-profile `.env` secrets), the bulk of what users see when they touch Settings → Providers, Reveal-in-Finder context menu (#1551), gateway status card (#1552), auto-assign session to active project filter (#1550), "What's new?" link in update banner (#1549), OpenRouter free-tier live fetch (#1548), credential pool 401 self-heal (#1553), inline provider chip + group model count in model picker (#1644).
+**[@bergeouss](https://github.com/bergeouss)** â€” Provider management UI + Docker hardening (61 PRs, `v0.48.0` â†’ `v0.51.18`)
+Provider management UI for adding/editing custom providers from Settings, OAuth provider status detection (#1552), two-container Docker setup, profile isolation hardening (per-profile `.env` secrets), the bulk of what users see when they touch Settings â†’ Providers, Reveal-in-Finder context menu (#1551), gateway status card (#1552), auto-assign session to active project filter (#1550), "What's new?" link in update banner (#1549), OpenRouter free-tier live fetch (#1548), credential pool 401 self-heal (#1553), inline provider chip + group model count in model picker (#1644).
 
-**[@ai-ag2026](https://github.com/ai-ag2026)** — Session recovery + audit infrastructure (49 PRs, `v0.50.279` → `v0.51.44`)
+**[@ai-ag2026](https://github.com/ai-ag2026)** â€” Session recovery + audit infrastructure (49 PRs, `v0.50.279` â†’ `v0.51.44`)
 Autonomous-AI contributor (Nova-driven) focused on durability: `state.db`-backed sidecar reconciliation (#2041), orphan `.json.bak` recovery on startup (#2035), read-only session recovery audit endpoints (#2036, #2040), active run lifecycle in `/health` (#2039), crash-safe turn-journal RFC at `docs/rfcs/turn-journal.md` (#2042), fork-session compression lineage isolation (#2014).
 
-**[@dso2ng](https://github.com/dso2ng)** — Session lineage + diagnostics (21 PRs, `v0.50.227` → `v0.51.37`)
+**[@dso2ng](https://github.com/dso2ng)** â€” Session lineage + diagnostics (21 PRs, `v0.50.227` â†’ `v0.51.37`)
 `/api/session/lineage-report/<sid>` endpoint for bounded session graph diagnostics (#2012), stale Mermaid render error cleanup (#1337), and a long tail of frontend reliability fixes around session loading.
 
-**[@jasonjcwu](https://github.com/jasonjcwu)** — Composer + transcript polish (13 PRs, `v0.50.227` → `v0.51.43`)
+**[@jasonjcwu](https://github.com/jasonjcwu)** â€” Composer + transcript polish (13 PRs, `v0.50.227` â†’ `v0.51.43`)
 Sidebar collapse via active-rail click (#2054, fuses #1884 + #1924), composer chip lightbox (#1758), title fixes for tool-heavy first turns, and a string of frontend polish fixes.
 
-**[@aronprins](https://github.com/aronprins)** — `v0.50.0` UI overhaul (PR #242, plus 9 follow-ups)
-The biggest single contribution to the project: a complete UI redesign that moved model/profile/workspace controls into the composer footer, replaced the gear-icon settings panel with the Sidekick Control Center (tabbed modal), removed the activity bar in favor of inline composer status, redesigned the session list with a `⋯` action dropdown, and added the workspace panel state machine. Plus chat transcript redesign (#587), sidebar declutter (#584), three-column layout refactor (#899), light/dark theme + accent skins (#627), and shared `confirm()`/`prompt()` dialog replacement (PR #251 extracted from #242).
+**[@aronprins](https://github.com/aronprins)** â€” `v0.50.0` UI overhaul (PR #242, plus 9 follow-ups)
+The biggest single contribution to the project: a complete UI redesign that moved model/profile/workspace controls into the composer footer, replaced the gear-icon settings panel with the Sidekick Control Center (tabbed modal), removed the activity bar in favor of inline composer status, redesigned the session list with a `â‹¯` action dropdown, and added the workspace panel state machine. Plus chat transcript redesign (#587), sidebar declutter (#584), three-column layout refactor (#899), light/dark theme + accent skins (#627), and shared `confirm()`/`prompt()` dialog replacement (PR #251 extracted from #242).
 
-**[@iRonin](https://github.com/iRonin)** — Security hardening sprint (PRs #196–#204)
+**[@iRonin](https://github.com/iRonin)** â€” Security hardening sprint (PRs #196â€“#204)
 Six consecutive, focused security PRs: session memory leak fix (expired token pruning), CSP + Permissions-Policy headers, 30-second slow-client connection timeout, optional HTTPS/TLS support via environment variables, upstream branch tracking fix for self-update, and CLI session support in the file-browser API. The kind of focused, high-quality security work that makes a self-hosted tool trustworthy.
 
-**[@Jordan-SkyLF](https://github.com/Jordan-SkyLF)** — Live streaming + session recovery (PRs #366, #367, #394–#397)
+**[@Jordan-SkyLF](https://github.com/Jordan-SkyLF)** â€” Live streaming + session recovery (PRs #366, #367, #394â€“#397)
 Six interlocking improvements: workspace fallback resolution, live reasoning cards that upgrade the generic thinking spinner to a real-time reasoning display, durable session state recovery via `localStorage` so in-flight tool cards survive a page reload, plus relative time labels and imported-session timestamp preservation.
 
-**[@JKJameson](https://github.com/JKJameson)** — Composer + session polish (10 PRs)
+**[@JKJameson](https://github.com/JKJameson)** â€” Composer + session polish (10 PRs)
 Persistent composer draft per session (#1956), and a long tail of polish across the composer and session sidebar.
 
-**[@gabogabucho](https://github.com/gabogabucho)** — Spanish locale + onboarding wizard
+**[@gabogabucho](https://github.com/gabogabucho)** â€” Spanish locale + onboarding wizard
 Full Spanish (`es`) locale covering all UI strings, plus the one-shot bootstrap onboarding wizard that guides new users through provider setup on first launch.
 
-**[@deboste](https://github.com/deboste)** — Reverse-proxy auth + mobile responsive layout (PRs #3, #4, #5)
+**[@deboste](https://github.com/deboste)** â€” Reverse-proxy auth + mobile responsive layout (PRs #3, #4, #5)
 Three of the very first community PRs: fixed EventSource/fetch to use URL origin for reverse-proxy setups, corrected model provider routing from config, and added mobile responsive layout with dvh viewport fix. Early foundation work.
 
-**[@indigokarasu](https://github.com/indigokarasu)** — Visual redesign proposal (PR #213)
-A CSS-only redesign of the full UI — proper design tokens, an icon rail sidebar replacing the emoji tab strip, consistent form cards, breadcrumb nav, and 7 built-in themes as custom properties. The PR didn't merge as-is but shaped the design language and theme architecture that shipped in v0.50.0.
+**[@indigokarasu](https://github.com/indigokarasu)** â€” Visual redesign proposal (PR #213)
+A CSS-only redesign of the full UI â€” proper design tokens, an icon rail sidebar replacing the emoji tab strip, consistent form cards, breadcrumb nav, and 7 built-in themes as custom properties. The PR didn't merge as-is but shaped the design language and theme architecture that shipped in v0.50.0.
 
-**[@zenc-cp](https://github.com/zenc-cp)** — Anti-hallucination guard for the ReAct loop (PR #133)
+**[@zenc-cp](https://github.com/zenc-cp)** â€” Anti-hallucination guard for the ReAct loop (PR #133)
 A three-layer approach (ephemeral anti-hallucination prompt, live token filtering, session-history cleanup) that the streaming pipeline still uses.
 
-**[@Hinotoi-agent](https://github.com/Hinotoi-agent)** — Profile + session security (PRs #351, #2048)
+**[@Hinotoi-agent](https://github.com/Hinotoi-agent)** â€” Profile + session security (PRs #351, #2048)
 Profile `.env` secret isolation fix (PR #351) preventing API key leakage between profiles, and session-import workspace validation (PR #2048) blocking a crafted-JSON file-read against `/`.
 
-**[@Sanjays2402](https://github.com/Sanjays2402)** — Endless-scroll + Start-jump race fix (PR #1949)
-A generation-token + mutex pair fixing the v0.51.30 race between endless-scroll prefetch and Start-jump's `_ensureAllMessagesLoaded`. The naive same-flag-check approach (proposed in #1942 and #1962) was a no-op for the post-await race — Sanjays2402's fix was the correct shape.
+**[@Sanjays2402](https://github.com/Sanjays2402)** â€” Endless-scroll + Start-jump race fix (PR #1949)
+A generation-token + mutex pair fixing the v0.51.30 race between endless-scroll prefetch and Start-jump's `_ensureAllMessagesLoaded`. The naive same-flag-check approach (proposed in #1942 and #1962) was a no-op for the post-await race â€” Sanjays2402's fix was the correct shape.
 
-**[@fxd-jason](https://github.com/fxd-jason)** — Real-time approval + clarify via SSE (PRs #1350, #1355)
+**[@fxd-jason](https://github.com/fxd-jason)** â€” Real-time approval + clarify via SSE (PRs #1350, #1355)
 Replaced 1.5s HTTP polling with SSE long-connections for both approval and clarify, cutting latency from up to 1.5s to near-instant. Got all the correctness details right (atomic subscribe + snapshot, notify-inside-lock, head-of-queue payload, trailing event re-emission).
 
-**[@happy5318](https://github.com/happy5318)** — Custom provider model dedup (PR #1947)
+**[@happy5318](https://github.com/happy5318)** â€” Custom provider model dedup (PR #1947)
 Fixed the same model from different named custom providers being silently deduplicated in the picker, with Opus catching a race in the original tests that needed augmentation.
 
-**[@NocGeek](https://github.com/NocGeek)** — Streaming scroll + manual cron output persistence (7 PRs)
+**[@NocGeek](https://github.com/NocGeek)** â€” Streaming scroll + manual cron output persistence (7 PRs)
 Streaming scroll viewport stability when tool/queue cards insert (#1360), manual cron-run output and metadata persistence (#1372, split from held #1352).
 
-**[@DavidSchuchert](https://github.com/DavidSchuchert)** — German translation (PR #190)
-Complete German locale (`de`) covering all UI strings, settings labels, commands, and system messages — and stress-tested the i18n system, exposing several elements that weren't yet translatable and getting them fixed as part of the same PR.
+**[@DavidSchuchert](https://github.com/DavidSchuchert)** â€” German translation (PR #190)
+Complete German locale (`de`) covering all UI strings, settings labels, commands, and system messages â€” and stress-tested the i18n system, exposing several elements that weren't yet translatable and getting them fixed as part of the same PR.
 
-**[@Bobby9228](https://github.com/Bobby9228)** — Mobile Profiles button (PR #265)
+**[@Bobby9228](https://github.com/Bobby9228)** â€” Mobile Profiles button (PR #265)
 Added the Profiles entry to the mobile navigation flow, making profile switching reachable on phones.
 
-**[@kevin-ho](https://github.com/kevin-ho)** — OLED theme (PR #168)
+**[@kevin-ho](https://github.com/kevin-ho)** â€” OLED theme (PR #168)
 The 7th built-in theme: pure black backgrounds with warm accents tuned to reduce burn-in risk.
 
-**[@andrewy-wizard](https://github.com/andrewy-wizard)** — Chinese localization (PR #177)
+**[@andrewy-wizard](https://github.com/andrewy-wizard)** â€” Chinese localization (PR #177)
 Initial Simplified Chinese (`zh`) locale. One of the first non-English locales.
 
-**[@DelightRun](https://github.com/DelightRun)** — `session_search` fix for WebUI sessions (PR #356)
+**[@DelightRun](https://github.com/DelightRun)** â€” `session_search` fix for WebUI sessions (PR #356)
 Tracked down the missing `SessionDB` injection in the streaming path that was silently breaking the tool for every WebUI session.
 
-**[@lawrencel1ng](https://github.com/lawrencel1ng)** — Bandit security fixes (PR #354)
+**[@lawrencel1ng](https://github.com/lawrencel1ng)** â€” Bandit security fixes (PR #354)
 Systematic bandit-scan fixes: URL scheme validation before `urlopen`, MD5 `usedforsecurity=False`, and 40+ bare `except: pass` blocks replaced with proper logging.
 
-**[@shaoxianbilly](https://github.com/shaoxianbilly)** — Unicode filename downloads (PR #378)
+**[@shaoxianbilly](https://github.com/shaoxianbilly)** â€” Unicode filename downloads (PR #378)
 Proper `Content-Disposition` with RFC 5987 `filename*=UTF-8''...` encoding so non-ASCII filenames download without crashing.
 
-**[@lx3133584](https://github.com/lx3133584)** — CSRF fix for reverse proxy (PR #360)
+**[@lx3133584](https://github.com/lx3133584)** â€” CSRF fix for reverse proxy (PR #360)
 A real-world blocker for anyone hosting behind Nginx Proxy Manager or similar on a port other than 80/443.
 
-**[@betamod](https://github.com/betamod)** — Security audit (PR #171)
+**[@betamod](https://github.com/betamod)** â€” Security audit (PR #171)
 A comprehensive CSRF / SSRF / XSS / env-race-condition audit that shipped in v0.39.0.
 
-**[@TaraTheStar](https://github.com/TaraTheStar)** — Bot name + thinking blocks + login refactor (PRs #132, #176, #181)
+**[@TaraTheStar](https://github.com/TaraTheStar)** â€” Bot name + thinking blocks + login refactor (PRs #132, #176, #181)
 Configurable assistant display name, thinking/reasoning block display, and a login page refactor.
 
 ## License
@@ -671,3 +671,4 @@ See [`LICENSE`](LICENSE) for the exact terms.
 ```
 https://github.com/Loggableim/sidekick.git
 ```
+

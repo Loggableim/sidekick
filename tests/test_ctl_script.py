@@ -20,6 +20,10 @@ def run_ctl(
 ):
     merged = os.environ.copy()
     for key in (
+        "SIDEKICK_WEBUI_HOST",
+        "SIDEKICK_WEBUI_PORT",
+        "SIDEKICK_WEBUI_PYTHON",
+        "SIDEKICK_WEBUI_STATE_DIR",
         "HERMES_WEBUI_HOST",
         "HERMES_WEBUI_PORT",
         "HERMES_WEBUI_PYTHON",
@@ -56,7 +60,7 @@ def write_fake_python(path: Path) -> None:
             """
             #!/usr/bin/env bash
             printf 'fake-python args:%s\n' "$*" >> "${FAKE_PYTHON_LOG}"
-            printf 'host=%s port=%s state=%s\n' "${HERMES_WEBUI_HOST:-}" "${HERMES_WEBUI_PORT:-}" "${HERMES_WEBUI_STATE_DIR:-}" >> "${FAKE_PYTHON_LOG}"
+            printf 'host=%s port=%s state=%s\n' "${SIDEKICK_WEBUI_HOST:-${HERMES_WEBUI_HOST:-}}" "${SIDEKICK_WEBUI_PORT:-${HERMES_WEBUI_PORT:-}}" "${SIDEKICK_WEBUI_STATE_DIR:-${HERMES_WEBUI_STATE_DIR:-}}" >> "${FAKE_PYTHON_LOG}"
             trap 'printf "terminated\n" >> "${FAKE_PYTHON_LOG}"; exit 0' TERM INT
             while true; do sleep 0.1; done
             """
@@ -164,6 +168,34 @@ def test_start_loads_dotenv_but_inline_overrides_win(tmp_path):
         assert "host=0.0.0.0 port=18888" in fake_output
     finally:
         stop = run_ctl(tmp_path, "stop", repo_root=repo_root)
+        assert stop.returncode == 0, stop.stderr + stop.stdout
+        assert_process_exits(pid)
+
+
+def test_start_prefers_sidekick_python_env_alias(tmp_path):
+    fake_python = tmp_path / "fake-python"
+    fake_log = tmp_path / "fake-python.log"
+    write_fake_python(fake_python)
+
+    result = run_ctl(
+        tmp_path,
+        "start",
+        env={
+            "SIDEKICK_WEBUI_PYTHON": str(fake_python),
+            "FAKE_PYTHON_LOG": str(fake_log),
+            "SIDEKICK_WEBUI_HOST": "127.0.0.1",
+            "SIDEKICK_WEBUI_PORT": "18992",
+        },
+    )
+
+    assert result.returncode == 0, result.stderr + result.stdout
+    pid = wait_for_pid_file(tmp_path / ".hermes" / "webui.pid")
+    try:
+        fake_output = fake_log.read_text(encoding="utf-8")
+        assert "bootstrap.py --no-browser --foreground" in fake_output
+        assert "host=127.0.0.1 port=18992" in fake_output
+    finally:
+        stop = run_ctl(tmp_path, "stop")
         assert stop.returncode == 0, stop.stderr + stop.stdout
         assert_process_exits(pid)
 

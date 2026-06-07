@@ -1,4 +1,4 @@
-# First-run onboarding guide
+﻿# First-run onboarding guide
 
 This guide explains what happens the first time Sidekick starts, which
 setup path to choose, and how to recover when the wizard cannot finish.
@@ -46,21 +46,21 @@ cron state.
 For a clean local trial, use an isolated Sidekick home and WebUI state directory:
 
 ```bash
-mkdir -p ~/hermes-onboarding-test
-HERMES_HOME=~/hermes-onboarding-test/.hermes \
-HERMES_WEBUI_STATE_DIR=~/hermes-onboarding-test/webui \
-HERMES_WEBUI_PORT=8789 \
+mkdir -p ~/sidekick-onboarding-test
+HERMES_HOME=~/sidekick-onboarding-test/.hermes \
+SIDEKICK_WEBUI_STATE_DIR=~/sidekick-onboarding-test/webui \
+SIDEKICK_WEBUI_PORT=8789 \
 python3 bootstrap.py
 ```
 
 Then open `http://127.0.0.1:8789`.
 
 If your repo has a `.env` file, remember that the bootstrap loads it. Remove or
-adjust any `HERMES_HOME`, `HERMES_WEBUI_STATE_DIR`, or `HERMES_WEBUI_PORT`
+adjust any `HERMES_HOME`, `SIDEKICK_WEBUI_STATE_DIR`, or `SIDEKICK_WEBUI_PORT`
 entries there before using the isolated command above.
 
 For managed hosting or fully preconfigured images, set
-`HERMES_WEBUI_SKIP_ONBOARDING=1` to bypass the wizard.
+`SIDEKICK_WEBUI_SKIP_ONBOARDING=1` to bypass the wizard.
 
 ## What the wizard checks
 
@@ -74,7 +74,7 @@ The first screen reports the runtime state WebUI can see:
 
 If the agent check fails, use [Troubleshooting](troubleshooting.md), especially
 the `AIAgent not available` section. If provider setup is incomplete, continue
-through the wizard or run `hermes model` in the same machine environment that
+through the wizard or run `sidekick model` in the same machine environment that
 will run WebUI.
 
 ## Choosing a provider
@@ -98,7 +98,7 @@ before continuing.
 Advanced provider flows such as Nous Portal and GitHub Copilot are still
 terminal-first. OpenAI Codex and Anthropic Claude Code OAuth can be started in
 the onboarding flow when your Sidekick config selects the corresponding provider.
-If the wizard points you back to `hermes model`, use that CLI flow first, then
+If the wizard points you back to `sidekick model`, use that CLI flow first, then
 refresh WebUI.
 
 ## Base URL rules for local model servers
@@ -156,7 +156,7 @@ State normally lives outside the repository. By default:
 - Nova state: `~/.hermes`
 - WebUI state: `~/.hermes/webui`
 
-Override these with `HERMES_HOME` and `HERMES_WEBUI_STATE_DIR` when you need an
+Override these with `HERMES_HOME` and `SIDEKICK_WEBUI_STATE_DIR` when you need an
 isolated test install.
 
 ## When to file an issue
@@ -179,3 +179,4 @@ docker exec sidekick sh -c 'curl -sS -w "\nHTTP %{http_code}\n" http://host.dock
 5. Any inline wizard error text and relevant logs.
 
 Never paste API keys, OAuth tokens, or full `.env` contents into an issue.
+

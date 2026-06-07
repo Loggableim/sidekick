@@ -1,5 +1,5 @@
 """
-Hermes Appstore Backend — manifest discovery, install/uninstall, status checks.
+Sidekick Appstore Backend — manifest discovery, install/uninstall, status checks.
 
 Provides API-callable functions that read app manifests from
 ``home/appstore/*.json``, apply env/config changes, and manage
@@ -167,7 +167,7 @@ def _version_tuple(v: str) -> tuple:
 
 
 # ---------------------------------------------------------------------------
-# config.yaml helpers  (uses yaml library available in the Hermes venv)
+# config.yaml helpers  (uses yaml library available in the Sidekick venv)
 # ---------------------------------------------------------------------------
 
 def _patch_config(path_parts: list[str], value) -> bool:
@@ -248,11 +248,11 @@ def _unpatch_config(path_parts: list[str]) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Hermes CLI subprocess helper
+# Sidekick CLI subprocess helper
 # ---------------------------------------------------------------------------
 
 def _run_hermes_cli(args: list[str]) -> tuple[int, str]:
-    """Run ``hermes <args>`` via the venv Python and return ``(returncode, stdout)``."""
+    """Run the Sidekick CLI via the venv Python and return ``(returncode, stdout)``."""
     cmd = [str(_VENV_PYTHON), "-m", "hermes_cli.main"] + args
     env = os.environ.copy()
 
@@ -274,10 +274,10 @@ def _run_hermes_cli(args: list[str]) -> tuple[int, str]:
         )
         return result.returncode, result.stdout.strip()
     except subprocess.TimeoutExpired:
-        logger.warning("Hermes CLI timed out after 30s: %s", " ".join(args))
+        logger.warning("Sidekick CLI timed out after 30s: %s", " ".join(args))
         return -1, "timeout"
     except Exception as exc:
-        logger.warning("Hermes CLI failed: %s — %s", " ".join(args), exc)
+        logger.warning("Sidekick CLI failed: %s — %s", " ".join(args), exc)
         return -1, str(exc)
 
 
@@ -436,7 +436,7 @@ def install_app(manifest_key: str, values: dict) -> dict:
     1. Load the manifest.
     2. Write all ``env_writes`` keys from *values* into ``.env``.
     3. Apply ``config_changes`` to ``config.yaml``.
-    4. Enable tools via ``hermes tools enable <name>``.
+    4. Enable tools via ``sidekick tools enable <name>``.
     5. Restart gateway if ``gateway_restart`` is set.
     6. Record installation in ``.installed.json``.
 
@@ -539,7 +539,7 @@ def uninstall_app(manifest_key: str) -> dict:
     1. Load the manifest.
     2. Remove all ``env_writes`` keys from ``.env``.
     3. Revert ``config_changes`` (remove keys from ``config.yaml``).
-    4. Disable tools via ``hermes tools disable <name>``.
+    4. Disable tools via ``sidekick tools disable <name>``.
     5. Remove from ``.installed.json``.
 
     Returns::

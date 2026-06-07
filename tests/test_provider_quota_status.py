@@ -170,6 +170,48 @@ def test_unsupported_provider_reports_followup_state(monkeypatch, tmp_path):
     assert "follow-up" in result["message"]
 
 
+def test_ollama_cloud_quota_uses_nova_worker_status(monkeypatch, tmp_path):
+    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    old_cfg, old_mtime = _with_config(model={"provider": "ollama-cloud"})
+
+    import api.providers as providers
+
+    class _FakeModule:
+        @staticmethod
+        def load_router_health():
+            return {
+                "healthy": True,
+                "preferred_routes": {
+                    "router": {"model": "gpt-oss:20b"},
+                    "research": {"model": "nemotron-3-nano:30b"},
+                    "strong": {"model": "deepseek-v4-flash"},
+                },
+                "role_candidates": {
+                    "content": ["openrouter-owl-content", "worker-cheap-primary"],
+                },
+                "auth_pool_summary": {
+                    "ollama_free_ready": 5,
+                },
+            }
+
+    monkeypatch.setattr(providers, "_load_nova_state_snapshot_module", lambda: _FakeModule())
+    try:
+        result = providers.get_provider_quota()
+    finally:
+        _restore_config(old_cfg, old_mtime)
+
+    assert result["ok"] is True
+    assert result["provider"] == "ollama-cloud"
+    assert result["supported"] is True
+    assert result["status"] == "available"
+    assert result["quota"] is None
+    assert result["account_limits"]["plan"] == "Nova worker pool"
+    assert result["account_limits"]["windows"][0]["label"] == "Premium key"
+    assert result["account_limits"]["windows"][1]["label"] == "Free GPT-OSS"
+    assert "Default light worker: nemotron-3-nano:30b" in result["account_limits"]["details"]
+    assert "Default strong worker: deepseek-v4-flash" in result["account_limits"]["details"]
+
+
 def test_codex_account_usage_is_fetched_under_active_profile_home(monkeypatch, tmp_path):
     """Codex account limits must use the selected WebUI profile's HERMES_HOME."""
     monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)

@@ -100,7 +100,7 @@ class TestGetProvidersOauthBlock:
 
     def test_auth_error_preserved_when_not_logged_in_and_no_config_key(self):
         """auth_error from get_auth_status() is returned in the provider dict."""
-        err_msg = "Refresh token consumed by Codex CLI. Run hermes auth."
+        err_msg = "Refresh token consumed by Codex CLI. Run sidekick auth."
         auth = _make_fake_auth(logged_in=False, error=err_msg)
         p = self._call_get_providers_for_codex(auth, has_key_in_config=False)
         assert p is not None

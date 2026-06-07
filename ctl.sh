@@ -7,6 +7,10 @@ PID_FILE="${HERMES_WEBUI_PID_FILE:-${HERMES_HOME}/webui.pid}"
 LOG_FILE="${HERMES_WEBUI_LOG_FILE:-${HERMES_HOME}/webui.log}"
 STATE_FILE="${HERMES_WEBUI_CTL_STATE_FILE:-${HERMES_HOME}/webui.ctl.env}"
 DEFAULT_STATE_DIR="${HERMES_WEBUI_STATE_DIR:-${HERMES_HOME}/webui}"
+SIDEKICK_WEBUI_HOST="${SIDEKICK_WEBUI_HOST:-}"
+SIDEKICK_WEBUI_PORT="${SIDEKICK_WEBUI_PORT:-}"
+SIDEKICK_WEBUI_PYTHON="${SIDEKICK_WEBUI_PYTHON:-}"
+SIDEKICK_WEBUI_STATE_DIR="${SIDEKICK_WEBUI_STATE_DIR:-}"
 
 usage() {
   cat <<'EOF'
@@ -57,7 +61,9 @@ _load_repo_dotenv_preserving_env() {
 }
 
 _find_python() {
-  if [[ -n "${HERMES_WEBUI_PYTHON:-}" ]]; then
+  if [[ -n "${SIDEKICK_WEBUI_PYTHON:-}" ]]; then
+    printf '%s\n' "${SIDEKICK_WEBUI_PYTHON}"
+  elif [[ -n "${HERMES_WEBUI_PYTHON:-}" ]]; then
     printf '%s\n' "${HERMES_WEBUI_PYTHON}"
   elif command -v python3 >/dev/null 2>&1; then
     command -v python3
@@ -70,8 +76,8 @@ _find_python() {
 }
 
 _parse_launch_binding() {
-  CTL_HOST="${HERMES_WEBUI_HOST:-127.0.0.1}"
-  CTL_PORT="${HERMES_WEBUI_PORT:-8787}"
+  CTL_HOST="${SIDEKICK_WEBUI_HOST:-${HERMES_WEBUI_HOST:-127.0.0.1}}"
+  CTL_PORT="${SIDEKICK_WEBUI_PORT:-${HERMES_WEBUI_PORT:-8787}}"
   local arg next_is_host=0 saw_port=0
   for arg in "$@"; do
     if (( next_is_host )); then
@@ -128,7 +134,7 @@ _build_bootstrap_args() {
 
 _write_state() {
   local pid="$1" host="$2" port="$3"
-  local state_dir="${HERMES_WEBUI_STATE_DIR:-${DEFAULT_STATE_DIR}}"
+  local state_dir="${SIDEKICK_WEBUI_STATE_DIR:-${HERMES_WEBUI_STATE_DIR:-${DEFAULT_STATE_DIR}}}"
   {
     printf 'PID=%q\n' "${pid}"
     printf 'REPO_ROOT=%q\n' "${REPO_ROOT}"
@@ -196,11 +202,14 @@ _clear_stale_pid() {
 start_cmd() {
   ensure_home
   _load_repo_dotenv_preserving_env
-  export HERMES_WEBUI_STATE_DIR="${HERMES_WEBUI_STATE_DIR:-${DEFAULT_STATE_DIR}}"
-  mkdir -p "${HERMES_WEBUI_STATE_DIR}"
+  export SIDEKICK_WEBUI_STATE_DIR="${SIDEKICK_WEBUI_STATE_DIR:-${HERMES_WEBUI_STATE_DIR:-${DEFAULT_STATE_DIR}}}"
+  export HERMES_WEBUI_STATE_DIR="${SIDEKICK_WEBUI_STATE_DIR}"
+  mkdir -p "${SIDEKICK_WEBUI_STATE_DIR}"
   _parse_launch_binding "$@"
   _build_bootstrap_args "$@"
+  export SIDEKICK_WEBUI_HOST="${CTL_HOST}"
   export HERMES_WEBUI_HOST="${CTL_HOST}"
+  export SIDEKICK_WEBUI_PORT="${CTL_PORT}"
   export HERMES_WEBUI_PORT="${CTL_PORT}"
 
   local existing_pid

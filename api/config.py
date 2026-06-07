@@ -2281,6 +2281,26 @@ def resolve_active_provider_context(
                 model = str(runtime.get("model") or model or "").strip()
                 base_url = str(runtime.get("base_url") or base_url or "").strip()
                 api_key = str(runtime.get("api_key") or api_key or "").strip()
+    # Fallback: if we have a provider but no api_key, look up credential_pool
+    if provider and (not api_key or len(api_key) < 8):
+        try:
+            import json as _j
+            auth_path = _get_auth_store_path()
+            if auth_path.exists():
+                auth_data = _j.loads(auth_path.read_text(encoding="utf-8"))
+                pool = auth_data.get("credential_pool", {}) if isinstance(auth_data, dict) else {}
+                provider_pool = pool.get(provider, [])
+                if isinstance(provider_pool, list) and provider_pool:
+                    for cred in provider_pool:
+                        token = cred.get("access_token", "") or ""
+                        if len(token) > 8:
+                            api_key = token
+                            if not base_url and cred.get("base_url"):
+                                base_url = cred.get("base_url", "")
+                            break
+        except Exception:
+            logger.debug("Failed to look up credential_pool for provider context", exc_info=True)
+
 
     error = None if provider else _provider_setup_error_payload()
     return {

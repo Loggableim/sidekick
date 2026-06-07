@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import subprocess
 from pathlib import Path
+import shutil
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -25,9 +26,9 @@ def test_wsl_autostart_docs_cover_session_and_task_scheduler_options():
     assert "Windows Task Scheduler" in doc
     assert "scripts/wsl/sidekick_webui_autostart.sh" in doc
     assert "scripts/windows/setup_webui_autostart.ps1" in doc
-    assert "HERMES_WEBUI_REPO" in doc
-    assert "HERMES_WEBUI_LOG_DIR" in doc
-    assert "HERMES_WEBUI_REQUIRE_AGENT_PROCESS" in doc
+    assert "SIDEKICK_WEBUI_REPO" in doc
+    assert "SIDEKICK_WEBUI_LOG_DIR" in doc
+    assert "SIDEKICK_WEBUI_REQUIRE_AGENT_PROCESS" in doc
     assert "/root" not in doc
     assert "C:\\Users\\Michael" not in doc
 
@@ -38,15 +39,15 @@ def test_wsl_autostart_launcher_has_safe_duplicate_prevention_and_exports_runtim
     assert script.startswith("#!/usr/bin/env bash\n")
     assert "set -euo pipefail" in script
     assert "flock -n" in script
-    assert "HERMES_WEBUI_LOCK_FILE" in script
-    assert "HERMES_WEBUI_PID_FILE" in script
+    assert "SIDEKICK_WEBUI_LOCK_FILE" in script
+    assert "SIDEKICK_WEBUI_PID_FILE" in script
     assert "curl -fsS --max-time 3" in script
-    assert "bash \"${HERMES_WEBUI_REPO}/start.sh\" --foreground" in script
+    assert "bash \"${SIDEKICK_WEBUI_REPO}/start.sh\" --foreground" in script
     assert "nohup" in script
 
-    # The launcher documents HERMES_WEBUI_HOST/PORT as runtime knobs; they must
+    # The launcher documents SIDEKICK_WEBUI_HOST/PORT as runtime knobs; they must
     # be exported so bootstrap.py/server.py receive the selected WSL values.
-    assert re.search(r"^export HERMES_WEBUI_HOST HERMES_WEBUI_PORT$", script, re.MULTILINE)
+    assert re.search(r"^export SIDEKICK_WEBUI_HOST SIDEKICK_WEBUI_PORT$", script, re.MULTILINE)
 
     assert "/root" not in script
     assert "/home/michael" not in script
@@ -74,12 +75,7 @@ def test_windows_task_scheduler_helper_is_idempotent_and_validates_wsl_script_pa
 
 
 def test_powershell_helper_passes_parser_when_pwsh_is_available():
-    pwsh = None
-    for candidate in ("pwsh", "powershell"):
-        result = subprocess.run(["bash", "-lc", f"command -v {candidate}"], capture_output=True, text=True)
-        if result.returncode == 0:
-            pwsh = result.stdout.strip()
-            break
+    pwsh = shutil.which("pwsh") or shutil.which("powershell")
     if not pwsh:
         # Linux CI often does not include PowerShell. The source-string tests
         # above still pin the safety/idempotency invariants in that case.

@@ -76,14 +76,14 @@ class TestStreamingAuthErrorDetection:
             "'unauthorized' not in auth error detection block"
         )
 
-    def test_auth_error_hint_mentions_hermes_model(self):
-        """The auth_mismatch hint must mention 'hermes model' command."""
+    def test_auth_error_hint_mentions_sidekick_model(self):
+        """The auth_mismatch hint must mention 'sidekick model' command."""
         src = _read("api/streaming.py")
         # Find the auth_mismatch apperror block
         idx = src.find("auth_mismatch")
         block = src[idx:idx + 500]
-        assert "hermes model" in block, (
-            "auth_mismatch hint must mention 'hermes model' command "
+        assert "sidekick model" in block, (
+            "auth_mismatch hint must mention 'sidekick model' command "
             "so users know how to fix provider mismatch"
         )
 
@@ -1352,3 +1352,45 @@ def test_stale_ui_js_does_not_inject_unavailable_option():
     assert "const first=sel.querySelector('optgroup > option, option');" in src, (
         "the first available option should remain only as a fallback when no configured default applies"
     )
+
+
+def test_stale_saved_provider_on_bare_model_rewrites_to_active_ollama_cloud(
+    monkeypatch,
+):
+    """A stale saved provider must not pin a bare model to the old provider."""
+    import api.routes as routes
+
+    monkeypatch.setattr(
+        routes,
+        "get_available_models",
+        lambda: {
+            "active_provider": "ollama-cloud",
+            "default_model": "deepseek-v4-flash",
+            "groups": [
+                {
+                    "provider": "Ollama Cloud",
+                    "provider_id": "ollama-cloud",
+                    "models": [
+                        {"id": "deepseek-v4-flash", "label": "DeepSeek V4 Flash"},
+                        {"id": "gpt-oss:20b", "label": "GPT OSS 20B"},
+                    ],
+                },
+                {
+                    "provider": "OpenCode Go",
+                    "provider_id": "opencode-go",
+                    "models": [
+                        {"id": "deepseek-v4-flash", "label": "DeepSeek V4 Flash"},
+                    ],
+                },
+            ],
+        },
+    )
+
+    effective, provider, changed = routes._resolve_compatible_session_model_state(
+        "deepseek-v4-flash",
+        "opencode-go",
+    )
+
+    assert changed is False
+    assert effective == "deepseek-v4-flash"
+    assert provider == "ollama-cloud"

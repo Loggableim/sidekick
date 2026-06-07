@@ -302,7 +302,7 @@ execution instead of becoming another runtime with different variable names.
 ## Open questions
 
 - Where should the normative Sidekick Runtime API / IPC v0 spec live: in
-  `NousResearch/hermes-agent`, this WebUI RFC, or both with one designated
+  the Sidekick agent repo, this WebUI RFC, or both with one designated
   source of truth?
 - What retention window is enough for v0 event replay: active-run memory only,
   SQLite-backed event log, or transcript-derived reconstruction plus terminal

@@ -374,8 +374,8 @@ def read_importable_agent_session_rows(
         if 'source' not in session_cols:
             log.warning(
                 "agent session listing skipped: state.db at %s has no 'source' column "
-                "(older hermes-agent?). Agent sessions unavailable. "
-                "Upgrade hermes-agent to fix this.",
+                "(older Sidekick agent build?). Agent sessions unavailable. "
+                "Upgrade the Sidekick agent to fix this.",
                 db_path,
             )
             return []

@@ -238,7 +238,7 @@ function cliOnlyCommandResponse(cmdName, meta){
   const detail=desc?`\n\n${desc}`:'';
   let extra='';
   if(name==='browser'){
-    extra='\n\nBrowser tools in WebUI must be configured server-side with the agent/browser environment. Once configured, ask the model to use browser tools directly; `/browser` itself only works in Sidekick chat.';
+    extra='\n\nWebsearch tools in WebUI must be configured server-side with the agent/browser environment. Once configured, ask the model to use browser tools directly; `/browser` itself only works in Sidekick chat.';
   }
   return `\`/${name}\` is a Sidekick CLI-only command and cannot run inside the WebUI.${detail}${extra}`;
 }
@@ -674,6 +674,12 @@ async function cmdGoal(args){
       }
       return raw;
     })();
+    // Update goal banner from API response
+    if(r&&r.goal){
+      if(typeof _updateGoalState==='function')_updateGoalState(r.goal);
+    }else if(typeof _clearGoalState==='function'){
+      _clearGoalState();
+    }
     if(msg){
       S.messages.push({role:'assistant',content:msg,_ts:Date.now()/1000,_goalStatus:true,_transient:true});
       renderMessages({preserveScroll:true});

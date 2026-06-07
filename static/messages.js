@@ -53,7 +53,12 @@ if(_msgEl) _msgEl.addEventListener('focus', ()=>{ if('speechSynthesis' in window
 if(_msgEl) _msgEl.addEventListener('blur', ()=>{ if('speechSynthesis' in window && speechSynthesis.paused) speechSynthesis.resume(); });
 
 async function send(){
-  const text=$('msg').value.trim();
+  let text=$('msg').value.trim();
+  // Plan Mode: `/plan` automatisch voranstellen
+  if(window._planMode&&text&&!text.startsWith('/')){
+    text='/plan '+text;
+    $('msg').value=text;
+  }
   if(!text&&!S.pendingFiles.length)return;
   // Don't send while an inline message edit is active
   if(document.querySelector('.msg-edit-area'))return;
@@ -367,6 +372,195 @@ function closeLiveStream(sessionId, streamId){
   delete LIVE_STREAMS[sessionId];
 }
 
+// ── Goal State (global, shared across sessions) ──
+window._goalState=null;
+
+function _renderGoalBanner(){
+  const banner=$('goalBanner');
+  const icon=$('goalBannerIcon');
+  const text=$('goalBannerText');
+  const turns=$('goalBannerTurns');
+  const pauseBtn=$('goalBtnPause');
+  const resumeBtn=$('goalBtnResume');
+  const clearBtn=$('goalBtnClear');
+  const toggleBtn=$('btnGoalModeToggle');
+  if(!banner)return;
+  const gs=window._goalState;
+  if(!gs||!gs.goal||gs.status==='cleared'||gs.status==='none'){
+    banner.style.display='none';
+    if(toggleBtn)toggleBtn.classList.remove('active');
+    return;
+  }
+  // Space-scoping: nur anzeigen wenn Goal in diesem Space gesetzt wurde
+  if(gs.space){
+    const currentSpace=typeof _activeSpace!=='undefined'?_activeSpace:
+      localStorage.getItem('hermes-active-workspace')||'nova';
+    if(gs.space!==currentSpace){
+      banner.style.display='none';
+      return;
+    }
+  }
+  const status=gs.status||'active';
+  banner.style.display='flex';
+  banner.className='goal-banner '+status;
+  if(status==='active'){icon.textContent='⊙';}
+  else if(status==='paused'){icon.textContent='⏸';}
+  else if(status==='done'){icon.textContent='✓';}
+  else {icon.textContent='⊙';}
+  text.textContent=gs.goal.length>90?gs.goal.slice(0,87)+'…':gs.goal;
+  const tu=typeof gs.turns_used==='number'?gs.turns_used:0;
+  const mt=typeof gs.max_turns==='number'?gs.max_turns:20;
+  turns.textContent='('+tu+'/'+mt+')';
+  pauseBtn.style.display=(status==='active')?'':'none';
+  resumeBtn.style.display=(status==='paused')?'':'none';
+  clearBtn.style.display='';
+  if(toggleBtn)toggleBtn.classList.remove('active');
+}
+
+function _updateGoalState(state){
+  if(!state){
+    window._goalState=null;
+    _renderGoalBanner();
+    return;
+  }
+  const gs={
+    goal:String(state.goal||'').trim(),
+    status:String(state.status||'').trim(),
+    turns_used:typeof state.turns_used==='number'?state.turns_used:0,
+    max_turns:typeof state.max_turns==='number'?state.max_turns:20,
+    last_verdict:state.last_verdict||null,
+    last_reason:state.last_reason||null,
+    paused_reason:state.paused_reason||null,
+    space:state.space||(typeof _activeSpace!=='undefined'?_activeSpace:
+      localStorage.getItem('hermes-active-workspace')||null),
+  };
+  window._goalState=gs;
+  try{localStorage.setItem('hermes-webui-goal-state',JSON.stringify(gs));}catch(_){}
+  _renderGoalBanner();
+}
+
+function _clearGoalState(){
+  window._goalState=null;
+  try{localStorage.removeItem('hermes-webui-goal-state');}catch(_){}
+  _renderGoalBanner();
+}
+
+function _toggleGoalMode(){
+  const box=$('composerBox');
+  const input=$('goalInputField');
+  const toggle=$('btnGoalModeToggle');
+  if(!box)return;
+  const isActive=box.classList.contains('goal-mode');
+  if(isActive){
+    box.classList.remove('goal-mode');
+    if(input)input.value='';
+    if(toggle)toggle.classList.remove('active');
+    $('msg').focus();
+  }else{
+    box.classList.add('goal-mode');
+    if(toggle)toggle.classList.add('active');
+    if(input){input.value='';input.focus();}
+  }
+}
+
+function _exitGoalMode(){
+  const box=$('composerBox');
+  const toggle=$('btnGoalModeToggle');
+  if(!box)return;
+  box.classList.remove('goal-mode');
+  if(toggle)toggle.classList.remove('active');
+  const input=$('goalInputField');
+  if(input)input.value='';
+  $('msg').focus();
+}
+
+function _submitGoal(){
+  const input=$('goalInputField');
+  if(!input)return;
+  const text=input.value.trim();
+  if(!text){showToast('Please enter a goal description.',2000);input.focus();return;}
+  _exitGoalMode();
+  showToast('🎯 Setting goal…',1500);
+  // Small delay so the UI state transition settles
+  setTimeout(function(){
+    if(typeof cmdGoal==='function')cmdGoal(text);
+    else showToast('Goal command not available — try /goal '+text,3000);
+  },100);
+}
+
+// On init: load persisted goal state from localStorage
+(function _initGoalState(){
+  try{
+    const saved=localStorage.getItem('hermes-webui-goal-state');
+    if(saved){
+      const parsed=JSON.parse(saved);
+      // Migration: alte Einträge ohne space-Feld korrigieren
+      if(parsed&&parsed.goal&&parsed.status&&parsed.status!=='cleared'){
+        if(!parsed.space){
+          // Altes Format ohne Space → verwerfen, wird beim nächsten /goal neu gesetzt
+          localStorage.removeItem('hermes-webui-goal-state');
+          window._goalState=null;
+        }else{
+          window._goalState=parsed;
+        }
+      }else{
+        localStorage.removeItem('hermes-webui-goal-state');
+      }
+    }
+  }catch(_){}
+  // Banner mit Verzögerung rendern — _activeSpace aus spaces.js muss geladen sein
+  setTimeout(function(){
+    _renderGoalBanner();
+  },100);
+})();
+
+// Export goal UI functions globally (called from HTML onclick and commands.js)
+window._renderGoalBanner=_renderGoalBanner;
+window._updateGoalState=_updateGoalState;
+window._clearGoalState=_clearGoalState;
+window._toggleGoalMode=_toggleGoalMode;
+window._exitGoalMode=_exitGoalMode;
+window._submitGoal=_submitGoal;
+window._togglePlanMode=_togglePlanMode;
+
+// ── Goal: keydown handler for goal input field ──
+document.addEventListener('keydown',function _goalInputKeydown(e){
+  const input=$('goalInputField');
+  if(!input||input!==document.activeElement)return;
+  if(e.key==='Enter'&&!e.shiftKey){
+    e.preventDefault();
+    _submitGoal();
+  }
+  if(e.key==='Escape'){
+    e.preventDefault();
+    _exitGoalMode();
+  }
+});
+
+// ── Plan Mode ─────────────────────────────────────────────
+window._planMode=false;
+
+function _togglePlanMode(){
+  window._planMode=!window._planMode;
+  _renderPlanBanner();
+  // Toggle-Button visuell updaten
+  const btn=document.querySelector('.plan-mode-toggle');
+  if(btn)btn.classList.toggle('active',window._planMode);
+  const box=$('composerBox');
+  if(box)box.classList.toggle('plan-mode',window._planMode);
+  showToast(window._planMode?'🧠 Plan Mode ON':'🧠 Plan Mode OFF',1500);
+}
+
+function _renderPlanBanner(){
+  const banner=$('planBanner');
+  if(!banner)return;
+  if(window._planMode){
+    banner.style.display='flex';
+  }else{
+    banner.style.display='none';
+  }
+}
+
 function attachLiveStream(activeSid, streamId, uploaded=[], options={}){
   if(!activeSid||!streamId) return;
   const reconnecting=!!options.reconnecting;
@@ -397,11 +591,12 @@ function attachLiveStream(activeSid, streamId, uploaded=[], options={}){
   }
   closeLiveStream(activeSid);
 
-  let assistantText='';
+let assistantText='';
   let reasoningText='';
   let liveReasoningText='';
-  let _latestGoalStatus=null;
+let _latestGoalStatus=null;
   let _pendingGoalContinuation=null;
+
   // Task progress tracking (from 'progress' SSE events)
   let _progressData=null;  // {current, total, label, done}
   let _progressEl=null;    // .task-progress DOM element
@@ -1166,7 +1361,7 @@ function attachLiveStream(activeSid, streamId, uploaded=[], options={}){
       return raw;
     }
 
-    source.addEventListener('goal',e=>{
+source.addEventListener('goal',e=>{
       try{
         const d=JSON.parse(e.data||'{}');
         if((d.session_id||activeSid)!==activeSid) return;
@@ -1181,6 +1376,19 @@ function attachLiveStream(activeSid, streamId, uploaded=[], options={}){
         _latestGoalStatus={message:msg,decision:d.decision||null,state:goalState||null};
         setComposerStatus(msg);
         showToast(msg.split('\n')[0],2600);
+        // Update goal banner from decision payload
+        if(d.decision&&d.decision.status){
+          _updateGoalState({
+            goal:window._goalState&&window._goalState.goal||'',
+            status:d.decision.status,
+            turns_used:d.decision.turns_used,
+            max_turns:d.decision.max_turns,
+            last_verdict:d.decision.verdict,
+            last_reason:d.decision.reason,
+            paused_reason:d.decision.paused_reason||null,
+            space:window._goalState&&window._goalState.space||null,
+          });
+        }
       }catch(_){}
     });
 
@@ -1349,7 +1557,7 @@ source.addEventListener('done',e=>{
           const lastUser=[...S.messages].reverse().find(m=>m.role==='user');
           if(lastUser)lastUser.attachments=uploaded;
         }
-        if(_latestGoalStatus&&_latestGoalStatus.message){
+if(_latestGoalStatus&&_latestGoalStatus.message){
           S.messages.push({
             role:'assistant',
             content:String(_latestGoalStatus.message),
@@ -1357,6 +1565,19 @@ source.addEventListener('done',e=>{
             _goalStatus:true,
             _transient:true,
           });
+          // Update goal banner from latest goal status
+          const _gs=_latestGoalStatus;
+          if(_gs.decision&&_gs.decision.status){
+            _updateGoalState({
+              goal:window._goalState&&window._goalState.goal||'',
+              status:_gs.decision.status,
+              turns_used:_gs.decision.turns_used,
+              max_turns:_gs.decision.max_turns,
+              last_verdict:_gs.decision.verdict,
+              last_reason:_gs.decision.reason,
+              paused_reason:_gs.decision.paused_reason||null,
+            });
+          }
         }
         clearLiveToolCards();_removeProgressEl();
         S.busy=false;
@@ -1890,6 +2111,56 @@ let _approvalSessionId = null;
 let _approvalCurrentId = null;  // approval_id of the card currently shown
 let _approvalPendingBySession = new Map();
 
+// ── Global cross-session approval polling ─────────────────────────────────
+// Polls ALL sessions for pending approvals every 3s, so badges and toasts
+// appear even when the user is looking at a different session/space/panel.
+let _globalApprovalPollTimer = null;
+let _globalApprovalSessionsSeen = new Set();
+
+function _startGlobalApprovalPoll() {
+  _stopGlobalApprovalPoll();
+  _globalApprovalPollTimer = setInterval(async () => {
+    try {
+      const data = await api("/api/approval/pending-all");
+      if (!data || !data.sessions) return;
+      for (const [sid, entry] of Object.entries(data.sessions)) {
+        if (entry && entry.pending) {
+          entry.pending._session_id = sid;
+          _approvalPendingBySession.set(sid, {pending: entry.pending, pendingCount: entry.pending_count || 1});
+          if (!_approvalPromptBelongsToActiveSession(sid)) {
+            if (!_globalApprovalSessionsSeen.has(sid)) {
+              _globalApprovalSessionsSeen.add(sid);
+              let title = sid.slice(0, 8) + '…';
+              const el = document.querySelector('.session-item[data-sid="' + sid.replace(/"/g,'') + '"] .session-title');
+              if (el) title = el.textContent || title;
+              const desc = entry.pending.description || entry.pending.command || '';
+              showToast('🔴 ' + (t('approval_needed') || 'Approval needed') + ': "' + title + '" — ' + (desc.length > 60 ? desc.slice(0,60)+'…' : desc), 10000);
+            }
+          }
+        } else {
+          _approvalPendingBySession.delete(sid);
+          _globalApprovalSessionsSeen.delete(sid);
+        }
+      }
+      for (const sid of _approvalPendingBySession.keys()) {
+        if (!data.sessions[sid]) {
+          _approvalPendingBySession.delete(sid);
+          _globalApprovalSessionsSeen.delete(sid);
+        }
+      }
+      // Refresh sidebar badges
+      if (typeof renderSessionListFromCache === 'function') renderSessionListFromCache();
+    } catch (_) {}
+  }, 3000);
+}
+
+function _stopGlobalApprovalPoll() {
+  if (_globalApprovalPollTimer) {
+    clearInterval(_globalApprovalPollTimer);
+    _globalApprovalPollTimer = null;
+  }
+}
+
 function _promptActiveSessionId() {
   return (S.session && S.session.session_id) || null;
 }
@@ -1908,7 +2179,10 @@ function _rememberApprovalPending(pending, pendingCount) {
 }
 
 function _clearApprovalPendingForSession(sid) {
-  if (sid) _approvalPendingBySession.delete(sid);
+  if (sid) {
+    _approvalPendingBySession.delete(sid);
+    _globalApprovalSessionsSeen.delete(sid);
+  }
 }
 
 function _clearApprovalTimeoutTimer() {
@@ -2222,6 +2496,96 @@ let _approvalPollTimer = null;
 let _approvalEventSource = null;
 let _approvalSSEHealthTimer = null;
 let _approvalPollingSessionId = null;
+
+// ── Global cross-session approval monitor ──────────────────────────
+// Polls /api/approval/pending-all every 3s to detect approvals in
+// OTHER sessions. Surfaces them via sidebar badges + toasts.
+let _globalApprovalTimer = null;
+let _globalApprovalKnown = new Set();  // session_ids with known pending
+
+function _startGlobalApprovalPoll() {
+  if (_globalApprovalTimer) return;
+  _globalApprovalTimer = setInterval(_pollGlobalApprovals, 3000);
+  _pollGlobalApprovals();  // immediate first poll
+}
+
+function _stopGlobalApprovalPoll() {
+  if (_globalApprovalTimer) {
+    clearInterval(_globalApprovalTimer);
+    _globalApprovalTimer = null;
+  }
+}
+
+async function _pollGlobalApprovals() {
+  try {
+    const data = await api("/api/approval/pending-all");
+    if (!data || !data.sessions) return;
+
+    const activeSid = (S && S.session && S.session.session_id) || null;
+    const nowPending = new Set();
+    let changed = false;
+
+    for (const [sid, entry] of Object.entries(data.sessions)) {
+      nowPending.add(sid);
+      if (!_approvalPendingBySession.has(sid)) {
+        _approvalPendingBySession.set(sid, {
+          pending: entry.pending,
+          pendingCount: entry.pending_count || 1,
+        });
+        changed = true;
+
+        // Toast for non-active sessions
+        if (sid !== activeSid) {
+          _notifyCrossSessionApproval(sid, entry.pending);
+        }
+      }
+    }
+
+    // Clear sessions that no longer have pending approvals
+    for (const sid of _globalApprovalKnown) {
+      if (!nowPending.has(sid) && _approvalPendingBySession.has(sid)) {
+        _approvalPendingBySession.delete(sid);
+        changed = true;
+      }
+    }
+
+    _globalApprovalKnown = nowPending;
+
+    if (changed && typeof renderSessionListFromCache === 'function') {
+      renderSessionListFromCache();
+    }
+  } catch (_e) {
+    // Silently ignore poll errors (network blips, server restart)
+  }
+}
+
+function _notifyCrossSessionApproval(sid, pending) {
+  // Store the latest sid so the toast onclick can jump there
+  window._approvalToastSid = sid;
+  const session = (typeof _allSessions !== 'undefined' && _allSessions)
+    ? _allSessions.find(s => s && s.session_id === sid) : null;
+  const title = (session && session.title) || sid.slice(0, 8);
+  const desc = pending.description || 'Genehmigung benötigt';
+  if (typeof showToast === 'function') {
+    showToast(`🔴 ${title}: ${desc}`, 15000, 'warning');
+    // Make the toast clickable — jumps to the session
+    const el = document.getElementById('toast');
+    if (el) {
+      el.style.cursor = 'pointer';
+      el.onclick = function _approvalToastClick() {
+        const sid = window._approvalToastSid;
+        if (sid && typeof loadSession === 'function') {
+          loadSession(sid).then(() => {
+            if (typeof renderSessionListFromCache === 'function') renderSessionListFromCache();
+          }).catch(() => {});
+        }
+        // Hide the toast
+        el.className = 'toast';
+        el.onclick = null;
+      };
+    }
+  }
+}
 
 function _startApprovalFallbackPoll(sid) {
   _approvalPollTimer = setInterval(async () => {

@@ -26,9 +26,9 @@ Coverage
 3.  ``_detect_supervisor()`` returns the env-var name on each known supervisor
     (``INVOCATION_ID`` / ``JOURNAL_STREAM`` / ``NOTIFY_SOCKET`` /
     ``XPC_SERVICE_NAME`` / ``SUPERVISOR_ENABLED``)
-4.  ``_detect_supervisor()`` returns ``HERMES_WEBUI_FOREGROUND`` for the
+4.  ``_detect_supervisor()`` returns ``SIDEKICK_WEBUI_FOREGROUND`` for the
     explicit opt-in, accepting ``1``/``true``/``yes``/``on`` (case-insensitive)
-5.  ``_detect_supervisor()`` ignores ``HERMES_WEBUI_FOREGROUND=0`` /
+5.  ``_detect_supervisor()`` ignores ``SIDEKICK_WEBUI_FOREGROUND=0`` /
     ``=false`` / ``=`` and falls through to env-var probing
 6.  ``XPC_SERVICE_NAME`` noise filter: bare ``"0"`` and ``application.<id>``
     values do NOT trigger foreground (the macOS Terminal default state),
@@ -40,8 +40,8 @@ Coverage
 9.  Default ``main()`` path (no flag, clean env) still uses ``Popen``
 10. Foreground path chdir's to ``agent_dir or REPO_ROOT`` before execv (matches
     the cwd the legacy Popen uses)
-11. Foreground path exports ``HERMES_WEBUI_HOST`` / ``HERMES_WEBUI_PORT`` /
-    ``HERMES_WEBUI_AGENT_DIR`` / ``HERMES_WEBUI_STATE_DIR`` to ``os.environ``
+11. Foreground path exports ``SIDEKICK_WEBUI_HOST`` / ``SIDEKICK_WEBUI_PORT`` /
+    ``SIDEKICK_WEBUI_AGENT_DIR`` / ``SIDEKICK_WEBUI_STATE_DIR`` to ``os.environ``
     so the post-exec server picks them up
 12. Foreground path skips ``wait_for_health`` (no client to retry from)
 13. ``--foreground`` help text mentions launchd / systemd / supervisord
@@ -87,8 +87,12 @@ def clean_env(monkeypatch):
         "NOTIFY_SOCKET",
         "XPC_SERVICE_NAME",
         "SUPERVISOR_ENABLED",
+        "SIDEKICK_WEBUI_FOREGROUND",
         "HERMES_WEBUI_FOREGROUND",
         # Bootstrap-resolved env vars (mutated by main(), can leak across tests)
+        "SIDEKICK_WEBUI_HOST",
+        "SIDEKICK_WEBUI_PORT",
+        "SIDEKICK_WEBUI_AGENT_DIR",
         "HERMES_WEBUI_HOST",
         "HERMES_WEBUI_PORT",
         "HERMES_WEBUI_AGENT_DIR",
@@ -156,21 +160,21 @@ class TestDetectSupervisor:
 
     @pytest.mark.parametrize("value", ["1", "true", "TRUE", "yes", "Yes", "on", "ON"])
     def test_explicit_opt_in_truthy_values(self, import_bootstrap, clean_env, monkeypatch, value):
-        monkeypatch.setenv("HERMES_WEBUI_FOREGROUND", value)
-        assert import_bootstrap._detect_supervisor() == "HERMES_WEBUI_FOREGROUND"
+        monkeypatch.setenv("SIDEKICK_WEBUI_FOREGROUND", value)
+        assert import_bootstrap._detect_supervisor() == "SIDEKICK_WEBUI_FOREGROUND"
 
     @pytest.mark.parametrize("value", ["0", "false", "FALSE", "no", "off", "", "  "])
     def test_explicit_opt_in_falsy_values_fall_through(self, import_bootstrap, clean_env, monkeypatch, value):
-        # When HERMES_WEBUI_FOREGROUND is falsy, we should NOT short-circuit on it.
+        # When SIDEKICK_WEBUI_FOREGROUND is falsy, we should NOT short-circuit on it.
         # If no other supervisor var is set, returns None.
-        monkeypatch.setenv("HERMES_WEBUI_FOREGROUND", value)
+        monkeypatch.setenv("SIDEKICK_WEBUI_FOREGROUND", value)
         assert import_bootstrap._detect_supervisor() is None
 
     def test_explicit_opt_in_takes_precedence_over_supervisor_var(self, import_bootstrap, clean_env, monkeypatch):
         # Both set → explicit flag wins (returned name reflects user intent).
-        monkeypatch.setenv("HERMES_WEBUI_FOREGROUND", "1")
+        monkeypatch.setenv("SIDEKICK_WEBUI_FOREGROUND", "1")
         monkeypatch.setenv("INVOCATION_ID", "deadbeef")
-        assert import_bootstrap._detect_supervisor() == "HERMES_WEBUI_FOREGROUND"
+        assert import_bootstrap._detect_supervisor() == "SIDEKICK_WEBUI_FOREGROUND"
 
 
 class TestXPCServiceNameNoiseFilter:

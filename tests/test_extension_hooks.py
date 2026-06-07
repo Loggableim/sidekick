@@ -38,6 +38,9 @@ class FakeHandler:
 
 
 def test_extension_config_disabled_by_default(monkeypatch):
+    monkeypatch.delenv("SIDEKICK_WEBUI_EXTENSION_DIR", raising=False)
+    monkeypatch.delenv("SIDEKICK_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
+    monkeypatch.delenv("SIDEKICK_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
     monkeypatch.delenv("HERMES_WEBUI_EXTENSION_DIR", raising=False)
     monkeypatch.delenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
     monkeypatch.delenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
@@ -54,9 +57,9 @@ def test_extension_config_disabled_by_default(monkeypatch):
 def test_extension_config_accepts_only_safe_same_origin_urls(tmp_path, monkeypatch):
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("SIDEKICK_WEBUI_EXTENSION_DIR", str(root))
     monkeypatch.setenv(
-        "HERMES_WEBUI_EXTENSION_SCRIPT_URLS",
+        "SIDEKICK_WEBUI_EXTENSION_SCRIPT_URLS",
         ", ".join(
             [
                 "/extensions/app.js",
@@ -72,7 +75,7 @@ def test_extension_config_accepts_only_safe_same_origin_urls(tmp_path, monkeypat
         ),
     )
     monkeypatch.setenv(
-        "HERMES_WEBUI_EXTENSION_STYLESHEET_URLS",
+        "SIDEKICK_WEBUI_EXTENSION_STYLESHEET_URLS",
         "/extensions/app.css, /static/theme.css, data:text/css,body{}",
     )
 
@@ -86,8 +89,9 @@ def test_extension_config_accepts_only_safe_same_origin_urls(tmp_path, monkeypat
 
 
 def test_index_html_injection_escapes_urls_and_preserves_disabled_default(tmp_path, monkeypatch):
+    monkeypatch.delenv("SIDEKICK_WEBUI_EXTENSION_DIR", raising=False)
     monkeypatch.delenv("HERMES_WEBUI_EXTENSION_DIR", raising=False)
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", "/extensions/app.js")
+    monkeypatch.setenv("SIDEKICK_WEBUI_EXTENSION_SCRIPT_URLS", "/extensions/app.js")
 
     from api.extensions import inject_extension_tags
 
@@ -96,9 +100,9 @@ def test_index_html_injection_escapes_urls_and_preserves_disabled_default(tmp_pa
 
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", "/extensions/app.js?v=1&mode=dev")
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", "/extensions/app.css")
+    monkeypatch.setenv("SIDEKICK_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("SIDEKICK_WEBUI_EXTENSION_SCRIPT_URLS", "/extensions/app.js?v=1&mode=dev")
+    monkeypatch.setenv("SIDEKICK_WEBUI_EXTENSION_STYLESHEET_URLS", "/extensions/app.css")
 
     injected = inject_extension_tags(html)
 
@@ -135,7 +139,7 @@ def test_extension_static_serving_is_sandboxed(tmp_path, monkeypatch):
     outside = tmp_path / "outside.txt"
     outside.write_text("outside", encoding="utf-8")
 
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("SIDEKICK_WEBUI_EXTENSION_DIR", str(root))
 
     from api.extensions import serve_extension_static
 
@@ -160,7 +164,7 @@ def test_extension_static_serving_is_sandboxed(tmp_path, monkeypatch):
 
 def test_extension_static_serving_fails_closed_when_disabled_or_unreadable(tmp_path, monkeypatch):
     missing_root = tmp_path / "missing"
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(missing_root))
+    monkeypatch.setenv("SIDEKICK_WEBUI_EXTENSION_DIR", str(missing_root))
 
     from api.extensions import serve_extension_static
 
@@ -170,7 +174,7 @@ def test_extension_static_serving_fails_closed_when_disabled_or_unreadable(tmp_p
 
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("SIDEKICK_WEBUI_EXTENSION_DIR", str(root))
     (root / "nested").mkdir()
     (root / "nested" / "app.js").write_text("ok", encoding="utf-8")
 
@@ -200,7 +204,7 @@ def test_extension_static_serving_rejects_symlink_escape(tmp_path, monkeypatch):
         # behavior is still covered by traversal tests above.
         return
 
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("SIDEKICK_WEBUI_EXTENSION_DIR", str(root))
 
     from api.extensions import serve_extension_static
 

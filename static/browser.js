@@ -1516,3 +1516,410 @@ window.addEventListener('load', function() {
   }
   _browserAttachPointerHandlers();
 });
+
+/* ═══════════════════════════════════════════════════════════════
+   WE BSEARCH PANEL — Quick Search, Mode Toggle, History, Split
+   ═══════════════════════════════════════════════════════════════ */
+
+// ── State ──────────────────────────────────────
+let _websearchHistoryOpen = true;
+let _websearchSplitOpen = false;
+
+// ── Mode Toggle ────────────────────────────────
+function websearchToggleMode(mode) {
+  document.querySelectorAll('.websearch-mode-btn').forEach(b => {
+    b.classList.toggle('is-active', b.dataset.mode === mode);
+  });
+  const quickPane = document.getElementById('websearchQuickPane');
+  const deepPane = document.getElementById('websearchDeepPane');
+  if (mode === 'quick') {
+    quickPane.style.display = '';
+    deepPane.style.display = 'none';
+  } else {
+    quickPane.style.display = 'none';
+    deepPane.style.display = '';
+    // Refresh deep research list when switching to deep
+    browserResearchPanelActivated();
+  }
+}
+
+// ── History Sidebar Toggle ─────────────────────
+function websearchToggleHistory() {
+  _websearchHistoryOpen = !_websearchHistoryOpen;
+  const el = document.getElementById('websearchHistory');
+  if (el) el.classList.toggle('is-collapsed', !_websearchHistoryOpen);
+}
+
+// ── Split View Toggle ──────────────────────────
+function websearchToggleSplit() {
+  _websearchSplitOpen = !_websearchSplitOpen;
+  const btn = document.getElementById('websearchSplitBtn');
+  if (btn) btn.classList.toggle('is-active', _websearchSplitOpen);
+  // Toggle browser drawer as the preview pane
+  if (_websearchSplitOpen) {
+    browserSetDrawerOpen(true, {force: true});
+  } else if (!_browserFullscreen) {
+    browserSetDrawerOpen(false);
+  }
+}
+
+// ── Quick Search ───────────────────────────────
+
+// ── Websearch Query Chips ──────────────────────────
+function _websearchRenderChips() {
+  var chips = document.getElementById('websearchChips');
+  if (!chips) return;
+  var history = _websearchGetHistory();
+  var recent = history.slice(0, 3);
+  if (!recent.length) { chips.style.display = 'none'; return; }
+  chips.style.display = '';
+  chips.innerHTML = '';
+  recent.forEach(function(item) {
+    var btn = document.createElement('button');
+    btn.className = 'websearch-chip';
+    btn.textContent = item.query;
+    btn.addEventListener('click', function() {
+      window.websearchQuickSearchFromChip(item.query);
+    });
+    chips.appendChild(btn);
+  });
+}
+
+function _websearchRenderResultsSummary(results, elapsed) {
+  var meta = document.getElementById('websearchQuickMeta');
+  if (!meta) return;
+  var resultCount = (results && results.length) || 0;
+  var sources = results ? results.map(function(r) { return _websearchExtractDomain(r.url || ''); }).filter(Boolean) : [];
+  var uniqueSources = sources.filter(function(v,i,a){return a.indexOf(v)===i;});
+  var parts = [];
+  if (resultCount > 0) parts.push(resultCount + ' result' + (resultCount !== 1 ? 's' : ''));
+  if (uniqueSources.length > 0) parts.push(uniqueSources.length + ' source' + (uniqueSources.length !== 1 ? 's' : ''));
+  parts.push(elapsed + 's');
+  meta.textContent = parts.join(' · ');
+}
+
+function _websearchRenderEmptyState() {
+  var empty = document.getElementById('websearchQuickEmpty');
+  if (!empty) return;
+  var examples = [
+    'Latest AI research papers',
+    'Python vs JavaScript 2025',
+    'Climate change solutions',
+    'Best IDE for web development',
+    'Rust vs Go performance',
+  ];
+  empty.innerHTML = '<div class="websearch-empty-text">Try searching for something:</div><div class="websearch-chips" style="justify-content:center;margin-top:8px">' +
+    examples.map(function(q) {
+      return '<button class="websearch-chip" onclick="window.websearchQuickSearchFromChip(\'' + _websearchEscape(q.replace(/'/g, "\\'")) + '\')">' + _websearchEscape(q) + '</button>';
+    }).join('') +
+  '</div>';
+  empty.style.display = '';
+}
+
+window.websearchQuickSearchFromChip = function(q) {
+  var input = document.getElementById('websearchQuery');
+  if (!input) return;
+  input.value = q;
+  websearchQuickSearch(new Event('submit'));
+};
+
+async function websearchQuickSearch(event) {
+  if (event && typeof event.preventDefault === 'function') event.preventDefault();
+  const input = document.getElementById('websearchQuery');
+  const query = input ? String(input.value || '').trim() : '';
+  if (!query) return false;
+
+  // Hide chips when searching
+  const chips = document.getElementById('websearchSuggestionChips');
+  if (chips) chips.style.display = 'none';
+  const chips2 = document.getElementById('websearchChips');
+  if (chips2) chips2.style.display = 'none';
+
+  const meta = document.getElementById('websearchQuickMeta');
+  const results = document.getElementById('websearchResults');
+  const empty = document.getElementById('websearchQuickEmpty');
+  if (empty) empty.style.display = 'none';
+  if (meta) meta.textContent = 'Searching\u2026';
+  if (results) results.innerHTML = '<div class="websearch-empty-text">Searching for <b>' + _websearchEscape(query) + '</b>\u2026</div>';
+
+  const goBtn = document.querySelector('.websearch-go-btn');
+  if (goBtn) goBtn.disabled = true;
+
+  const startTime = Date.now();
+
+  try {
+    const data = await api('/api/agents/research/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        message: [
+          'You are a web search assistant. Return ONLY valid JSON. No markdown, no code fences, no commentary.',
+          'Schema:',
+          '{',
+          '  "answer": "A concise 2-4 sentence answer to the query",',
+          '  "results": [',
+          '    {',
+          '      "title": "Result title",',
+          '      "url": "https://example.com/page",',
+          '      "source": "Example.com",',
+          '      "snippet": "A short excerpt or summary of what this source says",',
+          '      "tags": ["relevant", "tag"]',
+          '    }',
+          '  ]',
+          '}',
+          'Rules:',
+          '- Provide 3-6 results when possible.',
+          '- Titles should be descriptive like actual web search results.',
+          '- URLs should look realistic and be on-topic (even if you generate them from knowledge).',
+          '- Source is the domain name (e.g. "docs.python.org").',
+          '- Snippets are 1-3 sentences summarizing the key info from that source.',
+          '- Tags are 1-3 short keywords (e.g. ["tutorial", "python", "2024"]).',
+          '- The answer field is your direct, helpful reply.',
+          '- Be honest: if you don\'t know, say so and suggest how the user might find the answer.',
+          'Query: ' + query,
+        ].join('\n'),
+        research_topic: query,
+        session_title: 'Quick Search: ' + query,
+      }),
+    });
+
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+    const responseText = data && data.response ? data.response : '';
+    const parsed = _websearchParseQuickResponse(responseText);
+
+    // Show result summary
+    if (meta) {
+      const resultCount = (parsed.results && parsed.results.length) || 0;
+      if (resultCount > 0) {
+        const sources = parsed.results ? parsed.results.map(function(r) { return _websearchExtractDomain(r.url || ''); }).filter(Boolean) : [];
+        const uniqueSources = sources.filter(function(v,i,a){return a.indexOf(v)===i;});
+        meta.innerHTML = '<div class="websearch-meta-summary">' + resultCount + ' result' + (resultCount !== 1 ? 's' : '') + ' from ' + uniqueSources.length + ' source' + (uniqueSources.length !== 1 ? 's' : '') + ' · ' + elapsed + 's</div>';
+      } else {
+        meta.innerHTML = '<div class="websearch-meta-summary">No results</div>';
+      }
+    }
+
+    if (results) {
+      if (parsed.answer) {
+        results.innerHTML = '<div class="websearch-result-card websearch-result-card-answer">' + _websearchEscape(parsed.answer) + '</div>';
+      }
+      if (parsed.results && parsed.results.length) {
+        parsed.results.forEach(function(r) {
+          const tagsHtml = (r.tags && r.tags.length) ? '<div class="websearch-result-badges">' + r.tags.map(function(t) { return '<span class="websearch-result-badge">' + _websearchEscape(t) + '</span>'; }).join('') + '</div>' : '';
+          const domain = _websearchExtractDomain(r.url || '');
+          const card = document.createElement('div');
+          card.className = 'websearch-result-card';
+          card.innerHTML =
+            '<div class="websearch-result-header">' + (domain ? '<img class="websearch-result-favicon" src="https://www.google.com/s2/favicons?domain=' + encodeURIComponent(domain) + '&sz=16" alt="" onerror="this.style.display=\'none\'"> ' : '') + '<a class="websearch-result-title" href="' + _websearchEscape(r.url || '#') + '" target="_blank" rel="noopener">' + _websearchEscape(r.title || '') + '</a></div>' +
+            '<span class="websearch-result-source">' + _websearchEscape(r.source || domain || r.url || '') + '</span>' +
+            '<p class="websearch-result-snippet">' + _websearchEscape(r.snippet || '') + '</p>' +
+            tagsHtml;
+          results.appendChild(card);
+        });
+      } else if (!parsed.answer) {
+        results.innerHTML = '<div class="websearch-empty-text">No results found for "' + _websearchEscape(query) + '". Try rephrasing your query.</div>';
+      }
+    }
+
+    // Save to history
+    _websearchSaveToHistory(query, parsed.answer || '', parsed.results || []);
+    _websearchLastQuery = query;
+    _websearchRenderChips();
+
+    // If we got a session_id, also update the deep research history filter
+    if (data && data.session_id) {
+      browserResearchLoadSessions();
+    }
+
+  } catch (e) {
+    const errText = e && (e.error || e.message) ? (e.error || e.message) : 'Search failed';
+    if (meta) meta.textContent = 'Error';
+    if (results) results.innerHTML = '<div class="websearch-empty-text is-error">⚠️ ' + _websearchEscape(errText) + '</div>';
+  }
+
+  if (goBtn) goBtn.disabled = false;
+  return false;
+}
+
+// ── Parse Quick Response ───────────────────────
+function _websearchParseQuickResponse(text) {
+  const raw = String(text == null ? '' : text).trim();
+  if (!raw) return { answer: '', results: [] };
+
+  // Try extracting JSON from code fences first
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  const candidates = [];
+  if (fenced && fenced[1]) candidates.push(fenced[1].trim());
+  candidates.push(raw);
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate);
+      if (parsed && typeof parsed === 'object') {
+        const results = Array.isArray(parsed.results) ? parsed.results.map(function(r) {
+          return {
+            title: String(r.title || r.name || '').trim(),
+            url: String(r.url || r.link || '').trim(),
+            source: String(r.source || r.site || '').trim(),
+            snippet: String(r.snippet || r.description || r.summary || '').trim(),
+            tags: Array.isArray(r.tags || r.keywords) ? (r.tags || r.keywords).map(String) : [],
+          };
+        }).filter(function(r) { return r.title || r.url; }) : [];
+        return {
+          answer: String(parsed.answer || parsed.summary || '').trim(),
+          results: results,
+        };
+      }
+    } catch (_) {}
+  }
+
+  // Fallback: treat the whole response as a text answer
+  return { answer: raw.replace(/```[\s\S]*?```/g, '').trim(), results: [] };
+}
+
+// ── Simple escape ──────────────────────────────
+function _websearchEscape(text) {
+  return String(text == null ? '' : text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function _websearchExtractDomain(url) {
+  try {
+    var u = new URL(url);
+    return u.hostname || '';
+  } catch (_) { return ''; }
+}
+
+// ── History (localStorage) ─────────────────────
+function _websearchGetHistory() {
+  try {
+    const raw = localStorage.getItem('hermes-websearch-history');
+    return raw ? JSON.parse(raw) : [];
+  } catch (_) { return []; }
+}
+
+function _websearchClearHistory() {
+  try {
+    localStorage.removeItem('hermes-websearch-history');
+  } catch (_) {}
+  _websearchRenderHistory();
+}
+
+function _websearchSaveToHistory(query, answer, results) {
+  const history = _websearchGetHistory();
+  history.unshift({
+    query: query,
+    answer: answer || '',
+    resultCount: (results && results.length) || 0,
+    timestamp: new Date().toISOString(),
+  });
+  // Keep last 50
+  if (history.length > 50) history.length = 50;
+  try {
+    localStorage.setItem('hermes-websearch-history', JSON.stringify(history));
+  } catch (_) {}
+  _websearchRenderHistory();
+}
+
+function _websearchTimeAgo(isoStr) {
+  if (!isoStr) return '';
+  const now = Date.now();
+  const then = new Date(isoStr).getTime();
+  const diffSec = Math.floor((now - then) / 1000);
+  if (diffSec < 0) return 'just now';
+  if (diffSec < 60) return diffSec + 's ago';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return diffMin + 'm ago';
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return diffHr + 'h ago';
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay < 30) return diffDay + 'd ago';
+  const diffMonth = Math.floor(diffDay / 30);
+  if (diffMonth < 12) return diffMonth + 'mo ago';
+  return Math.floor(diffMonth / 12) + 'y ago';
+}
+
+function _websearchRenderHistory() {
+  const list = document.getElementById('websearchHistoryList');
+  if (!list) return;
+  const history = _websearchGetHistory();
+  if (!history.length) {
+    list.innerHTML =
+      '<div style="padding:16px 8px;text-align:center">' +
+        '<div style="font-size:13px;color:var(--muted);margin-bottom:4px">No searches yet.</div>' +
+        '<div style="font-size:11px;color:var(--muted);opacity:.6">Try typing a query in the search box above.</div>' +
+      '</div>';
+    return;
+  }
+
+  // Group by date
+  const now = new Date();
+  const todayStr = now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toDateString();
+
+  var groups = { today: [], yesterday: [], older: [] };
+  history.forEach(function(item) {
+    var d = new Date(item.timestamp);
+    var ds = d.toDateString();
+    if (ds === todayStr) groups.today.push(item);
+    else if (ds === yesterdayStr) groups.yesterday.push(item);
+    else groups.older.push(item);
+  });
+
+  list.innerHTML = '';
+  var labels = [
+    { key: 'today', label: 'Today' },
+    { key: 'yesterday', label: 'Yesterday' },
+    { key: 'older', label: 'Older' },
+  ];
+  labels.forEach(function(groupInfo) {
+    var items = groups[groupInfo.key];
+    if (!items || !items.length) return;
+    var header = document.createElement('div');
+    header.className = 'websearch-history-group';
+    header.textContent = groupInfo.label;
+    list.appendChild(header);
+    items.forEach(function(item) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'websearch-history-item' + (item.answer && item.answer.trim() ? ' websearch-history-item-has-answer' : '');
+      var timeStr = _websearchTimeAgo(item.timestamp);
+      var badge = item.resultCount ? '<span class="websearch-history-badge">' + item.resultCount + '</span>' : '';
+      btn.innerHTML =
+        '<div style="display:flex;align-items:flex-start;gap:4px">' +
+          '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + _websearchEscape(item.query || '') + '</span>' +
+          badge +
+        '</div>' +
+        '<span class="websearch-history-meta">' + timeStr + '</span>';
+      btn.addEventListener('click', function() {
+        var input = document.getElementById('websearchQuery');
+        if (input) input.value = item.query || '';
+        websearchToggleMode('quick');
+        websearchQuickSearch(new Event('submit'));
+      });
+      list.appendChild(btn);
+    });
+  });
+}
+
+// ── Init on panel show ─────────────────────────
+// Override existing browserResearchPanelActivated to also render websearch history
+const _origWebsearchPanelActivated = window.browserResearchPanelActivated;
+window.browserResearchPanelActivated = function() {
+  if (typeof _origWebsearchPanelActivated === 'function') _origWebsearchPanelActivated();
+  _websearchRenderHistory();
+  _websearchRenderChips();
+};
+
+// Export
+window.websearchToggleMode = websearchToggleMode;
+window.websearchToggleSplit = websearchToggleSplit;
+window.websearchToggleHistory = websearchToggleHistory;
+window.websearchQuickSearch = websearchQuickSearch;

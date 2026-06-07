@@ -19,18 +19,18 @@ The WSL launcher supports these environment variables:
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `HERMES_WEBUI_REPO` | repo containing the script | WebUI checkout to start |
-| `HERMES_WEBUI_LOG_DIR` | `$HOME/.hermes/webui/logs` | Autostart and WebUI logs |
-| `HERMES_WEBUI_HOST` | `127.0.0.1` | Host passed through to `start.sh` / `bootstrap.py` |
-| `HERMES_WEBUI_PORT` | `8787` | WebUI port and health-check port |
-| `HERMES_WEBUI_HEALTH_URL` | `http://127.0.0.1:$HERMES_WEBUI_PORT/health` | URL used to decide whether WebUI is already running |
-| `HERMES_WEBUI_PID_FILE` | `$HERMES_WEBUI_LOG_DIR/hermes-webui.pid` | pid file used for duplicate prevention |
-| `HERMES_WEBUI_REQUIRE_AGENT_PROCESS` | `0` | Optional: set to `1` only if your local setup requires a separate Sidekick process before WebUI starts |
+| `SIDEKICK_WEBUI_REPO` | repo containing the script | WebUI checkout to start |
+| `SIDEKICK_WEBUI_LOG_DIR` | `$HOME/.hermes/webui/logs` | Autostart and WebUI logs |
+| `SIDEKICK_WEBUI_HOST` | `127.0.0.1` | Host passed through to `start.sh` / `bootstrap.py` |
+| `SIDEKICK_WEBUI_PORT` | `8787` | WebUI port and health-check port |
+| `SIDEKICK_WEBUI_HEALTH_URL` | `http://127.0.0.1:$SIDEKICK_WEBUI_PORT/health` | URL used to decide whether WebUI is already running |
+| `SIDEKICK_WEBUI_PID_FILE` | `$SIDEKICK_WEBUI_LOG_DIR/sidekick-webui.pid` | pid file used for duplicate prevention |
+| `SIDEKICK_WEBUI_REQUIRE_AGENT_PROCESS` | `0` | Optional: set to `1` only if your local setup requires a separate Sidekick process before WebUI starts |
 
 Make the script executable once inside WSL:
 
 ```bash
-cd /path/to/hermes-webui
+cd /path/to/sidekick
 chmod +x scripts/wsl/sidekick_webui_autostart.sh
 ```
 
@@ -45,7 +45,7 @@ Logs are written to:
 
 ```text
 $HOME/.hermes/webui/logs/webui_autostart.log
-$HOME/.hermes/webui/logs/hermes_webui.log
+$HOME/.hermes/webui/logs/sidekick_webui.log
 ```
 
 ## Option 1: WSL session startup
@@ -55,9 +55,9 @@ This starts WebUI when your WSL login shell starts. It is the easiest option if 
 Add this to `~/.profile` or `~/.bashrc` inside WSL, adjusting the repo path:
 
 ```bash
-if [ -x "$HOME/hermes-webui/scripts/wsl/sidekick_webui_autostart.sh" ]; then
-  HERMES_WEBUI_REPO="$HOME/hermes-webui" \
-    "$HOME/hermes-webui/scripts/wsl/sidekick_webui_autostart.sh" >/dev/null 2>&1 &
+if [ -x "$HOME/sidekick/scripts/wsl/sidekick_webui_autostart.sh" ]; then
+  SIDEKICK_WEBUI_REPO="$HOME/sidekick" \
+    "$HOME/sidekick/scripts/wsl/sidekick_webui_autostart.sh" >/dev/null 2>&1 &
 fi
 ```
 
@@ -84,7 +84,7 @@ From Windows PowerShell, run it with the WSL path to the launch script:
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\scripts\windows\setup_webui_autostart.ps1 `
-  -WslScriptPath "/home/your-user/hermes-webui/scripts/wsl/sidekick_webui_autostart.sh" `
+  -WslScriptPath "/home/your-user/sidekick/scripts/wsl/sidekick_webui_autostart.sh" `
   -Distro "Ubuntu"
 ```
 
@@ -111,7 +111,7 @@ Check the WSL logs first:
 
 ```bash
 tail -n 80 "$HOME/.hermes/webui/logs/webui_autostart.log"
-tail -n 80 "$HOME/.hermes/webui/logs/hermes_webui.log"
+tail -n 80 "$HOME/.hermes/webui/logs/sidekick_webui.log"
 ```
 
 Common causes:
@@ -121,6 +121,6 @@ Common causes:
 | Task exists but WebUI is not reachable | WSL script path is wrong for the selected distro | Re-run the PowerShell setup with the correct `-WslScriptPath` and `-Distro` |
 | WebUI starts only after opening WSL | You used the WSL session startup option, not Task Scheduler | Install the Windows scheduled task |
 | Multiple login events happen quickly | Normal Windows startup behavior | The WSL script should log `already running` and avoid duplicate processes |
-| Health check fails but pid exists | WebUI is still booting or the port differs | Check `HERMES_WEBUI_PORT` and `hermes_webui.log` |
+| Health check fails but pid exists | WebUI is still booting or the port differs | Check `HERMES_WEBUI_PORT` and `sidekick_webui.log` |
 
 If you want WSL2 systemd integration instead, see `docs/supervisor.md` for foreground process-supervisor guidance and adapt the Linux `systemd --user` pattern to your distro.

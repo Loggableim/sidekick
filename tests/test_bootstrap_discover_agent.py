@@ -48,8 +48,13 @@ def _make_hermes_cli(tmp_path, shebang_target: str | None):
 
 def _isolate_discover_agent_dir(monkeypatch, tmp_path, hermes_path):
     """Point `which("hermes")` at our fake CLI and clear all standard candidates."""
-    monkeypatch.setattr(bootstrap.shutil, "which", lambda name: str(hermes_path) if name == "hermes" else None)
+    monkeypatch.setattr(
+        bootstrap.shutil,
+        "which",
+        lambda name: str(hermes_path) if name in {"sidekick", "hermes"} else None,
+    )
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "no-such-hermes-home"))
+    monkeypatch.delenv("SIDEKICK_WEBUI_AGENT_DIR", raising=False)
     monkeypatch.delenv("HERMES_WEBUI_AGENT_DIR", raising=False)
     # Force REPO_ROOT.parent to a dir that won't accidentally contain a
     # `hermes-agent` sibling on the dev machine running these tests.
@@ -109,5 +114,18 @@ def test_explicit_candidate_takes_precedence_over_shebang(monkeypatch, tmp_path)
     hermes = _make_hermes_cli(tmp_path, str(venv_python))
     _isolate_discover_agent_dir(monkeypatch, tmp_path, hermes)
     monkeypatch.setenv("HERMES_WEBUI_AGENT_DIR", str(explicit_install))
+
+    assert bootstrap.discover_agent_dir() == explicit_install.resolve()
+
+
+def test_sidekick_explicit_candidate_takes_precedence_over_legacy(monkeypatch, tmp_path):
+    explicit_install = tmp_path / "explicit-sidekick"
+    explicit_install.mkdir()
+    (explicit_install / "run_agent.py").write_text("", encoding="utf-8")
+
+    _, venv_python = _make_agent_install(tmp_path)
+    hermes = _make_hermes_cli(tmp_path, str(venv_python))
+    _isolate_discover_agent_dir(monkeypatch, tmp_path, hermes)
+    monkeypatch.setenv("SIDEKICK_WEBUI_AGENT_DIR", str(explicit_install))
 
     assert bootstrap.discover_agent_dir() == explicit_install.resolve()

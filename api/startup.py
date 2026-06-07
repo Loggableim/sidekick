@@ -57,7 +57,11 @@ def fix_credential_permissions() -> None:
 
 def _agent_dir() -> Path | None:
     hermes_home = Path(os.environ.get('HERMES_HOME', str(Path.home() / '.hermes')))
-    for raw in [os.environ.get('HERMES_WEBUI_AGENT_DIR', '').strip(), str(hermes_home / 'hermes-agent')]:
+    for raw in [
+        os.environ.get('SIDEKICK_WEBUI_AGENT_DIR', '').strip(),
+        os.environ.get('HERMES_WEBUI_AGENT_DIR', '').strip(),
+        str(hermes_home / 'hermes-agent'),
+    ]:
         if not raw:
             continue
         p = Path(raw).expanduser()
@@ -72,8 +76,9 @@ def _trusted_agent_dir(agent_dir: Path) -> bool:
     on POSIX systems, is owned by the current process user.
 
     Intentionally does NOT enforce a canonical path (i.e. does not require
-    the dir to be ~/.hermes/hermes-agent), so custom HERMES_WEBUI_AGENT_DIR
-    paths work correctly when HERMES_WEBUI_AUTO_INSTALL=1 is set.
+    the dir to be ~/.hermes/hermes-agent), so custom SIDEKICK_WEBUI_AGENT_DIR
+    or HERMES_WEBUI_AGENT_DIR paths work correctly when
+    SIDEKICK_WEBUI_AUTO_INSTALL=1 is set.
     """
     try:
         st = agent_dir.stat()
@@ -89,9 +94,12 @@ def _trusted_agent_dir(agent_dir: Path) -> bool:
 
 
 def auto_install_agent_deps() -> bool:
-    enabled = os.environ.get('HERMES_WEBUI_AUTO_INSTALL', '').strip().lower() in ('1', 'true', 'yes')
+    enabled = (
+        os.environ.get('SIDEKICK_WEBUI_AUTO_INSTALL', '').strip().lower() in ('1', 'true', 'yes')
+        or os.environ.get('HERMES_WEBUI_AUTO_INSTALL', '').strip().lower() in ('1', 'true', 'yes')
+    )
     if not enabled:
-        print('[!!] Auto-install disabled. Set HERMES_WEBUI_AUTO_INSTALL=1 to enable.', flush=True)
+        print('[!!] Auto-install disabled. Set SIDEKICK_WEBUI_AUTO_INSTALL=1 to enable.', flush=True)
         return False
     agent_dir = _agent_dir()
     if agent_dir is None:

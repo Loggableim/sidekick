@@ -100,16 +100,16 @@ Both are documented in `api/startup.py::fix_credential_permissions()`.
 
 **Symptom**: WebUI logs at startup:
 ```
-!! WARNING: hermes-agent source not found.
-!!   Looked in: /home/hermeswebui/.hermes/hermes-agent
+!! WARNING: sidekick-agent source not found.
+!!   Looked in: /home/hermeswebui/.hermes/sidekick-agent
 !!              /opt/hermes
 ```
 
-**Cause**: The agent's source (`/opt/hermes` inside the agent container) needs to be exposed to the WebUI container via a shared volume. The two-container compose file does this via `hermes-agent-src` named volume, but if you're using bind mounts incorrectly the path won't resolve.
+**Cause**: The agent's source (`/opt/hermes` inside the agent container) needs to be exposed to the WebUI container via a shared volume. The two-container compose file does this via the shared agent-source volume, but if you're using bind mounts incorrectly the path won't resolve.
 
-**Fix**: Use the named volumes that ship with `docker-compose.two-container.yml` — don't replace them with bind mounts unless you know what you're doing. The agent container writes its source to `/opt/hermes`, and the WebUI mounts that volume at `/home/hermeswebui/.hermes/hermes-agent`.
+**Fix**: Use the named volumes that ship with `docker-compose.two-container.yml` — don't replace them with bind mounts unless you know what you're doing. The agent container writes its source to `/opt/hermes`, and the WebUI mounts that volume at `/home/hermeswebui/.hermes/sidekick-agent`.
 
-If you must use a bind mount: pick a host path, then mount it to `/opt/hermes` in the agent container AND `/home/hermeswebui/.hermes/hermes-agent` in the WebUI container.
+If you must use a bind mount: pick a host path, then mount it to `/opt/hermes` in the agent container AND `/home/hermeswebui/.hermes/sidekick-agent` in the WebUI container.
 
 ### 5. "Tools (git, node, etc.) missing in two-container setup" (#681)
 
@@ -154,23 +154,23 @@ The two- and three-container setups use **named Docker volumes** (not bind mount
                           │ rw           │ rw
                           │              │
       ┌──────────────┐    │              │    ┌──────────────┐
-      │ hermes-agent │────┘              └────│ sidekick │
+      │ sidekick-agent │───┘              └────│ sidekick │
       │  (port 8642) │                        │  (port 8787) │
       └──────────────┘                        └──────────────┘
               │                                       ↑
               │ rw                                    │ ro
               ↓                                       │
       ┌─────────────────────────┐                     │
-      │ hermes-agent-src (vol)  │─────────────────────┘
+      │ sidekick-agent-src (vol) │─────────────────────┘
       │ (agent's Python source) │
       └─────────────────────────┘
 ```
 
-The WebUI container doesn't ship with the agent's Python deps — at startup it runs `uv pip install /home/hermeswebui/.hermes/hermes-agent` to install them from the shared volume.
+The WebUI container doesn't ship with the agent's Python deps — at startup it runs `uv pip install /home/hermeswebui/.hermes/sidekick-agent` to install them from the shared volume.
 
 ## Bind-mount migration (advanced)
 
-If you really need to bind-mount an existing host `~/.hermes` (e.g. you're keeping config in dotfiles, sharing with a non-Docker `hermes` install, etc.):
+If you really need to bind-mount an existing host `~/.hermes` (e.g. you're keeping config in dotfiles, sharing with a non-Docker Sidekick install, etc.):
 
 ```yaml
 volumes:
@@ -180,12 +180,12 @@ volumes:
       type: none
       o: bind
       device: /home/youruser/.hermes
-  hermes-agent-src:
+  sidekick-agent-src:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /opt/hermes-agent-source
+      device: /opt/sidekick-agent-source
 ```
 
 **Critical requirements**:
@@ -207,7 +207,7 @@ volumes:
 
 - #1389 — `HERMES_HOME_MODE` override (fixed in v0.50.254 — agent honors `HERMES_SKIP_CHMOD` and `HERMES_HOME_MODE`)
 - #1399 — UID alignment in compose files (fixed in v0.50.260 via PR #1428 + this guide)
-- #858 — two-container `/opt/hermes` path confusion
+- #858 — two-container shared agent-source path confusion
 - #681 — tools running in WebUI container, not agent container (architectural)
 - #668 — auto-detect UID/GID from mounted volume
 - #569 — UID/GID detection priority order

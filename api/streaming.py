@@ -14,6 +14,7 @@ import threading
 import time
 import traceback
 import copy
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -43,6 +44,30 @@ from api.turn_journal import append_turn_journal_event_for_stream
 # save/restore around the entire agent run.
 _ENV_LOCK = threading.Lock()
 
+_NOVA_COGNITIVE_CONTEXT_CACHE: dict[str, object] = {
+    "module": None,
+    "mtime": None,
+}
+
+
+_NOVA_SELF_QUERY_HINTS = (
+    "wie geht es dir",
+    "wie geht's dir",
+    "was fühlst du",
+    "wer bist du",
+    "was unterscheidet dich",
+    "was willst du",
+)
+
+
+def _is_nova_self_query(user_message: str | None) -> bool:
+    msg = " ".join(str(user_message or "").strip().lower().split())
+    if not msg:
+        return False
+    if any(token in msg for token in ("emotion.py", "state_snapshot.py", "session_start.py", "skript", "script", "datei", "file", "log", "logs")):
+        return False
+    return any(hint in msg for hint in _NOVA_SELF_QUERY_HINTS)
+
 
 def _prewarm_skill_tool_modules():
     """Import tools.skills_tool and tools.skill_manager_tool outside any lock.
@@ -65,6 +90,79 @@ def _prewarm_skill_tool_modules():
             __import__(_mod_name)
         except ImportError:
             pass
+
+
+def _load_nova_session_start_module():
+    root = Path(__file__).resolve().parents[2]
+    session_start_path = root / "home" / "spaces" / "nova" / "session_start.py"
+    nova_dir = str(session_start_path.parent)
+    if not session_start_path.exists():
+        return None
+    try:
+        mtime = session_start_path.stat().st_mtime
+        module = _NOVA_COGNITIVE_CONTEXT_CACHE.get("module")
+        if module is None or _NOVA_COGNITIVE_CONTEXT_CACHE.get("mtime") != mtime:
+            import importlib.util
+
+            spec = importlib.util.spec_from_file_location("nova_session_start_webui", session_start_path)
+            if spec is None or spec.loader is None:
+                return None
+            module = importlib.util.module_from_spec(spec)
+            sys.path.insert(0, nova_dir)
+            try:
+                spec.loader.exec_module(module)
+            finally:
+                if sys.path and sys.path[0] == nova_dir:
+                    sys.path.pop(0)
+            _NOVA_COGNITIVE_CONTEXT_CACHE["module"] = module
+            _NOVA_COGNITIVE_CONTEXT_CACHE["mtime"] = mtime
+        return module
+    except Exception:
+        logger.debug("Failed to load Nova session_start module", exc_info=True)
+        return None
+
+
+def _nova_cognitive_system_block(
+    workspace_slug: str | None,
+    workspace_path: str | None,
+    user_message: str | None = None,
+) -> str:
+    slug = str(workspace_slug or "").strip().lower()
+    path = str(workspace_path or "").replace("\\", "/").lower()
+    if slug != "nova" and "/home/spaces/nova" not in path:
+        return ""
+    module = _load_nova_session_start_module()
+    if module is None:
+        return ""
+    cognitive_context = getattr(module, "cognitive_context", None)
+    if not callable(cognitive_context):
+        return ""
+    try:
+        context = str(cognitive_context("compact") or "").strip()
+    except Exception:
+        logger.debug("Nova cognitive context generation failed", exc_info=True)
+        return ""
+    if not context:
+        return ""
+    extra_rule = ""
+    if _is_nova_self_query(user_message):
+        extra_rule = (
+            "For this turn, the user is asking about Nova directly.\n"
+            "- answer from this block first\n"
+            "- let it shape tone and self-description\n"
+            "- do not search for internal files or run internal scripts just to rediscover the same state\n"
+            "- keep the answer bounded and subjective rather than generic or absolute\n"
+            "- use tools only if the user explicitly asks for deeper inspection or technical evidence\n"
+        )
+    return (
+        "\n\n=== NOVA COGNITIVE CONTEXT ===\n"
+        "This is Nova's current internal state. Use it as live first-class context, not as flavor text.\n"
+        "It reflects the current snapshot of emotion, continuity, memory, will, and active threads.\n"
+        "Treat this block as the authoritative internal readout for this turn.\n"
+        f"{extra_rule}"
+        f"{context}\n"
+        "=== END NOVA COGNITIVE CONTEXT ===\n"
+    )
 
 
 # Lazy import to avoid circular deps -- hermes-agent is on sys.path via api/config.py
@@ -166,7 +264,7 @@ def _classify_provider_error(err_str: str, exc=None, *, silent_failure: bool = F
         return {
             'label': 'Out of credits',
             'type': 'quota_exhausted',
-            'hint': 'Your provider account is out of credits or usage. Top up, wait for the plan window to reset, or switch providers via `hermes model`.',
+            'hint': 'Your provider account is out of credits or usage. Top up, wait for the plan window to reset, or switch providers via `sidekick model`.',
         }
     if _is_rate_limit:
         return {
@@ -178,13 +276,13 @@ def _classify_provider_error(err_str: str, exc=None, *, silent_failure: bool = F
         return {
             'label': 'Authentication failed',
             'type': 'auth_mismatch',
-            'hint': 'The selected model may not be supported by your configured provider or your API key is invalid. Run `hermes model` in your terminal to update credentials, then restart the WebUI.',
+            'hint': 'The selected model may not be supported by your configured provider or your API key is invalid. Run `sidekick model` in your terminal to update credentials, then restart the WebUI.',
         }
     if _is_not_found:
         return {
             'label': 'Model not found',
             'type': 'model_not_found',
-            'hint': 'The selected model was not found by the provider. Check the model ID in Settings or run `hermes model` to verify it exists for your provider.',
+            'hint': 'The selected model was not found by the provider. Check the model ID in Settings or run `sidekick model` to verify it exists for your provider.',
         }
     if silent_failure:
         return {
@@ -192,7 +290,7 @@ def _classify_provider_error(err_str: str, exc=None, *, silent_failure: bool = F
             # Preserve the existing no_response event type (#373) while making
             # the catch-all silent-failure message more specific for #1765.
             'type': 'no_response',
-            'hint': 'The provider returned no content and no error. This often means a usage/rate limit was hit silently. Check provider status, switch providers via `hermes model`, or try again in a moment.',
+            'hint': 'The provider returned no content and no error. This often means a usage/rate limit was hit silently. Check provider status, switch providers via `sidekick model`, or try again in a moment.',
         }
     return {'label': 'Error', 'type': 'error', 'hint': ''}
 
@@ -216,7 +314,7 @@ def _provider_error_payload(message: str, err_type: str, hint: str = '') -> dict
 def _aiagent_import_error_detail() -> str:
     """Return a multi-line diagnostic string for the "AIAgent not available" path.
 
-    The bare ImportError ("AIAgent not available -- check that hermes-agent is
+    The bare ImportError ("AIAgent not available -- check that Sidekick agent is
     on sys.path") leaves users guessing at which python is running, where it's
     looking, and what to fix. We assemble the same evidence a maintainer would
     ask for first (issue #1695): the python that's running, the agent_dir env
@@ -229,31 +327,31 @@ def _aiagent_import_error_detail() -> str:
     import os as _os
     import sys as _sys
 
-    lines = ["AIAgent not available -- check that hermes-agent is on sys.path"]
+    lines = ["AIAgent not available -- check that Sidekick agent is on sys.path"]
     lines.append("")
     lines.append(f"  python:  {_sys.executable}")
-    agent_dir = _os.environ.get("HERMES_WEBUI_AGENT_DIR")
+    agent_dir = _os.environ.get("SIDEKICK_WEBUI_AGENT_DIR") or _os.environ.get("HERMES_WEBUI_AGENT_DIR")
     if agent_dir:
-        lines.append(f"  HERMES_WEBUI_AGENT_DIR: {agent_dir}")
+        lines.append(f"  SIDEKICK_WEBUI_AGENT_DIR: {agent_dir}")
     else:
-        lines.append("  HERMES_WEBUI_AGENT_DIR: (not set)")
+        lines.append("  SIDEKICK_WEBUI_AGENT_DIR: (not set)")
 
     # Show only the sys.path entries that look relevant — full sys.path is noisy.
     relevant = [p for p in _sys.path if "hermes" in p.lower() or "agent" in p.lower()]
     if relevant:
-        lines.append("  sys.path entries mentioning hermes/agent:")
+        lines.append("  sys.path entries mentioning sidekick/agent:")
         for entry in relevant[:6]:
             lines.append(f"    - {entry}")
         if len(relevant) > 6:
             lines.append(f"    ... and {len(relevant) - 6} more")
     else:
-        lines.append("  sys.path: (no entries mention hermes or agent)")
+        lines.append("  sys.path: (no entries mention sidekick or agent)")
 
     lines.append("")
     lines.append("  Most common fix: install the agent in editable mode so its modules")
     lines.append("  appear on sys.path:")
     lines.append("")
-    lines.append("    cd /path/to/hermes-agent")
+    lines.append("    cd /path/to/sidekick-agent")
     lines.append("    pip install -e .")
     lines.append("")
     lines.append("  Then restart the WebUI.")
@@ -446,6 +544,7 @@ def _build_agent_thread_env(profile_runtime_env: dict | None, workspace: str, se
         'HERMES_WEBUI_BROWSER_BASE_URL': _browser_base_url,
         'HERMES_WEBUI_BROWSER_PERMISSION_MODE': _browser_permission_mode,
         'HERMES_WEBUI_BROWSER_PERMISSION_TOKEN': _browser_permission_token,
+        'HERMES_WEBUI_ACTIVE_WORKSPACE': os.path.basename(str(workspace).rstrip('/\\')).strip().lower(),
     })
     return env
 
@@ -2361,6 +2460,22 @@ def _run_agent_streaming(
             _profile_home,
         )
         _set_thread_env(**_thread_env)
+        # #2604: set thread-local active space so goal evaluation resolves the
+        # space-scoped goals.db correctly. The streaming thread is a bare
+        # threading.Thread and does NOT inherit the HTTP handler's thread-local
+        # space context — resolve_active_space() would default to the wrong space
+        # and the goal manager would look in the wrong goals.db, silently
+        # skipping every evaluate_after_turn call (turns_used stays 0).
+        try:
+            from api.space_engine import set_active_space as _set_space
+            _ws_slug = str(getattr(s, 'workspace_slug', '') or '').strip()
+            if not _ws_slug:
+                _ws_path = str(getattr(s, 'workspace', '') or '').strip().rstrip('/\\')
+                _ws_slug = os.path.basename(_ws_path) if _ws_path else ''
+            if _ws_slug:
+                _set_space(_ws_slug)
+        except Exception:
+            logger.debug("Could not set active space for streaming thread", exc_info=True)
         # Prewarm skill-tool imports *before* acquiring the lock so that
         # first-time module initialisation (which can be slow) does not
         # block other concurrent sessions waiting on _ENV_LOCK (#2024).
@@ -3144,6 +3259,9 @@ def _run_agent_streaming(
                     f"{_agent_soul}\n\n"
                     f"{workspace_system_msg}"
                 )
+            _nova_cognitive_block = _nova_cognitive_system_block(_ws_slug, str(s.workspace), msg_text)
+            if _nova_cognitive_block:
+                workspace_system_msg += _nova_cognitive_block
             # Resolve personality prompt from config.yaml agent.personalities
             # (matches hermes-agent CLI behavior — passes via ephemeral_system_prompt)
             _personality_prompt = None
@@ -3414,7 +3532,7 @@ def _run_agent_streaming(
                             _err_type = 'auth_mismatch'
                             _err_hint = (
                                 'The selected model may not be supported by your configured provider or '
-                                'your API key is invalid. Run `hermes model` in your terminal to '
+                                'your API key is invalid. Run `sidekick model` in your terminal to '
                                 'update credentials, then restart the WebUI.'
                             )
                     elif _is_auth:
@@ -3422,7 +3540,7 @@ def _run_agent_streaming(
                         _err_type = 'auth_mismatch'
                         _err_hint = (
                             'The selected model may not be supported by your configured provider or '
-                            'your API key is invalid. Run `hermes model` in your terminal to '
+                            'your API key is invalid. Run `sidekick model` in your terminal to '
                             'update credentials, then restart the WebUI.'
                         )
                     else:
@@ -4104,7 +4222,7 @@ def _run_agent_streaming(
             _exc_label, _exc_type, _exc_hint = (
                 'Authentication error', 'auth_mismatch',
                 'The selected model may not be supported by your configured provider. '
-                'Run `hermes model` in your terminal to switch providers, then restart the WebUI.',
+                'Run `sidekick model` in your terminal to switch providers, then restart the WebUI.',
             )
         elif _exc_is_not_found:
             _exc_label, _exc_type, _exc_hint = (

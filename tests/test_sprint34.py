@@ -182,12 +182,12 @@ class TestStatusFromRuntimeOAuth:
         assert result["provider_ready"] is False
         assert result["setup_state"] == "provider_incomplete"
 
-    def test_oauth_incomplete_note_mentions_hermes_auth(self, tmp_path):
-        """When OAuth provider is incomplete, note should mention hermes auth/model."""
+    def test_oauth_incomplete_note_mentions_sidekick_auth(self, tmp_path):
+        """When OAuth provider is incomplete, note should mention sidekick auth/model."""
         result = self._call("openai-codex", "codex-mini-latest", tmp_path)
         note = result["provider_note"]
-        assert "hermes auth" in note or "hermes model" in note, (
-            f"Expected 'hermes auth' or 'hermes model' in note, got: {note!r}"
+        assert "sidekick auth" in note or "sidekick model" in note, (
+            f"Expected 'sidekick auth' or 'sidekick model' in note, got: {note!r}"
         )
 
     def test_oauth_incomplete_note_does_not_say_api_key(self, tmp_path):

@@ -36,6 +36,74 @@ let _logsAutoRefreshTimer = null;
 let _lastLogsLines = [];
 let _logsSeverityFilter = 'all';
 
+function _renderNovaRouteStatus(payload){
+  const el = $('settingsModelRouteStatus');
+  if(!el) return;
+  if(!payload || payload.healthy === false){
+    const reason = payload && payload.reason ? String(payload.reason) : 'unavailable';
+    el.innerHTML = `<strong>Nova worker routes</strong><div style="margin-top:6px;color:var(--danger)">Unavailable: ${esc(reason)}</div>`;
+    return;
+  }
+  const preferred = (payload && payload.preferred_routes) || {};
+  const auth = (payload && payload.auth_pool_summary) || {};
+  const roleCandidates = (payload && payload.role_candidates) || {};
+  const authCount = (primaryKey, fallbackKey) => {
+    const direct = Number(auth[primaryKey]);
+    if(Number.isFinite(direct) && direct >= 0) return direct;
+    const fallback = Number(auth[fallbackKey]);
+    if(Number.isFinite(fallback) && fallback >= 0) return fallback;
+    return 0;
+  };
+  const roleCount = (role) => {
+    const items = roleCandidates[role];
+    return Array.isArray(items) ? items.length : 0;
+  };
+  const routeLine = (label, key) => {
+    const route = preferred[key] || {};
+    const count = roleCount(key);
+    if(!route.selected){
+      return `<div><strong>${esc(label)}:</strong> unavailable <span style="color:var(--muted)">(${count} ready)</span></div>`;
+    }
+    const provider = route.provider || 'unknown';
+    const model = route.model || 'unknown';
+    const slotId = route.slot_id || route.slot || '';
+    const slotText = slotId ? ` <span style="color:var(--muted)">[${esc(slotId)}]</span>` : '';
+    return `<div><strong>${esc(label)}:</strong> ${esc(provider)} / ${esc(model)}${slotText} <span style="color:var(--muted)">(${count} ready)</span></div>`;
+  };
+  const routerCandidates = Array.isArray(payload.router_candidates) ? payload.router_candidates.length : 0;
+  const freeOllama = authCount('ollama_free_ready', 'ollama-cloud');
+  const opencodeReady = authCount('opencode_ready', 'opencode-go');
+  const openrouterReady = authCount('openrouter_ready', 'openrouter');
+  const cheapReady = roleCount('cheap');
+  const strongReady = roleCount('strong');
+  const contentReady = roleCount('content');
+  el.innerHTML =
+    `<strong>Nova worker routes</strong>`
+    + `<div style="margin-top:6px">${routeLine('Router', 'router')}</div>`
+    + `${routeLine('Simple / research', 'research')}`
+    + `${routeLine('Stronger tasks', 'strong')}`
+    + `${routeLine('Content', 'content')}`
+    + `${routeLine('Subagent', 'subagent')}`
+    + `<div style="margin-top:8px">`
+    + `<strong>Ready now:</strong> cheap ${cheapReady} · strong ${strongReady} · content ${contentReady}`
+    + `</div>`
+    + `<div style="margin-top:8px;color:var(--muted)">`
+    + `Router candidates: ${routerCandidates} · Free Ollama workers ready: ${freeOllama} · OpenRouter workers ready: ${openrouterReady} · Opencode workers ready: ${opencodeReady}`
+    + `</div>`;
+}
+
+async function _loadNovaRouteStatus(){
+  const el = $('settingsModelRouteStatus');
+  if(!el) return;
+  el.textContent = 'Loading Nova worker routes...';
+  try{
+    const payload = await api('/api/nova/routes');
+    _renderNovaRouteStatus(payload);
+  }catch(err){
+    _renderNovaRouteStatus({healthy:false,reason:err && err.message ? err.message : String(err)});
+  }
+}
+
 // Map of panel names → i18n keys for the app titlebar label.
 const APP_TITLEBAR_KEYS = {
   chat: 'tab_chat', tasks: 'tab_tasks', skills: 'tab_skills',
@@ -5892,6 +5960,7 @@ async function loadSettingsPanel(){
       }
       modelSel.addEventListener('change',_markSettingsDirty,{once:false});
     }
+    await _loadNovaRouteStatus();
     // Send key preference
     const sendKeySel=$('settingsSendKey');
     if(sendKeySel){sendKeySel.value=settings.send_key||'enter';sendKeySel.addEventListener('change',_schedulePreferencesAutosave,{once:false});}
@@ -7806,6 +7875,10 @@ function _formatProviderQuotaMoney(value){
 
 function _formatProviderQuotaPercent(value){
   if(value===null||value===undefined||value==='') return '—';
+  if(typeof value==='string' && value.trim()){
+    const n=Number(value);
+    if(!Number.isFinite(n)) return value.trim();
+  }
   const n=Number(value);
   if(!Number.isFinite(n)) return '—';
   return Math.max(0,Math.min(100,Math.round(n)))+'%';
@@ -7928,14 +8001,14 @@ function _buildProviderCard(p){
     const hint=document.createElement('div');
     hint.className='provider-card-hint';
     if(p.key_source==='config_yaml'){
-      hint.textContent=t('providers_oauth_config_yaml_hint')||'Token configured via config.yaml. To update, edit the providers section in your config.yaml or run hermes auth.';
+      hint.textContent=t('providers_oauth_config_yaml_hint')||'Token configured via config.yaml. To update, edit the providers section in your config.yaml or run sidekick auth.';
     } else if(p.auth_error){
       hint.textContent=p.auth_error;
       hint.style.color='var(--accent)';
     } else if(p.has_key){
       hint.textContent=t('providers_oauth_hint');
     } else {
-      hint.textContent=t('providers_oauth_not_configured_hint')||'Not authenticated. Run hermes auth in the terminal to configure this provider.';
+      hint.textContent=t('providers_oauth_not_configured_hint')||'Not authenticated. Run sidekick auth in the terminal to configure this provider.';
       hint.style.color='var(--muted)';
     }
     body.appendChild(hint);

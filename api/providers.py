@@ -16,6 +16,7 @@ import sys
 import threading
 import urllib.error
 import urllib.request
+import importlib.util
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -37,6 +38,11 @@ from api.config import (
 )
 
 logger = logging.getLogger(__name__)
+
+_NOVA_STATE_SNAPSHOT_CACHE: dict[str, object] = {
+    "module": None,
+    "mtime": None,
+}
 
 
 def _custom_provider_name_matches(provider_id: str, name: object) -> bool:
@@ -923,6 +929,8 @@ def get_provider_quota(provider_id: str | None = None) -> dict[str, Any]:
         }
 
     display_name = _PROVIDER_DISPLAY.get(provider, provider.replace("-", " ").title())
+    if provider == "ollama-cloud":
+        return _provider_ollama_cloud_status(display_name)
     if provider in _ACCOUNT_USAGE_PROVIDERS:
         return _provider_account_usage_status(provider, display_name)
 
@@ -998,6 +1006,117 @@ def get_provider_quota(provider_id: str | None = None) -> dict[str, Any]:
             "quota": None,
             "message": "OpenRouter quota status is temporarily unavailable.",
         }
+
+
+def _load_nova_state_snapshot_module():
+    root = Path(__file__).resolve().parents[2]
+    snapshot_path = root / "home" / "spaces" / "nova" / "state_snapshot.py"
+    nova_dir = str(snapshot_path.parent)
+    if not snapshot_path.exists():
+        return None
+    try:
+        mtime = snapshot_path.stat().st_mtime
+        module = _NOVA_STATE_SNAPSHOT_CACHE.get("module")
+        if module is None or _NOVA_STATE_SNAPSHOT_CACHE.get("mtime") != mtime:
+            spec = importlib.util.spec_from_file_location("nova_state_snapshot_provider_quota", snapshot_path)
+            if spec is None or spec.loader is None:
+                return None
+            module = importlib.util.module_from_spec(spec)
+            sys.path.insert(0, nova_dir)
+            try:
+                spec.loader.exec_module(module)
+            finally:
+                if sys.path and sys.path[0] == nova_dir:
+                    sys.path.pop(0)
+            _NOVA_STATE_SNAPSHOT_CACHE["module"] = module
+            _NOVA_STATE_SNAPSHOT_CACHE["mtime"] = mtime
+        return module
+    except Exception:
+        return None
+
+
+def _provider_ollama_cloud_status(display_name: str) -> dict[str, Any]:
+    module = _load_nova_state_snapshot_module()
+    if module is None:
+        return {
+            "ok": False,
+            "provider": "ollama-cloud",
+            "display_name": display_name,
+            "supported": True,
+            "status": "unavailable",
+            "quota": None,
+            "message": "Nova worker status is unavailable because state_snapshot.py could not be loaded.",
+        }
+
+    loader = getattr(module, "load_router_health", None)
+    if not callable(loader):
+        return {
+            "ok": False,
+            "provider": "ollama-cloud",
+            "display_name": display_name,
+            "supported": True,
+            "status": "unavailable",
+            "quota": None,
+            "message": "Nova worker status is unavailable because router health could not be read.",
+        }
+
+    try:
+        health = loader() or {}
+    except Exception:
+        health = {}
+
+    preferred = health.get("preferred_routes", {}) if isinstance(health, dict) else {}
+    role_candidates = health.get("role_candidates", {}) if isinstance(health, dict) else {}
+    auth_summary = health.get("auth_pool_summary", {}) if isinstance(health, dict) else {}
+
+    def route_model(role: str) -> str:
+        route = preferred.get(role, {}) if isinstance(preferred, dict) else {}
+        model = str(route.get("model") or "").strip()
+        return model or "unavailable"
+
+    def count_role(role: str) -> int:
+        entries = role_candidates.get(role, []) if isinstance(role_candidates, dict) else []
+        return len(entries) if isinstance(entries, list) else 0
+
+    premium_ready = 1 if route_model("strong") != "unavailable" else 0
+    free_ready = 0
+    if isinstance(auth_summary, dict):
+        raw = auth_summary.get("ollama_free_ready")
+        if isinstance(raw, (int, float)):
+            free_ready = int(raw)
+        else:
+            raw = auth_summary.get("ollama-cloud")
+            if isinstance(raw, (int, float)):
+                free_ready = int(raw)
+
+    details = [
+        f"Default light worker: {route_model('research')}",
+        f"Default strong worker: {route_model('strong')}",
+        f"Router: {route_model('router')}",
+        "Premium key configured for up to 3 concurrent workers.",
+    ]
+    if free_ready:
+        details.append(f"Free GPT-OSS workers ready: {free_ready}")
+
+    account_limits = {
+        "plan": "Nova worker pool",
+        "windows": [
+            {"label": "Premium key", "remaining_percent": "ready", "detail": f"{premium_ready}/1 default premium routes healthy"},
+            {"label": "Free GPT-OSS", "remaining_percent": f"{free_ready} ready", "detail": "optional Ollama Cloud workers"},
+            {"label": "Content / Subagent", "remaining_percent": f"{count_role('content')} ready", "detail": "OpenRouter + routed content workers"},
+        ],
+        "details": details,
+    }
+    return {
+        "ok": True,
+        "provider": "ollama-cloud",
+        "display_name": display_name,
+        "supported": True,
+        "status": "available" if health.get("healthy") else "unavailable",
+        "quota": None,
+        "account_limits": account_limits,
+        "message": "Nova worker routing status loaded.",
+    }
 
 
 def _provider_is_oauth(provider_id: str) -> bool:
@@ -1281,7 +1400,7 @@ def set_provider_key(provider_id: str, api_key: str | None) -> dict[str, Any]:
         return {
             "ok": False,
             "error": f"'{_PROVIDER_DISPLAY.get(provider_id, provider_id)}' uses OAuth authentication. "
-                     f"Use `hermes model` in the terminal to configure it.",
+                     f"Use `sidekick model` in the terminal to configure it.",
         }
 
     env_var = _PROVIDER_ENV_VAR.get(provider_id)

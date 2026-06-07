@@ -3071,9 +3071,30 @@ function renderSessionListFromCache(){
       };
       titleRow.appendChild(childCountEl);
     }
-    titleRow.appendChild(ts);
-    sessionText.appendChild(titleRow);
+    // Approval needed badge — shows 🔴 when this session has a pending approval
+    // but is not the currently active session
+    if (typeof _approvalPendingBySession !== 'undefined' && _approvalPendingBySession.has(s.session_id)) {
+      if (!isActive) {
+        const approvalBadge = document.createElement('span');
+        approvalBadge.className = 'session-approval-badge';
+        approvalBadge.textContent = '🔴';
+        approvalBadge.title = 'Genehmigung benötigt — klicke um zu wechseln';
+        titleRow.appendChild(approvalBadge);
+      }
+    }
+titleRow.appendChild(ts);
     const density=(window._sidebarDensity==='detailed'?'detailed':'compact');
+    if(density==='detailed') el.classList.add('detailed');
+    sessionText.appendChild(titleRow);
+    if(density==='detailed'){
+      const preview=document.createElement('div');
+      preview.className='session-preview';
+      const lastMsgContent=s.pending_user_message||s.title||null;
+      preview.textContent=lastMsgContent
+        ? (lastMsgContent.length>60?lastMsgContent.slice(0,60)+'…':lastMsgContent)
+        : '[No messages]';
+      sessionText.appendChild(preview);
+    }
     if(density==='detailed'){
       const metaBits=[];
       const msgCount=typeof s.message_count==='number'?s.message_count:0;
@@ -3081,7 +3102,16 @@ function renderSessionListFromCache(){
         ? t('session_meta_messages', msgCount)
         : `${msgCount} msg${msgCount===1?'':'s'}`;
       metaBits.push(msgLabel);
-      if(childCount>0) metaBits.push(t('session_meta_children', childCount));
+if(childCount>0) metaBits.push(t('session_meta_children', childCount));
+      // model badge — only if s.model exists
+      if(s.model){
+        const label=s.model_label||s.model||'';
+        metaBits.push('<span class="session-meta-model">'+label+'</span>');
+      }
+      // message count — only if > 0
+      if(typeof s.message_count==='number'&&s.message_count>0){
+        metaBits.push(s.message_count+' msg'+(s.message_count===1?'':'s'));
+      }
       const modelMeta=_formatSessionModelWithGateway(s);
       if(modelMeta) metaBits.push(modelMeta);
       const sourceLabel=_getChannelLabel(s);
@@ -3090,7 +3120,7 @@ function renderSessionListFromCache(){
       if(_showAllProfiles&&s.profile) metaBits.push(s.profile);
       const meta=document.createElement('div');
       meta.className='session-meta';
-      meta.textContent=metaBits.join(' · ');
+      meta.innerHTML=metaBits.join(' · ');
       sessionText.appendChild(meta);
     }
     if(lineageSegmentsExpanded){
@@ -3119,7 +3149,7 @@ function renderSessionListFromCache(){
       }
       sessionText.appendChild(lineageList);
     }
-    if(childCount>0&&Array.isArray(s._child_sessions)&&_expandedChildSessionKeys.has(lineageKey)){
+if(childCount>0 && Array.isArray(s._child_sessions) && _expandedChildSessionKeys.has(lineageKey)){
       const childList=document.createElement('div');
       childList.className='session-child-sessions';
       ['pointerdown','pointerup','click'].forEach(ev=>childList.addEventListener(ev,e=>e.stopPropagation()));
@@ -3232,7 +3262,15 @@ function renderSessionListFromCache(){
     // (oldTitle / applyTitle / finish / _renamingSid bookkeeping). The
     // double-click path on this element still calls startRename() directly.
     el._startRename = startRename;
-    el.dataset.sid = s.session_id;
+el.dataset.sid = s.session_id;
+
+    // ── Approval badge (cross-session awareness) ──
+    // If this session has a pending approval and it's not the active session,
+    // add a red dot badge. The _approvalPendingBySession map is populated by
+    // the global approval poll (messages.js).
+    if (typeof _approvalPendingBySession !== 'undefined' && _approvalPendingBySession.has(s.session_id) && !isActive && !isStreaming) {
+      el.classList.add('has-pending-approval');
+    }
 
     // (Project dot is appended above, between title and timestamp, so it
     // sits outside the truncating title span and stays visible.)

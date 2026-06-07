@@ -805,7 +805,7 @@ def mark_splash_completed(activated_slugs: list[str]) -> dict:
 _LLM_CACHE = {}  # Cache für geladene Config
 
 def _load_llm_config():
-    """Lade OpenRouter-Config aus .env (einmalig gecached)."""
+    """Load LLM config from active provider context + credential_pool fallback."""
     if _LLM_CACHE.get("config"):
         return _LLM_CACHE["config"]
 
@@ -814,11 +814,38 @@ def _load_llm_config():
 
         context = resolve_active_provider_context()
         if context.get("provider"):
+            api_key = context.get("api_key") or ""
+            model = context.get("model") or ""
+            base_url = context.get("base_url") or ""
+
+            # If resolve_active_provider_context returned no api_key (e.g.
+            # source="config" with key in credential_pool not in config.yaml),
+            # look up the key from the auth store's credential_pool.
+            if not api_key or len(api_key) < 8:
+                try:
+                    import json as _j
+                    auth_path = Path(os.environ.get("HERMES_HOME", str(Path.home() / ".hermes"))) / "auth.json"
+                    if auth_path.exists():
+                        auth_data = _j.loads(auth_path.read_text(encoding="utf-8"))
+                        pool = auth_data.get("credential_pool", {}) if isinstance(auth_data, dict) else {}
+                        provider_pool = pool.get(context.get("provider"), [])
+                        if isinstance(provider_pool, list) and provider_pool:
+                            # Use first credential with valid key
+                            for cred in provider_pool:
+                                token = cred.get("access_token", "") or ""
+                                if len(token) > 8:
+                                    api_key = token
+                                    if not base_url and cred.get("base_url"):
+                                        base_url = cred.get("base_url", "")
+                                    break
+                except Exception:
+                    logger.debug("Failed to look up credential_pool for agent key", exc_info=True)
+
             config = {
                 "provider": context.get("provider"),
-                "api_key": context.get("api_key") or "",
-                "model": context.get("model") or "",
-                "base_url": context.get("base_url") or "",
+                "api_key": api_key,
+                "model": model,
+                "base_url": base_url,
             }
             _LLM_CACHE["config"] = config
             return config

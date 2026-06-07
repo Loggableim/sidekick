@@ -109,7 +109,7 @@ class _ProfileGoalManager:
 
     def __init__(self, session_id: str, *, profile_home: str | Path, default_max_turns: int = 20):
         if GoalState is None:
-            raise RuntimeError("Hermes goal state unavailable")
+            raise RuntimeError("Sidekick goal state unavailable")
         self.session_id = session_id
         self.profile_home = Path(profile_home).expanduser().resolve()
         self.default_max_turns = int(default_max_turns or DEFAULT_MAX_TURNS or 20)

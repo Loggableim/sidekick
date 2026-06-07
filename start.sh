@@ -46,7 +46,7 @@ if [[ -f "${REPO_ROOT}/.env" ]]; then
   set +a
 fi
 
-PYTHON="${HERMES_WEBUI_PYTHON:-}"
+PYTHON="${SIDEKICK_WEBUI_PYTHON:-${HERMES_WEBUI_PYTHON:-}}"
 if [[ -z "${PYTHON}" ]]; then
   if command -v python3 >/dev/null 2>&1; then
     PYTHON="$(command -v python3)"

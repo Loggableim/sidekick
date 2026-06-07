@@ -1,6 +1,6 @@
 """
 Sidekick -- Optional password authentication.
-Off by default. Enable by setting HERMES_WEBUI_PASSWORD env var
+Off by default. Enable by setting SIDEKICK_WEBUI_PASSWORD env var
 or configuring a password in the Settings panel.
 """
 import hashlib
@@ -16,6 +16,17 @@ import time
 from api.config import STATE_DIR, load_settings
 
 logger = logging.getLogger(__name__)
+
+PASSWORD_ENV_VARS = ("SIDEKICK_WEBUI_PASSWORD", "HERMES_WEBUI_PASSWORD")
+
+
+def _get_password_env_value() -> str:
+    """Return the configured password env value, honoring Sidekick alias first."""
+    for name in PASSWORD_ENV_VARS:
+        value = os.getenv(name, "").strip()
+        if value:
+            return value
+    return ""
 
 
 # Default session TTL — 30 days. Kept as a module-level constant for backwards
@@ -218,7 +229,7 @@ def _hash_password(password):
 def get_password_hash() -> str | None:
     """Return the active password hash, or None if auth is disabled.
     Priority: env var > settings.json."""
-    env_pw = os.getenv('HERMES_WEBUI_PASSWORD', '').strip()
+    env_pw = _get_password_env_value()
     if env_pw:
         return _hash_password(env_pw)
     settings = load_settings()

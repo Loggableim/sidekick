@@ -27,9 +27,9 @@ _MAX_URL_LIST = 32
 _warned_urls: set = set()
 
 EXTENSION_ROUTE_PREFIX = "/extensions/"
-_EXTENSION_DIR_ENV = "HERMES_WEBUI_EXTENSION_DIR"
-_EXTENSION_SCRIPT_URLS_ENV = "HERMES_WEBUI_EXTENSION_SCRIPT_URLS"
-_EXTENSION_STYLESHEET_URLS_ENV = "HERMES_WEBUI_EXTENSION_STYLESHEET_URLS"
+_EXTENSION_DIR_ENVS = ("SIDEKICK_WEBUI_EXTENSION_DIR", "HERMES_WEBUI_EXTENSION_DIR")
+_EXTENSION_SCRIPT_URLS_ENVS = ("SIDEKICK_WEBUI_EXTENSION_SCRIPT_URLS", "HERMES_WEBUI_EXTENSION_SCRIPT_URLS")
+_EXTENSION_STYLESHEET_URLS_ENVS = ("SIDEKICK_WEBUI_EXTENSION_STYLESHEET_URLS", "HERMES_WEBUI_EXTENSION_STYLESHEET_URLS")
 _ALLOWED_ASSET_PREFIXES = ("/extensions/", "/static/")
 
 _EXTENSION_MIME = {
@@ -52,13 +52,21 @@ _EXTENSION_MIME = {
 _TEXT_MIME_TYPES = {"text/css", "application/javascript", "text/html", "image/svg+xml", "text/plain"}
 
 
+def _env_first(*names: str) -> str:
+    for name in names:
+        value = os.getenv(name, "").strip()
+        if value:
+            return value
+    return ""
+
+
 def _extension_root() -> Optional[Path]:
     """Return the configured extension directory, or None when disabled.
 
     A missing or non-directory path disables extensions instead of failing open.
     The startup docs encourage users to point this at a directory they control.
     """
-    raw = os.getenv(_EXTENSION_DIR_ENV, "").strip()
+    raw = _env_first(*_EXTENSION_DIR_ENVS)
     if not raw:
         return None
     root = Path(raw).expanduser().resolve()
@@ -107,8 +115,8 @@ def _is_safe_asset_url(value: str) -> bool:
     return False
 
 
-def _read_url_list(env_name: str) -> List[str]:
-    raw = os.getenv(env_name, "")
+def _read_url_list(*env_names: str) -> List[str]:
+    raw = _env_first(*env_names)
     urls = []
     for item in raw.split(","):
         value = item.strip()
@@ -124,17 +132,17 @@ def _read_url_list(env_name: str) -> List[str]:
                     _warned_urls.add(env_name)
                     _log.warning(
                         "Extension URL list %s truncated at %d entries",
-                        env_name, _MAX_URL_LIST,
+                        env_names[0], _MAX_URL_LIST,
                     )
                 break
         elif value not in _warned_urls:
             # First-time-seen invalid URL: log once per process so a typo
-            # in HERMES_WEBUI_EXTENSION_*_URLS doesn't disappear silently.
+            # in SIDEKICK_WEBUI_EXTENSION_*_URLS doesn't disappear silently.
             _warned_urls.add(value)
             _log.warning(
                 "Rejected extension URL %r from %s (not a same-origin "
                 "/extensions/ or /static/ path, or contains unsafe chars)",
-                value, env_name,
+                value, env_names[0],
             )
     return urls
 
@@ -146,8 +154,8 @@ def get_extension_config() -> Dict[str, object]:
         return {"enabled": False, "script_urls": [], "stylesheet_urls": []}
     return {
         "enabled": True,
-        "script_urls": _read_url_list(_EXTENSION_SCRIPT_URLS_ENV),
-        "stylesheet_urls": _read_url_list(_EXTENSION_STYLESHEET_URLS_ENV),
+        "script_urls": _read_url_list(*_EXTENSION_SCRIPT_URLS_ENVS),
+        "stylesheet_urls": _read_url_list(*_EXTENSION_STYLESHEET_URLS_ENVS),
     }
 
 

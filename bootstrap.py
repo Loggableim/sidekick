@@ -19,13 +19,21 @@ from urllib.parse import urlparse
 from urllib.request import urlopen
 
 REPO_ROOT = Path(__file__).resolve().parent
-DEFAULT_STATE_DIR = Path(os.getenv("HERMES_WEBUI_STATE_DIR", str(Path.home() / ".hermes" / "webui"))).expanduser()
+def _env_first(*names: str, default: str = "") -> str:
+    for name in names:
+        value = os.getenv(name, "").strip()
+        if value:
+            return value
+    return default
+
+
+DEFAULT_STATE_DIR = Path(_env_first("SIDEKICK_WEBUI_STATE_DIR", "HERMES_WEBUI_STATE_DIR", default=str(Path.home() / ".hermes" / "webui"))).expanduser()
 PORTABLE_ROOT = REPO_ROOT.parent
 PORTABLE_HOME = PORTABLE_ROOT / "home"
 
 
 def _portable_hermes_home() -> Path:
-    raw = os.getenv("HERMES_HOME", "").strip()
+    raw = _env_first("SIDEKICK_HOME", "HERMES_HOME")
     if not raw:
         return PORTABLE_HOME
     try:
@@ -60,14 +68,14 @@ def _load_repo_dotenv() -> None:
 
 
 _load_repo_dotenv()
-DEFAULT_HOST = os.getenv("HERMES_WEBUI_HOST", "127.0.0.1")
-DEFAULT_PORT = int(os.getenv("HERMES_WEBUI_PORT", "8787"))
+DEFAULT_HOST = _env_first("SIDEKICK_WEBUI_HOST", "HERMES_WEBUI_HOST", default="127.0.0.1")
+DEFAULT_PORT = int(_env_first("SIDEKICK_WEBUI_PORT", "HERMES_WEBUI_PORT", default="8787"))
 
 
 def _detect_supervisor() -> str | None:
-    explicit = os.getenv("HERMES_WEBUI_FOREGROUND", "").strip().lower()
+    explicit = _env_first("SIDEKICK_WEBUI_FOREGROUND", "HERMES_WEBUI_FOREGROUND").lower()
     if explicit in ("1", "true", "yes", "on"):
-        return "HERMES_WEBUI_FOREGROUND"
+        return "SIDEKICK_WEBUI_FOREGROUND"
     for name in ("INVOCATION_ID", "JOURNAL_STREAM", "NOTIFY_SOCKET", "XPC_SERVICE_NAME", "SUPERVISOR_ENABLED"):
         value = os.getenv(name, "").strip()
         if not value:
@@ -80,24 +88,48 @@ def _detect_supervisor() -> str | None:
 
 def discover_agent_dir() -> Path | None:
     candidates: list[Path] = []
-    if os.getenv("HERMES_WEBUI_AGENT_DIR"):
-        candidates.append(Path(os.getenv("HERMES_WEBUI_AGENT_DIR")).expanduser())
+    explicit_agent_dir = _env_first("SIDEKICK_WEBUI_AGENT_DIR", "HERMES_WEBUI_AGENT_DIR")
+    if explicit_agent_dir:
+        candidates.append(Path(explicit_agent_dir).expanduser())
     hermes_home = _portable_hermes_home()
     candidates.extend([
+        hermes_home / "sidekick-agent",
         hermes_home / "hermes-agent",
+        REPO_ROOT.parent / "sidekick-agent",
         REPO_ROOT.parent / "hermes-agent",
+        Path.home() / ".hermes" / "sidekick-agent",
         Path.home() / ".hermes" / "hermes-agent",
+        Path.home() / "sidekick-agent",
         Path.home() / "hermes-agent",
     ])
     for candidate in candidates:
         if candidate.exists() and (candidate / "run_agent.py").exists():
             return candidate.resolve()
+    for cli_name in ("sidekick", "hermes"):
+        cli_path = shutil.which(cli_name)
+        if not cli_path:
+            continue
+        try:
+            first_line = Path(cli_path).read_text(encoding="utf-8").splitlines()[0].strip()
+        except Exception:
+            continue
+        if not first_line.startswith("#!"):
+            continue
+        shebang_target = first_line[2:].strip()
+        if not shebang_target:
+            continue
+        interpreter = Path(shebang_target)
+        for parent in interpreter.parents:
+            run_agent = parent / "run_agent.py"
+            if run_agent.exists():
+                return parent.resolve()
     return None
 
 
 def discover_launcher_python(agent_dir: Path | None) -> str:
-    if os.getenv("HERMES_WEBUI_PYTHON"):
-        return os.getenv("HERMES_WEBUI_PYTHON")
+    explicit_python = _env_first("SIDEKICK_WEBUI_PYTHON", "HERMES_WEBUI_PYTHON")
+    if explicit_python:
+        return explicit_python
     if agent_dir:
         for rel in [
             ("venv", "Scripts", "python.exe"),
@@ -122,6 +154,7 @@ def _python_can_run_webui_and_agent(python_exe: str, agent_dir: Path | None = No
     try:
         env = os.environ.copy()
         if agent_dir:
+            env["SIDEKICK_WEBUI_AGENT_DIR"] = str(agent_dir)
             env["HERMES_WEBUI_AGENT_DIR"] = str(agent_dir)
         code = "import yaml\nimport importlib; importlib.import_module('run_agent')\n"
         result = subprocess.run([python_exe, "-c", code], env=env, capture_output=True, text=True, timeout=15)
@@ -141,7 +174,7 @@ def ensure_python_has_webui_deps(python_exe: str, agent_dir: Path | None) -> str
 
 
 def hermes_command_exists() -> bool:
-    return shutil.which("hermes") is not None
+    return shutil.which("sidekick") is not None or shutil.which("hermes") is not None
 
 
 def ensure_supported_platform() -> None:
@@ -171,9 +204,13 @@ def open_browser(url: str) -> None:
 def _build_server_argv(host: str, port: int, foreground: bool, extra: list[str]) -> list[str]:
     argv = [sys.executable, str(REPO_ROOT / "server.py")]
     hermes_home = _portable_hermes_home()
+    os.environ["SIDEKICK_WEBUI_HOST"] = host
     os.environ["HERMES_WEBUI_HOST"] = host
+    os.environ["SIDEKICK_WEBUI_PORT"] = str(port)
     os.environ["HERMES_WEBUI_PORT"] = str(port)
+    os.environ["SIDEKICK_HOME"] = str(hermes_home)
     os.environ["HERMES_HOME"] = str(hermes_home)
+    os.environ.setdefault("SIDEKICK_WEBUI_STATE_DIR", str(DEFAULT_STATE_DIR))
     os.environ.setdefault("HERMES_WEBUI_STATE_DIR", str(DEFAULT_STATE_DIR))
     if extra:
         os.environ["HERMES_WEBUI_EXTRA_ARGS"] = " ".join(extra)
@@ -195,10 +232,14 @@ def main() -> int:
     args = parse_args()
     agent_dir = discover_agent_dir()
     python_exe = discover_launcher_python(agent_dir)
+    os.environ["SIDEKICK_WEBUI_HOST"] = args.host
     os.environ["HERMES_WEBUI_HOST"] = args.host
+    os.environ["SIDEKICK_WEBUI_PORT"] = str(args.port)
     os.environ["HERMES_WEBUI_PORT"] = str(args.port)
+    os.environ["SIDEKICK_HOME"] = str(_portable_hermes_home())
     os.environ["HERMES_HOME"] = str(_portable_hermes_home())
     if agent_dir:
+        os.environ["SIDEKICK_WEBUI_AGENT_DIR"] = str(agent_dir)
         os.environ["HERMES_WEBUI_AGENT_DIR"] = str(agent_dir)
     server_argv = _build_server_argv(args.host, args.port, args.foreground, [])
     if args.foreground or _detect_supervisor():

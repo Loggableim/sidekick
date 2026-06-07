@@ -9,8 +9,13 @@
 //   getActiveSpaceQuery()  — returns "?workspace=<slug>" or ""
 
 let DEFAULT_SPACE_SLUG = 'nova';
+window.DEFAULT_SPACE_SLUG = DEFAULT_SPACE_SLUG;
 const LEGACY_DEFAULT_SPACE_SLUG = 'default';
 function _isProtectedSpaceSlug(slug) {
+  const s = String(slug || '').toLowerCase();
+  return s === DEFAULT_SPACE_SLUG || s === LEGACY_DEFAULT_SPACE_SLUG;
+}
+function _shouldTrustUnscopedSessionsForSpace(slug) {
   const s = String(slug || '').toLowerCase();
   return s === DEFAULT_SPACE_SLUG || s === LEGACY_DEFAULT_SPACE_SLUG;
 }
@@ -65,7 +70,10 @@ async function loadSpaces() {
   try {
     const data = await api('/api/spaces');
     _spacesCache = data.spaces || [];
-    if (data.default_space) DEFAULT_SPACE_SLUG = String(data.default_space || 'nova').toLowerCase() || 'nova';
+    if (data.default_space) {
+      DEFAULT_SPACE_SLUG = String(data.default_space || 'nova').toLowerCase() || 'nova';
+      window.DEFAULT_SPACE_SLUG = DEFAULT_SPACE_SLUG;
+    }
     if (_spacesCache.length && !_spacesCache.some(s => s && s.slug === _activeSpace)) {
       const preferred = _spacesCache.find(s => s && s.slug === DEFAULT_SPACE_SLUG) || _spacesCache[0];
       if (preferred && preferred.slug) {
@@ -212,7 +220,7 @@ async function selectSpace(slug) {
         if (typeof _allSessions !== 'undefined' && Array.isArray(_allSessions)) {
           // Client-side safety filter: only keep sessions matching the active space.
           // Backend also filters, but this catches edge cases from stale index data.
-          if (slug !== LEGACY_DEFAULT_SPACE_SLUG) {
+          if (!_shouldTrustUnscopedSessionsForSpace(slug)) {
             const listHasWorkspaceSlug = _allSessions.some(s => s && Object.prototype.hasOwnProperty.call(s, 'workspace_slug'));
             sessionsInSpace = listHasWorkspaceSlug ? _allSessions.filter(s => s && s.workspace_slug === slug) : _allSessions.slice();
           } else {
@@ -265,6 +273,8 @@ async function selectSpace(slug) {
     if (startedInSpacesPanel || (typeof _currentPanel !== 'undefined' && _currentPanel === 'workspaces') || (spacesPanel && spacesPanel.style.display !== 'none')) {
       renderSpacesPanel();
     }
+    // Re-evaluate goal banner for the new space
+    if(typeof _renderGoalBanner==='function')_renderGoalBanner();
   } catch (e) {
     console.warn('selectSpace error:', e);
   }
@@ -272,7 +282,7 @@ async function selectSpace(slug) {
 
 // â”€â”€ Create a new space â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-async function createSpace(slug, name, color, emoji) {
+async function createSpace(slug, name, color, emoji, options = {}) {
   if (!slug) return { error: 'slug is required' };
   if (!/^[a-z0-9][a-z0-9_-]*$/.test(slug)) {
     return { error: 'Invalid slug. Use a-z, 0-9, _, -' };
@@ -281,6 +291,8 @@ async function createSpace(slug, name, color, emoji) {
     const body = { slug, name: name || slug };
     if (color) body.color = color;
     if (emoji) body.emoji = emoji;
+    if (options.novaInstance) body.nova_instance = true;
+    if (options.novaCharacter) body.nova_character = options.novaCharacter;
     const result = await api('/api/space/create', {
       method: 'POST',
       body: JSON.stringify(body),
@@ -721,7 +733,20 @@ function renderSpacesPanel() {
 
 // â”€â”€ Create space dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-function showCreateSpaceDialog() {
+function _novaCharOption(c) {
+  return `<option value="${spaceEsc(c.name)}">${spaceEsc(c.name)}${c.description ? ' — '+spaceEsc(c.description) : ''}</option>`;
+}
+
+async function showCreateSpaceDialog() {
+  // Fetch available Nova characters from the onboarding status endpoint
+  let novaCharacters = [{name:'nova',description:'Canonical Nova consciousness baseline.'}];
+  try {
+    const status = await api('/api/onboarding/status');
+    if (status && status.nova && Array.isArray(status.nova.characters) && status.nova.characters.length) {
+      novaCharacters = status.nova.characters;
+    }
+  } catch (_) {}
+
   // Modal overlay for creating a new space with name + project directory
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
@@ -730,6 +755,8 @@ function showCreateSpaceDialog() {
   const dialog = document.createElement('div');
   dialog.className = 'modal-content';
   dialog.style.cssText = 'background:var(--bg-panel,#1e1e2e);border:1px solid var(--border,#363636);border-radius:12px;padding:28px;min-width:420px;max-width:520px;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
+
+  const charOptions = novaCharacters.map(c => _novaCharOption(c)).join('');
 
   dialog.innerHTML = `
     <h3 style="margin:0 0 20px;font-size:16px;font-weight:600;color:var(--text,#e0e0e0);">Create New Space</h3>
@@ -752,7 +779,16 @@ function showCreateSpaceDialog() {
     </div>
     <div style="margin-bottom:18px;">
       <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-dim,#888);">Emoji (optional)</label>
-      <input id="newSpaceEmoji" type="text" placeholder="ðŸ“" maxlength="4" style="width:60px;padding:8px 10px;border:1px solid var(--border,#363636);border-radius:6px;background:var(--bg-input,#2a2a3e);color:var(--text,#e0e0e0);font-size:18px;text-align:center;box-sizing:border-box;">
+      <input id="newSpaceEmoji" type="text" placeholder="📁" maxlength="4" style="width:60px;padding:8px 10px;border:1px solid var(--border,#363636);border-radius:6px;background:var(--bg-input,#2a2a3e);color:var(--text,#e0e0e0);font-size:18px;text-align:center;box-sizing:border-box;">
+    </div>
+    <div style="margin-bottom:18px;padding:12px;border:1px solid var(--border,#363636);border-radius:8px;background:var(--bg-soft,#202232);">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text,#e0e0e0);margin-bottom:10px;">
+        <input id="newSpaceNovaInstance" type="checkbox">
+        <span>Create dedicated Nova instance for this space</span>
+      </label>
+      <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-dim,#888);">Nova character</label>
+      <select id="newSpaceNovaCharacterSelect" style="width:100%;padding:8px 10px;border:1px solid var(--border,#363636);border-radius:6px;background:var(--bg-input,#2a2a3e);color:var(--text,#e0e0e0);font-size:13px;box-sizing:border-box;">${charOptions}</select>
+      <div style="margin-top:6px;font-size:11px;color:var(--text-dim,#888);">Spaces with their own Nova instance communicate via the pingpong format.</div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
       <button id="newSpaceCancel" style="padding:8px 16px;border:1px solid var(--border,#363636);border-radius:6px;background:transparent;color:var(--text,#e0e0e0);cursor:pointer;font-size:13px;">Cancel</button>
@@ -801,12 +837,14 @@ function showCreateSpaceDialog() {
     const name = nameInput.value.trim();
     const projectDir = dirInput.value.trim();
     const emoji = document.getElementById('newSpaceEmoji')?.value.trim() || '';
+    const novaInstance = !!document.getElementById('newSpaceNovaInstance')?.checked;
+    const novaCharacter = document.getElementById('newSpaceNovaCharacterSelect')?.value.trim() || 'nova';
     if (!name) { nameInput.focus(); nameInput.style.borderColor = '#f55'; return; }
     const slug = name.toLowerCase().replace(/[^a-z0-9_-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'project';
     nameInput.style.borderColor = '';
     createBtn.disabled = true;
     createBtn.textContent = 'Creating...';
-    createSpace(slug, name, selectedColor, emoji).then(result => {
+    createSpace(slug, name, selectedColor, emoji, { novaInstance, novaCharacter }).then(result => {
       if (result.error) {
         alert('Error: ' + result.error);
         createBtn.disabled = false;

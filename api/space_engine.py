@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import logging
 import os
+import shutil
 import threading
 import time
 from pathlib import Path
@@ -56,10 +57,29 @@ _OLD_ROOT: Path = Path(
 
 _AGENT_SLUG_RE = None  # lazy import
 
-DEFAULT_SPACE_SLUG = (os.getenv("HERMES_WEBUI_DEFAULT_SPACE", "nova").strip().lower() or "nova")
-DEFAULT_SPACE_NAME = (os.getenv("HERMES_WEBUI_DEFAULT_SPACE_NAME", "Nova").strip() or "Nova")
+DEFAULT_SPACE_SLUG = (
+    (os.getenv("SIDEKICK_WEBUI_DEFAULT_SPACE", "").strip()
+     or os.getenv("HERMES_WEBUI_DEFAULT_SPACE", "nova").strip()).lower()
+    or "nova"
+)
+DEFAULT_SPACE_NAME = (
+    os.getenv("SIDEKICK_WEBUI_DEFAULT_SPACE_NAME", "").strip()
+    or os.getenv("HERMES_WEBUI_DEFAULT_SPACE_NAME", "Nova").strip()
+    or "Nova"
+)
 LEGACY_DEFAULT_SPACE_SLUG = "default"
 PROTECTED_SPACE_SLUGS = {DEFAULT_SPACE_SLUG, LEGACY_DEFAULT_SPACE_SLUG}
+CONSCIOUSNESS_SOURCE_SPACE_SLUG = (
+    os.getenv("SIDEKICK_WEBUI_CONSCIOUSNESS_SPACE", "").strip().lower()
+    or os.getenv("HERMES_WEBUI_CONSCIOUSNESS_SPACE", "bewusstsein").strip().lower()
+    or "bewusstsein"
+)
+DEFAULT_NOVA_CHARACTER = (
+    os.getenv("SIDEKICK_WEBUI_DEFAULT_NOVA_CHARACTER", "").strip()
+    or os.getenv("HERMES_WEBUI_DEFAULT_NOVA_CHARACTER", "nova").strip()
+    or "nova"
+)
+_GENERIC_DEFAULT_SOUL_MARKER = "Customize this SOUL.md to define your personality and behavior."
 
 # ── Exceptions ──────────────────────────────────────────────────────────────
 
@@ -128,6 +148,12 @@ class Space:
         "project_dir": "",
         "color": "#4FC3F7",
         "emoji": "📁",
+        "nova": {
+            "enabled": False,
+            "character": "",
+            "source_space": CONSCIOUSNESS_SOURCE_SPACE_SLUG,
+            "communication_mode": "pingpong",
+        },
     }
 
     def load_config(self) -> dict:
@@ -146,6 +172,10 @@ class Space:
             result["model"].update(raw["model"])
         for key in self.CONFIG_DEFAULTS:
             if key == "model":
+                continue
+            if key == "nova":
+                if isinstance(raw.get("nova"), dict):
+                    result["nova"].update(raw["nova"])
                 continue
             if key in raw:
                 result[key] = raw[key]
@@ -168,6 +198,12 @@ class Space:
             out["model"] = config["model"]
         for key in self.CONFIG_DEFAULTS:
             if key in ("name", "model"):
+                continue
+            if key == "nova":
+                nova_cfg = config.get("nova")
+                if isinstance(nova_cfg, dict):
+                    out["nova"] = dict(self.CONFIG_DEFAULTS["nova"])
+                    out["nova"].update(nova_cfg)
                 continue
             if key in config:
                 out[key] = config[key]
@@ -296,8 +332,160 @@ def _invalidate_space_cache() -> None:
     _SPACE_CACHE_TS = 0.0
 
 
+def _safe_read_text(path: Path) -> str:
+    try:
+        return path.read_text("utf-8")
+    except Exception:
+        return ""
+
+
+def _is_generic_default_agent_soul(path: Path) -> bool:
+    text = _safe_read_text(path)
+    return bool(text and _GENERIC_DEFAULT_SOUL_MARKER in text)
+
+
+def _resolve_consciousness_source_slug() -> str:
+    canonical_default = Space(DEFAULT_SPACE_SLUG, DEFAULT_SPACE_NAME)
+    if (canonical_default.root / "SOUL.md").exists():
+        return DEFAULT_SPACE_SLUG
+    return CONSCIOUSNESS_SOURCE_SPACE_SLUG
+
+
+def _uses_legacy_consciousness_alias() -> bool:
+    if CONSCIOUSNESS_SOURCE_SPACE_SLUG == DEFAULT_SPACE_SLUG:
+        return False
+    canonical_default = Space(DEFAULT_SPACE_SLUG, DEFAULT_SPACE_NAME)
+    legacy_space = Space(CONSCIOUSNESS_SOURCE_SPACE_SLUG, CONSCIOUSNESS_SOURCE_SPACE_SLUG)
+    return canonical_default.root.is_dir() and legacy_space.root.is_dir()
+
+
+def _seed_default_space_from_consciousness() -> None:
+    """Bootstrap the canonical Nova space from the consciousness source.
+
+    This is intentionally conservative:
+    - never overwrites an existing non-generic target file
+    - only copies a minimal identity/config set
+    - keeps the source space untouched
+    """
+    source_slug = _resolve_consciousness_source_slug()
+    if source_slug == DEFAULT_SPACE_SLUG:
+        target = Space(DEFAULT_SPACE_SLUG, DEFAULT_SPACE_NAME)
+        if target.root.is_dir():
+            cfg = target.load_config()
+            changed = False
+            nova_cfg = dict(cfg.get("nova") or {})
+            desired_nova = {
+                "enabled": True,
+                "character": nova_cfg.get("character", "") or DEFAULT_NOVA_CHARACTER,
+                "source_space": DEFAULT_SPACE_SLUG,
+                "communication_mode": "pingpong",
+            }
+            if nova_cfg != desired_nova:
+                cfg["nova"] = desired_nova
+                changed = True
+            if not cfg.get("name"):
+                cfg["name"] = DEFAULT_SPACE_NAME
+                changed = True
+            if changed:
+                target.save_config(cfg)
+        return
+
+    source = Space(source_slug, source_slug)
+    if not source.root.is_dir():
+        return
+
+    target = Space(DEFAULT_SPACE_SLUG, DEFAULT_SPACE_NAME)
+    target.root.mkdir(parents=True, exist_ok=True)
+    target.memory_dir.mkdir(parents=True, exist_ok=True)
+    target.ensure_agent("default", create_soul=True)
+
+    source_config = source.config_path
+    target_config = target.config_path
+    if source_config.exists() and not target_config.exists():
+        shutil.copy2(source_config, target_config)
+
+    source_root_soul = source.root / "SOUL.md"
+    target_root_soul = target.root / "SOUL.md"
+    if source_root_soul.exists() and not target_root_soul.exists():
+        shutil.copy2(source_root_soul, target_root_soul)
+
+    source_agent_soul = source_root_soul
+    target_agent_soul = target.agent_soul_path("default")
+    if source_agent_soul.exists() and (
+        not target_agent_soul.exists() or _is_generic_default_agent_soul(target_agent_soul)
+    ):
+        shutil.copy2(source_agent_soul, target_agent_soul)
+
+    cfg = target.load_config()
+    changed = False
+    if not cfg.get("name"):
+        cfg["name"] = DEFAULT_SPACE_NAME
+        changed = True
+    if not cfg.get("description"):
+        cfg["description"] = (
+            f"Canonical Nova space bootstrapped from {source_slug}."
+        )
+        changed = True
+    nova_cfg = dict(cfg.get("nova") or {})
+    desired_nova = {
+        "enabled": True,
+        "character": nova_cfg.get("character", "") or DEFAULT_NOVA_CHARACTER,
+        "source_space": DEFAULT_SPACE_SLUG,
+        "communication_mode": "pingpong",
+    }
+    if nova_cfg != desired_nova:
+        cfg["nova"] = desired_nova
+        changed = True
+    if changed:
+        target.save_config(cfg)
+
+
+def seed_space_with_nova(
+    space: Space,
+    *,
+    character: str = "",
+    source_slug: str | None = None,
+) -> None:
+    """Attach a Nova instance to an arbitrary space without clobbering custom files."""
+    source_slug = source_slug or _resolve_consciousness_source_slug()
+    source = Space(source_slug, source_slug)
+    if not source.root.is_dir():
+        return
+
+    space.root.mkdir(parents=True, exist_ok=True)
+    space.memory_dir.mkdir(parents=True, exist_ok=True)
+    space.ensure_agent("default", create_soul=True)
+
+    source_root_soul = source.root / "SOUL.md"
+    target_root_soul = space.root / "SOUL.md"
+    if source_root_soul.exists() and not target_root_soul.exists():
+        shutil.copy2(source_root_soul, target_root_soul)
+
+    target_agent_soul = space.agent_soul_path("default")
+    if source_root_soul.exists() and (
+        not target_agent_soul.exists() or _is_generic_default_agent_soul(target_agent_soul)
+    ):
+        shutil.copy2(source_root_soul, target_agent_soul)
+
+    current = space.load_config()
+    nova_cfg = dict(current.get("nova") or {})
+    nova_cfg.update(
+        {
+            "enabled": True,
+            "character": character or nova_cfg.get("character", ""),
+            "source_space": source_slug,
+            "communication_mode": "pingpong",
+        }
+    )
+    current["nova"] = nova_cfg
+    if not current.get("description"):
+        current["description"] = f"Space with its own Nova instance seeded from {source_slug}."
+    space.save_config(current)
+
+
 def _scan_fs_for_spaces() -> list[Space]:
     """Scan SPACES_ROOT for space directories + fallback to OLD_ROOT."""
+    _seed_default_space_from_consciousness()
     seen_slugs: set[str] = set()
     spaces: list[Space] = []
 
@@ -316,6 +504,8 @@ def _scan_fs_for_spaces() -> list[Space]:
             slug = child.name.strip().lower()
             if slug in seen_slugs:
                 continue  # new-format wins over old-format
+            if slug == CONSCIOUSNESS_SOURCE_SPACE_SLUG and _uses_legacy_consciousness_alias():
+                continue
             seen_slugs.add(slug)
             space = Space(slug, slug, custom_root=root if is_legacy else None)
             # If this is an old-format dir with workspace.yaml, migrate on read
@@ -373,6 +563,8 @@ def get_all_spaces() -> list[Space]:
 def get_space(slug: str) -> Space | None:
     """Look up a space by slug."""
     slug = slug.strip().lower()
+    if slug == CONSCIOUSNESS_SOURCE_SPACE_SLUG and _uses_legacy_consciousness_alias():
+        slug = DEFAULT_SPACE_SLUG
     for s in get_all_spaces():
         if s.slug == slug:
             return s
@@ -384,16 +576,27 @@ def get_or_create_space(slug: str, name: str = "") -> Space:
     existing = get_space(slug)
     if existing:
         existing.memory_dir.mkdir(parents=True, exist_ok=True)
+        if existing.slug == DEFAULT_SPACE_SLUG:
+            _seed_default_space_from_consciousness()
         return existing
     space = Space(slug, name or slug)
     space.root.mkdir(parents=True, exist_ok=True)
     space.memory_dir.mkdir(parents=True, exist_ok=True)
     space.ensure_agent("default", create_soul=True)
+    if space.slug == DEFAULT_SPACE_SLUG:
+        _seed_default_space_from_consciousness()
     _invalidate_space_cache()
     return space
 
 
-def create_space(slug: str, name: str = "", color: str = "") -> Space:
+def create_space(
+    slug: str,
+    name: str = "",
+    color: str = "",
+    *,
+    nova_instance: bool = False,
+    nova_character: str = "",
+) -> Space:
     """Create a brand-new space. Raises SpaceExists if slug taken."""
     if get_space(slug):
         raise SpaceExists(f"space {slug!r} already exists")
@@ -405,6 +608,10 @@ def create_space(slug: str, name: str = "", color: str = "") -> Space:
         cfg = space.load_config()
         cfg["color"] = color
         space.save_config(cfg)
+    if space.slug == DEFAULT_SPACE_SLUG:
+        _seed_default_space_from_consciousness()
+    elif nova_instance:
+        seed_space_with_nova(space, character=nova_character)
     _invalidate_space_cache()
     return space
 
@@ -520,9 +727,9 @@ def get_or_create_workspace(slug: str, name: str = ""):
     return get_or_create_space(slug, name)
 
 
-def create_workspace(slug: str, name: str = "", color: str = ""):
-    """Alias — delegates to create_space()."""
-    return create_space(slug, name, color)
+def create_workspace(slug: str, name: str = "", color: str = "", **extra):
+    """Alias — delegates to create_space(). Forward extra kwargs (nova_instance, nova_character)."""
+    return create_space(slug, name, color, **extra)
 
 
 def delete_workspace(slug: str) -> bool:

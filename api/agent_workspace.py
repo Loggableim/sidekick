@@ -292,7 +292,11 @@ def _run_in_terminal(session: dict, command: str, timeout: int = 120) -> dict:
         process = subprocess.Popen(
             command, shell=True,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-            cwd=session["workdir"], text=True, bufsize=1,
+            cwd=session["workdir"],
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            bufsize=1,
         )
         session["process"] = process
         session["process_pid"] = process.pid

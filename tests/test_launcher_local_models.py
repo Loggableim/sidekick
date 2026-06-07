@@ -18,6 +18,7 @@ def test_gui_launcher_requires_openai_model_endpoint():
 def test_batch_launcher_waits_for_model_endpoint_with_timeout():
     src = (ROOT / "launcher.bat").read_text(encoding="utf-8")
     assert ":wait_for_model" in src
+    assert ":detect_model" in src
     assert ":sleep_seconds" in src
     assert "/v1/models" in src
     assert "WAIT_MAX" in src
@@ -25,6 +26,12 @@ def test_batch_launcher_waits_for_model_endpoint_with_timeout():
     assert "goto :wait_model_timeout" in src
     assert "call :wait_for_model %GPU_PORT%" in src
     assert "call :wait_for_model %CPU_PORT%" in src
+    assert 'set "GPU_MODEL_PRIMARY=%MODELS%\\Qwen3.6-12B-IQ-Q4_K_M.gguf"' in src
+    assert 'set "CPU_MODEL_PRIMARY=%MODELS%\\MiniCPM5-1B-Q8_0.gguf"' in src
+    assert 'if not defined HERMES_ENABLE_SECONDARY_LLM set "HERMES_ENABLE_SECONDARY_LLM=0"' in src
+    assert 'if /I "%HERMES_ENABLE_SECONDARY_LLM%"=="1" (' in src
+    assert "Launching Hermes without local LLM." in src
+    assert "[ERROR] GPU model not found:" not in src
     assert "timeout /t" not in src.lower()
     assert "ping -n" in src.lower()
 

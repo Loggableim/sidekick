@@ -1,7 +1,7 @@
 # Codex Comparison — Sidekick Code-Map & Feature-Gap Analyse
 
 Erstellt: 10.05.2026
-Basis: `C:\Users\logga\hermes-webui\static\`
+Basis: `C:\Users\logga\sidekick\static\`
 
 ---
 

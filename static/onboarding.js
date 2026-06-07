@@ -1,4 +1,4 @@
-const ONBOARDING={status:null,step:0,steps:['system','setup','workspace','password','finish'],form:{provider:'openrouter',workspace:'',model:'',password:'',apiKey:'',baseUrl:''},active:false,probe:{status:'idle',error:null,detail:'',models:null,probedKey:''}};
+const ONBOARDING={status:null,step:0,steps:['system','setup','workspace','password','finish'],form:{provider:'openrouter',workspace:'',model:'',password:'',apiKey:'',baseUrl:'',novaCharacter:'nova'},active:false,probe:{status:'idle',error:null,detail:'',models:null,probedKey:''}};
 
 // ── Onboarding base-URL probe (#1499) ───────────────────────────────────────
 // Probes <base_url>/models so the wizard can validate the configured endpoint
@@ -164,6 +164,16 @@ function _getOnboardingProviderModelChoices(){
     return ONBOARDING.probe.models;
   }
   return provider?(provider.models||[]):[];
+}
+
+function _getOnboardingNovaCharacters(){
+  return (((ONBOARDING.status||{}).nova||{}).characters)||[{name:'nova',description:'Canonical Nova consciousness baseline.'}];
+}
+
+function _renderOnboardingNovaCharacterField(){
+  const characters=_getOnboardingNovaCharacters();
+  const options=characters.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}${c.description?' — '+esc(c.description):''}</option>`).join('');
+  return `<label class="onboarding-field"><span>Nova character</span><select id="onboardingNovaCharacterSelect" onchange="ONBOARDING.form.novaCharacter=this.value">${options}</select></label><p class="onboarding-copy">Choose which Nova character seeds the canonical default space on fresh install.</p>`;
 }
 
 function _renderOnboardingBaseUrlField(showBaseUrl){
@@ -353,11 +363,14 @@ function _renderOnboardingBody(){
         <span>${t('onboarding_workspace_or_path')}</span>
         <input id="onboardingWorkspaceInput" value="${esc(ONBOARDING.form.workspace||'')}" placeholder="${t('onboarding_workspace_placeholder')}" oninput="ONBOARDING.form.workspace=this.value">
       </label>
-      ${_renderOnboardingModelField()}`;
+      ${_renderOnboardingModelField()}
+      ${_renderOnboardingNovaCharacterField()}`;
     const wsSel=$('onboardingWorkspaceSelect');
     if(wsSel && ONBOARDING.form.workspace) wsSel.value=ONBOARDING.form.workspace;
     const modelSel=$('onboardingModelSelect');
     if(modelSel && ONBOARDING.form.model) modelSel.value=ONBOARDING.form.model;
+    const charSel=$('onboardingNovaCharacterSelect');
+    if(charSel && ONBOARDING.form.novaCharacter) charSel.value=ONBOARDING.form.novaCharacter;
     return;
   }
 
@@ -379,6 +392,7 @@ function _renderOnboardingBody(){
       <div><strong>${t('onboarding_provider_label')}</strong><span>${esc((provider&&provider.label)||ONBOARDING.form.provider||t('onboarding_not_set'))}</span></div>
       <div><strong>${t('onboarding_model_label')}</strong><span>${esc(_getOnboardingSelectedModel()||t('onboarding_not_set'))}</span></div>
       <div><strong>${t('onboarding_workspace_label')}</strong><span>${esc(ONBOARDING.form.workspace||t('onboarding_not_set'))}</span></div>
+      <div><strong>Nova character</strong><span>${esc(ONBOARDING.form.novaCharacter||'nova')}</span></div>
       <div><strong>${t('onboarding_check_password')}</strong><span>${t(_getOnboardingPasswordSummaryKey(settings))}</span></div>
     </div>
     ${ONBOARDING.form.baseUrl?`<p class="onboarding-copy"><strong>${t('onboarding_base_url_label')}</strong> ${esc(ONBOARDING.form.baseUrl)}</p>`:''}
@@ -422,6 +436,7 @@ async function loadOnboardingWizard(){
     ONBOARDING.form.provider=current.provider||'openrouter';
     ONBOARDING.form.workspace=(status.workspaces&&status.workspaces.last)||status.settings.default_workspace||'';
     ONBOARDING.form.model=status.settings.default_model||current.model||'';
+    ONBOARDING.form.novaCharacter=((status.settings||{}).nova_character)||(((status.nova||{}).default_character))||'nova';
     ONBOARDING.form.password='';
     ONBOARDING.form.apiKey='';
     ONBOARDING.form.baseUrl=current.base_url||'';
@@ -470,6 +485,7 @@ async function _saveOnboardingDefaults(){
   const workspace=(ONBOARDING.form.workspace||'').trim();
   const model=(ONBOARDING.form.model||'').trim();
   const password=(ONBOARDING.form.password||'').trim();
+  const novaCharacter=(ONBOARDING.form.novaCharacter||'nova').trim()||'nova';
   if(!workspace) throw new Error(t('onboarding_error_choose_workspace'));
   if(!model) throw new Error(t('onboarding_error_choose_model'));
   const known=_getOnboardingWorkspaceChoices().some(ws=>ws.path===workspace);
@@ -477,12 +493,16 @@ async function _saveOnboardingDefaults(){
     await api('/api/workspaces/add',{method:'POST',body:JSON.stringify({path:workspace})});
   }
   // Model persisted by /api/onboarding/setup — no /api/default-model call needed here
-  const body={default_workspace:workspace};
+  const body={default_workspace:workspace,nova_character:novaCharacter};
   if(password) body._set_password=password;
   const saved=await api('/api/settings',{method:'POST',body:JSON.stringify(body)});
   if(ONBOARDING.status){
-    ONBOARDING.status.settings={...(ONBOARDING.status.settings||{}),password_enabled:!!saved.auth_enabled};
+    ONBOARDING.status.settings={...(ONBOARDING.status.settings||{}),password_enabled:!!saved.auth_enabled,nova_character:novaCharacter};
   }
+  await api('/api/space/config',{method:'POST',body:JSON.stringify({
+    slug:(window.DEFAULT_SPACE_SLUG||'nova'),
+    nova:{enabled:true,character:novaCharacter,source_space:'nova',communication_mode:'pingpong'}
+  })});
   try{localStorage.setItem('hermes-webui-model',model)}catch{}
   if($('modelSelect')) _applyModelToDropdown(model,$('modelSelect'));
 }
@@ -544,6 +564,7 @@ async function nextOnboardingStep(){
     if(ONBOARDING.steps[ONBOARDING.step]==='workspace'){
       ONBOARDING.form.workspace=(($('onboardingWorkspaceInput')||{}).value||ONBOARDING.form.workspace||'').trim();
       ONBOARDING.form.model=(($('onboardingModelInput')||{}).value||($('onboardingModelSelect')||{}).value||ONBOARDING.form.model||'').trim();
+      ONBOARDING.form.novaCharacter=(($('onboardingNovaCharacterSelect')||{}).value||ONBOARDING.form.novaCharacter||'nova').trim();
       if(!ONBOARDING.form.workspace) throw new Error(t('onboarding_error_workspace_required'));
       if(!ONBOARDING.form.model) throw new Error(t('onboarding_error_model_required'));
     }

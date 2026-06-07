@@ -629,7 +629,7 @@ async function toggleHubCast(){
     _castAvailable=r.ok && s.available!==false;
     _castActive=_castAvailable && s.active===true;
     _castLastError=_castAvailable?'':(s.error||'Hub nicht erreichbar');
-    if(!_castAvailable&&typeof showToast==='function')showToast('Hub Cast nicht erreichbar. Prüfe SIDECKICK_CAST_API_HOST.', 'error');
+    if(!_castAvailable&&typeof showToast==='function')showToast('Hub Cast nicht erreichbar. Prüfe SIDEKICK_CAST_API_HOST.', 'error');
   }catch(e){
     _castAvailable=false;
     _castActive=false;
@@ -1160,7 +1160,7 @@ function _checkProviderMismatch(modelId){
   const norm=p=>aliases[p]||p;
   if(norm(modelProvider)!==norm(ap)){
     return (window.t?window.t('provider_mismatch_warning',modelId,ap):
-      `"${modelId}" may not work with your configured provider (${ap}). Send anyway or run \`hermes model\` to switch.`);
+      `"${modelId}" may not work with your configured provider (${ap}). Send anyway or run \`sidekick model\` to switch.`);
   }
   return null;
 }
@@ -5133,7 +5133,8 @@ function isTpsDisplayEnabled(){
 function _assistantRoleHtml(tsTitle='', tpsText=''){
   const _bn=window._botName||'Nova';
   const tps=(isTpsDisplayEnabled()&&tpsText)?`<span class="msg-tps-inline" title="Tokens per second">${esc(tpsText)}</span>`:'';
-  return `<div class="msg-role assistant" ${tsTitle?`title="${esc(tsTitle)}"`:''}><div class="role-icon assistant">${esc(_bn.charAt(0).toUpperCase())}</div><span style="font-size:12px">${esc(_bn)}</span>${tps}</div>`;
+  const sidekickSvg='<svg width="22" height="22" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="border-radius:50%"><rect width="64" height="64" rx="14" fill="#0B1020"/><rect x="8" y="8" width="22" height="22" rx="5" fill="#00D5FF" opacity=".95"/><rect x="34" y="8" width="22" height="22" rx="5" fill="#FACC15" opacity=".96"/><rect x="8" y="34" width="22" height="22" rx="5" fill="#22C55E" opacity=".96"/><rect x="34" y="34" width="22" height="22" rx="5" fill="#F97316" opacity=".96"/><circle cx="48" cy="16" r="8" fill="#0B1020" opacity=".92"/></svg>';
+  return `<div class="msg-role assistant" ${tsTitle?`title="${esc(tsTitle)}"`:''}><div class="role-icon assistant" style="overflow:hidden">${sidekickSvg}</div><span style="font-size:12px">${esc(_bn)}</span>${tps}</div>`;
 }
 function _setAssistantTurnTps(turn, tpsText=''){
   if(!turn) return;

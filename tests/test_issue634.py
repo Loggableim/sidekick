@@ -33,8 +33,8 @@ class TestCliSessionsErrorSurface:
         assert "no 'source' column" in combined_src or "has no 'source' column" in combined_src
 
     def test_missing_source_column_suggests_upgrade(self):
-        """Warning message must suggest upgrading hermes-agent."""
-        assert "Upgrade hermes-agent" in combined_src or "upgrade hermes-agent" in combined_src.lower()
+        """Warning message must suggest upgrading the Sidekick agent."""
+        assert "Upgrade the Sidekick agent" in combined_src or "upgrade the sidekick agent" in combined_src.lower()
 
     def test_exception_path_logs_warning(self):
         """The except clause must call logger.warning, not silently pass."""

@@ -890,51 +890,7 @@
       .catch(() => {});
   }
 
-  // ─── FEATURE: #30 MOBILE-FIRST ───────────────────────────────
-  function enhanceMobile() {
-    // Add bottom tab navigation for mobile
-    if (window.innerWidth >= 1024) return;
-    if (document.querySelector('.mobile-bottom-nav')) return;
 
-    const nav = EL('nav', {
-      className: 'mobile-bottom-nav',
-      style: {
-        position: 'fixed', bottom: '0', left: '0', right: '0', zIndex: '100',
-        display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-        background: 'var(--bg-1, #0D0D1A)', borderTop: '1px solid var(--border, rgba(255,255,255,0.08))',
-        padding: '6px 0', backdropFilter: 'blur(10px)',
-      },
-    });
-
-    const tabs = [
-      { icon: ICONS.msgSquare, label: 'Chat', action: 'chat' },
-      { icon: ICONS.terminal, label: 'Sessions', action: 'sessions' },
-      { icon: ICONS.barChart, label: 'Analytics', action: 'insights' },
-      { icon: ICONS.cpu, label: 'Models', action: 'models' },
-      { icon: ICONS.settings, label: 'Settings', action: 'settings' },
-    ];
-
-    tabs.forEach(t => {
-      const btn = EL('button', {
-        className: 'mobile-nav-btn',
-        innerHTML: t.icon,
-        style: {
-          background: 'none', border: 'none', cursor: 'pointer', padding: '4px 12px',
-          color: t.action === 'chat' ? 'var(--accent, #B8860B)' : 'var(--muted, #666)',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
-          fontSize: '10px',
-        },
-        onClick: () => {
-          if (typeof switchPanel === 'function') switchPanel(t.action);
-          else if (typeof window[t.action + 'Panel'] === 'function') window[t.action + 'Panel']();
-        },
-      }, [t.label]);
-      nav.appendChild(btn);
-    });
-
-    document.body.appendChild(nav);
-    document.body.style.paddingBottom = '56px';
-  }
 
   // ─── FEATURE: #6 CHAT PERSISTENT + #8 CHAT SIDEBAR ──────────
   function enhanceChat() {
@@ -1148,7 +1104,7 @@
     enhanceMessageContent();    // #12 + #14
     setupDragDrop();            // #13
     enhanceChat();              // #6 + #8
-    enhanceMobile();            // #30
+
     addCodexLayoutToggle();     // #16
     enhancePlugins();           // #27
 

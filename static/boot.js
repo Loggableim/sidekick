@@ -1009,37 +1009,42 @@ window._micPendingSend=window._micPendingSend||false;
 })();
 $('fileInput').onchange=e=>{addFiles(Array.from(e.target.files));e.target.value='';};
 $('btnNewChat').onclick=async()=>{
-  // If the current session has no messages AND nothing is in flight, just focus
-  // the composer rather than creating another empty session that will clutter the
-  // sidebar list (#1171).
-  //
-  // The "nothing in flight" half is critical (#1432): if the user clicks + while
-  // their first message is still streaming (or queued), `message_count` is still 0
-  // server-side because the user turn hasn't been merged yet. The old guard treated
-  // that as "empty" and made + a no-op for the entire stream duration, so users
-  // couldn't actually start a parallel chat. Use the same in-flight signal as
-  // `_restoreSettledSession()` in messages.js: an active stream id or a queued
-  // pending user message means the session is real, not empty.
-  if(S.session
-     && (S.session.message_count||0)===0
-     && !S.busy
-     && !S.session.active_stream_id
-     && !S.session.pending_user_message){
-    $('msg').focus();closeMobileSidebar();return;
+  try {
+    // If the current session has no messages AND nothing is in flight, just focus
+    // the composer rather than creating another empty session that will clutter the
+    // sidebar list (#1171).
+    //
+    // The "nothing in flight" half is critical (#1432): if the user clicks + while
+    // their first message is still streaming (or queued), `message_count` is still 0
+    // server-side because the user turn hasn't been merged yet. The old guard treated
+    // that as "empty" and made + a no-op for the entire stream duration, so users
+    // couldn't actually start a parallel chat. Use the same in-flight signal as
+    // `_restoreSettledSession()` in messages.js: an active stream id or a queued
+    // pending user message means the session is real, not empty.
+    if(S.session
+       && (S.session.message_count||0)===0
+       && !S.busy
+       && !S.session.active_stream_id
+       && !S.session.pending_user_message){
+      $('msg').focus();closeMobileSidebar();return;
+    }
+    await newSession();await renderSessionList();closeMobileSidebar();$('msg').focus();
+  } catch(e) {
+    console.error('[btnNewChat] FAILED', e);
+    if(e && e.status) console.error('[btnNewChat] HTTP', e.status, e.statusText);
   }
-  await newSession();await renderSessionList();closeMobileSidebar();$('msg').focus();
 };
 $('btnDownload').onclick=()=>{
   if(!S.session)return;
   const blob=new Blob([transcript()],{type:'text/markdown'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`hermes-${S.session.session_id}.md`;a.click();URL.revokeObjectURL(a.href);
+  a.download=`sidekick-${S.session.session_id}.md`;a.click();URL.revokeObjectURL(a.href);
 };
 $('btnExportJSON').onclick=()=>{
   if(!S.session)return;
   const url=`/api/session/export?session_id=${encodeURIComponent(S.session.session_id)}`;
   const a=document.createElement('a');a.href=url;
-  a.download=`hermes-${S.session.session_id}.json`;a.click();
+  a.download=`sidekick-${S.session.session_id}.json`;a.click();
 };
 $('btnImportJSON').onclick=()=>$('importFileInput').click();
 $('importFileInput').onchange=async(e)=>{
@@ -1742,7 +1747,7 @@ function applyBotName(){
 async function _loadActiveSpaceConfig() {
   const slug = (typeof _activeSpace !== 'undefined' ? _activeSpace : null)
     || localStorage.getItem('hermes-active-workspace')
-    || 'default';
+    || 'nova';
   try {
     const resp = await api('/api/space/config?slug=' + encodeURIComponent(slug));
     window._activeSpaceConfig = resp.config || null;
@@ -1965,6 +1970,10 @@ async function _loadActiveSpaceConfig() {
   if(typeof _initChatVerticalResize==='function') _initChatVerticalResize();
   if(typeof initDragDrop==='function') initDragDrop();
   if(typeof _initScrollDetection==='function') _initScrollDetection();
+  // ── Start global cross-session approval polling ──
+  // Polls all sessions for pending approvals every 3s so badges and toasts
+  // appear even when the user is on a different session/space/panel.
+  if(typeof _startGlobalApprovalPoll==='function') _startGlobalApprovalPoll();
   // Init sandbox toggle from localStorage
   const _savedSandboxDisabled = localStorage.getItem('hermes-sandbox-disabled');
   window._sandboxDisabled = _savedSandboxDisabled === 'true';

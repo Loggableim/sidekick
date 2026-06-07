@@ -65,6 +65,9 @@ def test_space_switch_trusts_workspace_filtered_session_response_when_slug_missi
     assert "const listHasWorkspaceSlug" in select_space
     assert "listHasWorkspaceSlug ? _allSessions.filter" in select_space
     assert ": _allSessions.slice()" in select_space
+    assert "function _shouldTrustUnscopedSessionsForSpace" in SPACES_JS
+    assert "s === DEFAULT_SPACE_SLUG || s === LEGACY_DEFAULT_SPACE_SLUG" in SPACES_JS
+    assert "if (!_shouldTrustUnscopedSessionsForSpace(slug))" in select_space
 
 
 def test_session_list_inflight_does_not_block_space_switch_loads():
@@ -177,3 +180,129 @@ def test_space_dropdowns_are_positioned_against_viewport_after_render():
     assert "window.innerWidth" in helper
     assert "window.innerHeight" in helper
     assert "position = 'fixed'" in helper
+
+
+def test_runtime_env_hints_match_server_sources_of_truth():
+    index_html = (REPO / "static" / "index.html").read_text(encoding="utf-8")
+    ui_js = (REPO / "static" / "ui.js").read_text(encoding="utf-8")
+    routes_py = (REPO / "api" / "routes.py").read_text(encoding="utf-8")
+    auth_py = (REPO / "api" / "auth.py").read_text(encoding="utf-8")
+    assert "SIDEKICK_WEBUI_PASSWORD" in auth_py
+    assert "HERMES_WEBUI_PASSWORD" in auth_py
+    assert "SIDEKICK_WEBUI_PASSWORD" in routes_py
+    assert "SIDEKICK_WEBUI_PASSWORD" in index_html
+    assert "HERMES_WEBUI_PASSWORD" in routes_py
+    assert "HERMES_WEBUI_PASSWORD" not in index_html
+    assert "SIDEKICK_CAST_API_HOST" in routes_py
+    assert "SIDEKICK_CAST_API_HOST" in ui_js
+    assert "HERMES_CAST_API_HOST" in routes_py
+    assert "HERMES_CAST_API_HOST" not in ui_js
+
+
+def test_runtime_config_accepts_sidekick_env_aliases_for_primary_webui_knobs():
+    config_py = (REPO / "api" / "config.py").read_text(encoding="utf-8")
+    bootstrap_py = (REPO / "bootstrap.py").read_text(encoding="utf-8")
+    extensions_py = (REPO / "api" / "extensions.py").read_text(encoding="utf-8")
+    onboarding_py = (REPO / "api" / "onboarding.py").read_text(encoding="utf-8")
+    startup_py = (REPO / "api" / "startup.py").read_text(encoding="utf-8")
+    space_engine_py = (REPO / "api" / "space_engine.py").read_text(encoding="utf-8")
+    streaming_py = (REPO / "api" / "streaming.py").read_text(encoding="utf-8")
+    routes_py = (REPO / "api" / "routes.py").read_text(encoding="utf-8")
+    assert 'SIDEKICK_WEBUI_HOST' in config_py
+    assert 'SIDEKICK_WEBUI_PORT' in config_py
+    assert 'SIDEKICK_WEBUI_STATE_DIR' in config_py
+    assert 'SIDEKICK_WEBUI_AGENT_DIR' in config_py
+    assert 'SIDEKICK_WEBUI_PYTHON' in config_py
+    assert 'SIDEKICK_WEBUI_BOT_NAME' in config_py
+    assert 'SIDEKICK_WEBUI_FOREGROUND' in bootstrap_py
+    assert 'SIDEKICK_WEBUI_EXTENSION_DIR' in extensions_py
+    assert 'SIDEKICK_WEBUI_EXTENSION_SCRIPT_URLS' in extensions_py
+    assert 'SIDEKICK_WEBUI_EXTENSION_STYLESHEET_URLS' in extensions_py
+    assert 'SIDEKICK_WEBUI_SKIP_ONBOARDING' in onboarding_py
+    assert 'SIDEKICK_WEBUI_AGENT_DIR' in startup_py
+    assert 'SIDEKICK_WEBUI_AUTO_INSTALL' in startup_py
+    assert 'SIDEKICK_WEBUI_DEFAULT_SPACE' in space_engine_py
+    assert 'SIDEKICK_WEBUI_DEFAULT_SPACE_NAME' in space_engine_py
+    assert 'SIDEKICK_WEBUI_AGENT_DIR' in streaming_py
+    assert 'SIDEKICK_WEBUI_ONBOARDING_OPEN' in routes_py
+
+
+def test_user_facing_static_rebrand_strings_prefer_sidekick_over_hermes():
+    boot_js = (REPO / "static" / "boot.js").read_text(encoding="utf-8")
+    ui_js = (REPO / "static" / "ui.js").read_text(encoding="utf-8")
+    panels_js = (REPO / "static" / "panels.js").read_text(encoding="utf-8")
+    commands_js = (REPO / "static" / "commands.js").read_text(encoding="utf-8")
+    index_html = (REPO / "static" / "index.html").read_text(encoding="utf-8")
+    agents_js = (REPO / "static" / "agents.js").read_text(encoding="utf-8")
+    assert "sidekick-" in boot_js
+    assert "run `hermes model`" not in ui_js
+    assert "run hermes auth" not in panels_js
+    assert "Hermes CLI-only command" not in commands_js
+    assert "`/browser` itself only works in `hermes chat`" not in commands_js
+    assert "<code>hermes dashboard</code>" not in index_html
+    assert "(hermes -p " not in agents_js
+
+
+def test_user_facing_backend_rebrand_strings_prefer_sidekick_over_hermes():
+    streaming_py = (REPO / "api" / "streaming.py").read_text(encoding="utf-8")
+    config_py = (REPO / "api" / "config.py").read_text(encoding="utf-8")
+    appstore_py = (REPO / "api" / "appstore.py").read_text(encoding="utf-8")
+    routes_py = (REPO / "api" / "routes.py").read_text(encoding="utf-8")
+    workspace_py = (REPO / "api" / "workspace.py").read_text(encoding="utf-8")
+    dashboard_probe_py = (REPO / "api" / "dashboard_probe.py").read_text(encoding="utf-8")
+    goals_py = (REPO / "api" / "goals.py").read_text(encoding="utf-8")
+    dispatcher_py = (REPO / "api" / "dispatcher.py").read_text(encoding="utf-8")
+    agent_sessions_py = (REPO / "api" / "agent_sessions.py").read_text(encoding="utf-8")
+    assert "check that hermes-agent is on sys.path" not in streaming_py
+    assert "check that Sidekick agent is on sys.path" in streaming_py
+    assert "/path/to/hermes-agent" not in streaming_py
+    assert "/path/to/sidekick-agent" in streaming_py
+    assert "clone hermes-agent as a sibling" not in config_py
+    assert "clone the Sidekick agent as a sibling" in config_py
+    assert "Hermes Appstore Backend" not in appstore_py
+    assert "Sidekick Appstore Backend" in appstore_py
+    assert "hermes CLI not found in PATH" not in routes_py
+    assert "sidekick CLI not found in PATH" in routes_py
+    assert "Hermes/WebUI app or server process" not in workspace_py
+    assert "Sidekick app or server process" in workspace_py
+    assert "official Hermes dashboard probe failed" not in dashboard_probe_py
+    assert "official Sidekick dashboard probe failed" in dashboard_probe_py
+    assert "Hermes goal state unavailable" not in goals_py
+    assert "Sidekick goal state unavailable" in goals_py
+    assert "hermes binary not found on PATH" not in dispatcher_py
+    assert "sidekick binary not found on PATH" in dispatcher_py
+    assert "Upgrade hermes-agent" not in agent_sessions_py
+    assert "Upgrade the Sidekick agent" in agent_sessions_py
+
+
+def test_docs_rebrand_examples_prefer_sidekick_over_hermes_webui():
+    readme = (REPO / "README.md").read_text(encoding="utf-8")
+    troubleshooting = (REPO / "docs" / "troubleshooting.md").read_text(encoding="utf-8")
+    supervisor = (REPO / "docs" / "supervisor.md").read_text(encoding="utf-8")
+    wsl = (REPO / "docs" / "wsl-autostart.md").read_text(encoding="utf-8")
+    rfcs = (REPO / "docs" / "rfcs" / "README.md").read_text(encoding="utf-8")
+    wsl_script = (REPO / "scripts" / "wsl" / "sidekick_webui_autostart.sh").read_text(encoding="utf-8")
+    assert "/path/to/hermes-webui/server.py" not in readme
+    assert "/path/to/sidekick-webui/server.py" in readme
+    assert "cd hermes-webui" not in readme
+    assert "cd sidekick" in readme
+    assert "~/hermes-agent" not in troubleshooting
+    assert "~/sidekick-agent" in troubleshooting
+    assert "com.example.hermes-webui" not in supervisor
+    assert "com.example.sidekick-webui" in supervisor
+    assert "$HOME/hermes-webui" not in wsl
+    assert "$HOME/sidekick" in wsl
+    assert "SIDEKICK_WEBUI_REPO" in wsl
+    assert "SIDEKICK_WEBUI_LOG_DIR" in wsl
+    assert "SIDEKICK_WEBUI_REQUIRE_AGENT_PROCESS" in wsl
+    assert "sidekick-webui.pid" in wsl
+    assert "hermes-webui.pid" not in wsl
+    assert "Sidekick WebUI features" in rfcs
+    assert "hermes-webui features" not in rfcs
+    assert "hermes-webui.pid" not in wsl_script
+    assert "sidekick-webui.pid" in wsl_script
+    assert "hermes_webui.log" not in wsl_script
+    assert "sidekick_webui.log" in wsl_script
+    assert "SIDEKICK_WEBUI_REPO" in wsl_script
+    assert "SIDEKICK_WEBUI_LOG_DIR" in wsl_script
+    assert "SIDEKICK_WEBUI_REQUIRE_AGENT_PROCESS" in wsl_script

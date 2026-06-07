@@ -486,8 +486,8 @@ const LOCALES = {
     settings_tab_system: 'System',
     settings_title: 'Settings',
     settings_save_btn: 'Save Settings',
-    settings_label_model: 'Default Model',
-    settings_desc_model: 'Used for new conversations. Existing conversations keep their selected model.',
+    settings_label_model: 'Main Intelligence Model',
+    settings_desc_model: 'Used as the default model for new conversations. Existing conversations keep their selected model.',
     settings_label_send_key: 'Send Key',
     settings_label_theme: 'Theme',
     settings_label_skin: 'Skin',
@@ -764,8 +764,8 @@ const LOCALES = {
     settings_desc_bot_name: 'Display name for the assistant throughout the UI. Defaults to Nova.',
     settings_desc_password: 'Enter a new password to set or change it. Leave blank to keep current setting.',
     password_placeholder: 'Enter new password…',
-    password_env_var_locked: 'The SIDECKICK_WEBUI_PASSWORD environment variable is currently set and takes precedence. Unset it and restart the server to manage the password from here.',
-    password_env_var_locked_placeholder: 'Locked: SIDECKICK_WEBUI_PASSWORD env var is set',
+    password_env_var_locked: 'The SIDEKICK_WEBUI_PASSWORD environment variable is currently set and takes precedence. Unset it and restart the server to manage the password from here.',
+    password_env_var_locked_placeholder: 'Locked: SIDEKICK_WEBUI_PASSWORD env var is set',
     disable_auth: 'Disable Auth',
     sign_out: 'Sign Out',
     // Providers panel
@@ -1867,8 +1867,8 @@ const LOCALES = {
     settings_desc_bot_name: 'Nome visualizzato per l\'assistente in tutta l\'interfaccia. Predefinito: Nova.',
     settings_desc_password: 'Inserisci una nuova password per impostarla o cambiarla. Lascia vuoto per mantenere l\'impostazione attuale.',
     password_placeholder: 'Inserisci nuova password…',
-    password_env_var_locked: 'La variabile d\'ambiente SIDECKICK_WEBUI_PASSWORD è attualmente impostata e ha la precedenza. Rimuovila e riavvia il server per gestire la password da qui.',
-    password_env_var_locked_placeholder: 'Bloccato: variabile d\'ambiente SIDECKICK_WEBUI_PASSWORD impostata',
+    password_env_var_locked: 'La variabile d\'ambiente SIDEKICK_WEBUI_PASSWORD è attualmente impostata e ha la precedenza. Rimuovila e riavvia il server per gestire la password da qui.',
+    password_env_var_locked_placeholder: 'Bloccato: variabile d\'ambiente SIDEKICK_WEBUI_PASSWORD impostata',
     disable_auth: 'Disabilita Auth',
     sign_out: 'Esci',
     // Providers panel
@@ -2977,8 +2977,8 @@ const LOCALES = {
     settings_desc_bot_name: 'UI 全体で表示されるアシスタントの名前。デフォルトは Nova。',
     settings_desc_password: '新しいパスワードを入力すると設定または変更します。空欄なら現在の設定を維持。',
     password_placeholder: '新しいパスワードを入力…',
-    password_env_var_locked: '現在 SIDECKICK_WEBUI_PASSWORD 環境変数が設定されており優先されます。ここで管理するには変数を解除してサーバーを再起動してください。',
-    password_env_var_locked_placeholder: 'ロック中: SIDECKICK_WEBUI_PASSWORD 環境変数が設定されています',
+    password_env_var_locked: '現在 SIDEKICK_WEBUI_PASSWORD 環境変数が設定されており優先されます。ここで管理するには変数を解除してサーバーを再起動してください。',
+    password_env_var_locked_placeholder: 'ロック中: SIDEKICK_WEBUI_PASSWORD 環境変数が設定されています',
     disable_auth: '認証を無効化',
     sign_out: 'サインアウト',
     // Providers panel
@@ -3871,8 +3871,8 @@ const LOCALES = {
     settings_desc_bot_name: 'Отображаемое имя помощника во всём интерфейсе. По умолчанию Nova.',
     settings_desc_password: 'Введите новый пароль, чтобы задать или изменить его. Оставьте пустым, чтобы сохранить текущую настройку.',
     password_placeholder: 'Введите новый пароль…',
-    password_env_var_locked: 'Переменная окружения SIDECKICK_WEBUI_PASSWORD сейчас задана и имеет приоритет. Сбросьте её и перезапустите сервер, чтобы управлять паролем отсюда.',
-    password_env_var_locked_placeholder: 'Заблокировано: задана переменная SIDECKICK_WEBUI_PASSWORD',
+    password_env_var_locked: 'Переменная окружения SIDEKICK_WEBUI_PASSWORD сейчас задана и имеет приоритет. Сбросьте её и перезапустите сервер, чтобы управлять паролем отсюда.',
+    password_env_var_locked_placeholder: 'Заблокировано: задана переменная SIDEKICK_WEBUI_PASSWORD',
     disable_auth: 'Отключить авторизацию',
     sign_out: 'Выйти',
     // Providers panel (English fallback — native translations welcome in follow-up PRs)
@@ -4916,8 +4916,8 @@ const LOCALES = {
     settings_desc_bot_name: 'Nombre visible del asistente en toda la UI. Por defecto es Nova.',
     settings_desc_password: 'Introduce una nueva contraseña para establecerla o cambiarla. Déjalo en blanco para mantener la configuración actual.',
     password_placeholder: 'Introduce una contraseña nueva…',
-    password_env_var_locked: 'La variable de entorno SIDECKICK_WEBUI_PASSWORD está definida y tiene prioridad. Quítala y reinicia el servidor para gestionar la contraseña desde aquí.',
-    password_env_var_locked_placeholder: 'Bloqueado: la variable SIDECKICK_WEBUI_PASSWORD está definida',
+    password_env_var_locked: 'La variable de entorno SIDEKICK_WEBUI_PASSWORD está definida y tiene prioridad. Quítala y reinicia el servidor para gestionar la contraseña desde aquí.',
+    password_env_var_locked_placeholder: 'Bloqueado: la variable SIDEKICK_WEBUI_PASSWORD está definida',
     disable_auth: 'Desactivar autenticación',
     sign_out: 'Cerrar sesión',
     // Providers panel (English fallback — native translations welcome in follow-up PRs)
@@ -5994,8 +5994,8 @@ const LOCALES = {
     settings_desc_bot_name: 'Anzeigename für den Assistenten in der UI. Standardmäßig Nova.',
     settings_desc_password: 'Geben Sie ein neues Passwort ein, um es zu setzen oder zu ändern. Leer lassen, um die aktuelle Einstellung beizubehalten.',
     password_placeholder: 'Neues Passwort eingeben…',
-    password_env_var_locked: 'Die Umgebungsvariable SIDECKICK_WEBUI_PASSWORD ist gesetzt und hat Vorrang. Entferne sie und starte den Server neu, um das Passwort hier zu verwalten.',
-    password_env_var_locked_placeholder: 'Gesperrt: SIDECKICK_WEBUI_PASSWORD-Umgebungsvariable ist gesetzt',
+    password_env_var_locked: 'Die Umgebungsvariable SIDEKICK_WEBUI_PASSWORD ist gesetzt und hat Vorrang. Entferne sie und starte den Server neu, um das Passwort hier zu verwalten.',
+    password_env_var_locked_placeholder: 'Gesperrt: SIDEKICK_WEBUI_PASSWORD-Umgebungsvariable ist gesetzt',
     disable_auth: 'Authentifizierung deaktivieren',
     sign_out: 'Abmelden',
     // Providers panel (English fallback — native translations welcome in follow-up PRs)
@@ -7107,8 +7107,8 @@ const LOCALES = {
     providers_key_placeholder_new: 'sk-...',
     providers_key_placeholder_replace: '输入新密钥以替换…',
     password_placeholder: '输入新密码…',
-    password_env_var_locked: '当前已设置 SIDECKICK_WEBUI_PASSWORD 环境变量并具有优先级。请取消该变量并重启服务器，才能在此管理密码。',
-    password_env_var_locked_placeholder: '已锁定：已设置 SIDECKICK_WEBUI_PASSWORD 环境变量',
+    password_env_var_locked: '当前已设置 SIDEKICK_WEBUI_PASSWORD 环境变量并具有优先级。请取消该变量并重启服务器，才能在此管理密码。',
+    password_env_var_locked_placeholder: '已锁定：已设置 SIDEKICK_WEBUI_PASSWORD 环境变量',
     disable_auth: '停用认证',
     settings_label_sound: '通知声音',
     settings_label_notifications: '浏览器通知',
@@ -8101,8 +8101,8 @@ const LOCALES = {
     suggest_files: '這個工作區有哪些檔案？',
     sign_out: '\u767b\u51fa',
     password_placeholder: '\u5bc6\u78bc',
-    password_env_var_locked: '\u76ee\u524d\u5df2\u8a2d\u5b9a SIDECKICK_WEBUI_PASSWORD \u74b0\u5883\u8b8a\u6578\u4e14\u512a\u5148\u751f\u6548\u3002\u8acb\u53d6\u6d88\u8a2d\u5b9a\u4e26\u91cd\u65b0\u555f\u52d5\u4f3a\u670d\u5668\uff0c\u624d\u80fd\u5728\u6b64\u7ba1\u7406\u5bc6\u78bc\u3002',
-    password_env_var_locked_placeholder: '\u5df2\u9396\u5b9a\uff1a\u5df2\u8a2d\u5b9a SIDECKICK_WEBUI_PASSWORD \u74b0\u5883\u8b8a\u6578',
+    password_env_var_locked: '\u76ee\u524d\u5df2\u8a2d\u5b9a SIDEKICK_WEBUI_PASSWORD \u74b0\u5883\u8b8a\u6578\u4e14\u512a\u5148\u751f\u6548\u3002\u8acb\u53d6\u6d88\u8a2d\u5b9a\u4e26\u91cd\u65b0\u555f\u52d5\u4f3a\u670d\u5668\uff0c\u624d\u80fd\u5728\u6b64\u7ba1\u7406\u5bc6\u78bc\u3002',
+    password_env_var_locked_placeholder: '\u5df2\u9396\u5b9a\uff1a\u5df2\u8a2d\u5b9a SIDEKICK_WEBUI_PASSWORD \u74b0\u5883\u8b8a\u6578',
     disable_auth: '\u505c\u7528\u9a57\u8b49',
     settings_label_sound: '\u901a\u77e5\u8072\u97f3',
     settings_label_notifications: '\u700f\u89bd\u901a\u77e5',
@@ -9329,8 +9329,8 @@ const LOCALES = {
     settings_desc_bot_name: 'Nome de exibição do assistente. Padrão: Nova.',
     settings_desc_password: 'Digite nova senha para definir ou trocar. Deixe em branco para manter.',
     password_placeholder: 'Digite nova senha…',
-    password_env_var_locked: 'A variável de ambiente SIDECKICK_WEBUI_PASSWORD está definida e tem prioridade. Remova-a e reinicie o servidor para gerenciar a senha aqui.',
-    password_env_var_locked_placeholder: 'Bloqueado: variável SIDECKICK_WEBUI_PASSWORD está definida',
+    password_env_var_locked: 'A variável de ambiente SIDEKICK_WEBUI_PASSWORD está definida e tem prioridade. Remova-a e reinicie o servidor para gerenciar a senha aqui.',
+    password_env_var_locked_placeholder: 'Bloqueado: variável SIDEKICK_WEBUI_PASSWORD está definida',
     disable_auth: 'Desativar Auth',
     sign_out: 'Sair',
     // Providers panel
@@ -10337,8 +10337,8 @@ const LOCALES = {
     settings_desc_bot_name: 'UI 전체에 표시되는 Assistant 이름입니다. 기본값은 Nova입니다.',
     settings_desc_password: '새 비밀번호를 설정하거나 변경하려면 입력하세요. 현재 설정을 유지하려면 비워 두세요.',
     password_placeholder: '새 비밀번호 입력…',
-    password_env_var_locked: '현재 SIDECKICK_WEBUI_PASSWORD 환경 변수가 설정되어 있어 우선 적용됩니다. 변수를 해제하고 서버를 재시작해야 여기에서 비밀번호를 관리할 수 있습니다.',
-    password_env_var_locked_placeholder: '잠금: SIDECKICK_WEBUI_PASSWORD 환경 변수가 설정되어 있습니다',
+    password_env_var_locked: '현재 SIDEKICK_WEBUI_PASSWORD 환경 변수가 설정되어 있어 우선 적용됩니다. 변수를 해제하고 서버를 재시작해야 여기에서 비밀번호를 관리할 수 있습니다.',
+    password_env_var_locked_placeholder: '잠금: SIDEKICK_WEBUI_PASSWORD 환경 변수가 설정되어 있습니다',
     disable_auth: '인증 비활성화',
     sign_out: '로그아웃',
     // Providers panel
@@ -10924,14 +10924,25 @@ function applyLocaleToDOM() {
 loadLocale();
 
 // ── Language Selector (titlebar) ──────────────────────────────
+function _flagEmoji(countryCode) {
+  const code = String(countryCode || '').trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) {
+    return String.fromCodePoint(0x1F3F3, 0xFE0F);
+  }
+  return Array.from(code)
+    .map(ch => 0x1F1E6 + (ch.charCodeAt(0) - 65))
+    .map(cp => String.fromCodePoint(cp))
+    .join('');
+}
+
 const LANG_FLAGS = {
-  en: '🇬🇧', de: '🇩🇪', es: '🇪🇸', fr: '🇫🇷',
-  it: '🇮🇹', pt: '🇵🇹', ru: '🇷🇺', ja: '🇯🇵',
-  ko: '🇰🇷', zh: '🇨🇳'
+  en: _flagEmoji('GB'), de: _flagEmoji('DE'), es: _flagEmoji('ES'), fr: _flagEmoji('FR'),
+  it: _flagEmoji('IT'), pt: _flagEmoji('PT'), ru: _flagEmoji('RU'), ja: _flagEmoji('JP'),
+  ko: _flagEmoji('KR'), zh: _flagEmoji('CN')
 };
 
 function getFlagForLocale(code) {
-  return LANG_FLAGS[code] || '🏳️';
+  return LANG_FLAGS[code] || _flagEmoji('');
 }
 
 function toggleLangDropdown(event) {
@@ -10951,14 +10962,6 @@ function switchLang(code) {
   document.dispatchEvent(new CustomEvent('hermes-locale-change', { detail: { lang: code } }));
 }
 
-// Some portable bundles were generated with mojibake in LANG_FLAGS. Override
-// at runtime so switching language never replaces the titlebar flag with
-// broken text.
-Object.assign(LANG_FLAGS, {
-  en: '🇬🇧', de: '🇩🇪', es: '🇪🇸', fr: '🇫🇷',
-  it: '🇮🇹', pt: '🇵🇹', ru: '🇷🇺', ja: '🇯🇵',
-  ko: '🇰🇷', zh: '🇨🇳',
-});
 window.toggleLangDropdown = toggleLangDropdown;
 window.switchLang = switchLang;
 window.getFlagForLocale = getFlagForLocale;
@@ -10978,3 +10981,4 @@ document.addEventListener('click', function(e) {
     dd.hidden = true;
   }
 });
+

@@ -1,8 +1,9 @@
-"""Regression tests for WebUI handling of Hermes CLI-only slash commands."""
+"""Regression tests for WebUI handling of Sidekick CLI-only slash commands."""
 
 import json
 from pathlib import Path
 import subprocess
+import tempfile
 import textwrap
 from types import SimpleNamespace
 
@@ -61,7 +62,7 @@ def test_frontend_matches_agent_command_aliases():
 
 def test_cli_only_response_mentions_webui_and_cli_scope():
     assert "function cliOnlyCommandResponse" in COMMANDS_JS
-    assert "Hermes CLI-only command" in COMMANDS_JS
+    assert "Sidekick CLI-only command" in COMMANDS_JS
     assert "cannot run inside the WebUI" in COMMANDS_JS
 
 
@@ -70,7 +71,7 @@ def test_browser_cli_only_response_explains_server_side_browser_tools():
     response = COMMANDS_JS[response_idx : response_idx + 900]
     assert "if(name==='browser')" in response
     assert "configured server-side" in response
-    assert "`/browser` itself only works in `hermes chat`" in response
+    assert "`/browser` itself only works in Sidekick chat." in response
 
 
 def _run_commands_js(script_body: str) -> dict:
@@ -114,8 +115,14 @@ def _run_commands_js(script_body: str) -> dict:
         }});
         """
     )
-    proc = subprocess.run(["node", "-e", script], check=True, capture_output=True, text=True)
-    return json.loads(proc.stdout)
+    with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as fh:
+        fh.write(script)
+        script_path = fh.name
+    try:
+        proc = subprocess.run(["node", script_path], check=True, capture_output=True, text=True)
+        return json.loads(proc.stdout)
+    finally:
+        Path(script_path).unlink(missing_ok=True)
 
 
 def test_agent_command_metadata_helper_resolves_name_and_alias():
@@ -151,7 +158,7 @@ def test_cli_only_response_helper_uses_canonical_command_name():
         """
     )
 
-    assert "`/browser` is a Hermes CLI-only command" in result["response"]
+    assert "`/browser` is a Sidekick CLI-only command" in result["response"]
     assert "Attach browser tools" in result["response"]
     assert "configured server-side" in result["response"]
 

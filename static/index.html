@@ -82,7 +82,7 @@
   <div class="app-titlebar-center" id="appTitlebarCenter">
   <div class="mode-toggle" id="modeToggle" role="radiogroup" aria-label="Composer mode">
     <button class="mode-btn active" data-mode="action" data-i18n="mode_action" type="button" aria-pressed="true">Action</button>
-    <button class="mode-btn" data-mode="plan" data-i18n="mode_plan" type="button" aria-pressed="false">Plan</button>
+    <button class="mode-btn" data-mode="plan" data-i18n="mode_plan" type="button" aria-pressed="false">&#129504; Plan</button>
   </div>
   <button class="compact-toggle-btn has-tooltip has-tooltip--bottom" id="compactToggleBtn" onclick="toggleCompactLayout()" type="button" data-tooltip="Compact layout" data-i18n-title="compact_layout" aria-label="Compact layout">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="8" x2="20" y2="8" /><line x1="4" y1="14" x2="20" y2="14" /><line x1="4" y1="20" x2="20" y2="20" /><line x1="4" y1="4" x2="4" y2="20" /><line x1="10" y1="4" x2="10" y2="20" /><line x1="16" y1="4" x2="16" y2="20" /></svg>
@@ -152,7 +152,7 @@
     <button class="rail-btn nav-tab dashboard-link has-tooltip" id="dashboardRailBtn" data-dashboard-link style="display:none" onclick="openNovaDashboard(event)" data-tooltip="Nova Dashboard" data-i18n-title="tab_dashboard" aria-label="Nova Dashboard"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg><span class="dashboard-external-badge" aria-hidden="true"></span></button>
     <button class="rail-btn nav-tab has-tooltip" data-panel="logs" onclick="switchPanel('logs',{fromRailClick:true})" data-tooltip="Logs" data-i18n-title="tab_logs" aria-label="Logs"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/><path d="M8 9h2"/></svg></button>
 <button class="rail-btn nav-tab has-tooltip" data-panel="gmail" onclick="switchPanel('gmail',{fromRailClick:true})" data-tooltip="Gmail" data-i18n-title="Gmail" aria-label="Gmail" id="gmailRailBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg><span class="gmail-badge-dot" id="gmailUnreadDot" style="display:none"></span></button>
-    <button class="rail-btn nav-tab has-tooltip" data-panel="browser" onclick="switchPanel('browser',{fromRailClick:true})" data-tooltip="Browser" data-i18n-title="tab_browser" aria-label="Browser"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 8h18"/><circle cx="7" cy="6" r="0.75" fill="currentColor" stroke="none"/><circle cx="10" cy="6" r="0.75" fill="currentColor" stroke="none"/><path d="M12 11l4 4"/><path d="M14 11h2v2"/></svg></button>
+    <button class="rail-btn nav-tab has-tooltip" data-panel="browser" onclick="switchPanel('browser',{fromRailClick:true})" data-tooltip="Websearch" aria-label="Websearch"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 8h18"/><circle cx="7" cy="6" r="0.75" fill="currentColor" stroke="none"/><circle cx="10" cy="6" r="0.75" fill="currentColor" stroke="none"/><path d="M12 11l4 4"/><path d="M14 11h2v2"/></svg></button>
 <button class="rail-btn nav-tab has-tooltip" data-panel="discord" onclick="switchPanel('discord',{fromRailClick:true})" data-tooltip="Discord" data-i18n-title="Discord" aria-label="Discord" id="discordRailBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.66V19a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1.66"/></svg></button>
     <button class="rail-btn nav-tab has-tooltip" data-panel="appstore" onclick="switchPanel('appstore',{fromRailClick:true})" data-tooltip="Appstore" aria-label="Appstore"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3 7h7l-5.5 4.3 2.1 7L12 16.2 5.4 20.3l2.1-7L2 9h7z"/><circle cx="12" cy="12" r="2" fill="currentColor" opacity=".4"/></svg></button>
     <div class="rail-spacer"></div>
@@ -176,7 +176,7 @@
       <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="insights" data-label="Insights" onclick="switchPanel('insights',{fromRailClick:true})" data-tooltip="Insights" data-i18n-title="tab_insights"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></button>
       <button class="nav-tab dashboard-link has-tooltip has-tooltip--bottom" id="dashboardMobileBtn" data-dashboard-link data-label="Dashboard" style="display:none" onclick="openNovaDashboard(event)" data-tooltip="Nova Dashboard" data-i18n-title="tab_dashboard"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg><span class="dashboard-external-badge" aria-hidden="true"></span></button>
       <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="logs" data-label="Logs" onclick="switchPanel('logs',{fromRailClick:true})" data-tooltip="Logs" data-i18n-title="tab_logs"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/><path d="M8 9h2"/></svg></button>
-      <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="browser" data-label="Browser" onclick="switchPanel('browser',{fromRailClick:true})" data-tooltip="Browser" data-i18n-title="tab_browser"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 8h18"/><circle cx="7" cy="6" r="0.75" fill="currentColor" stroke="none"/><circle cx="10" cy="6" r="0.75" fill="currentColor" stroke="none"/><path d="M12 11l4 4"/><path d="M14 11h2v2"/></svg></button>
+      <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="browser" data-label="Websearch" onclick="switchPanel('browser',{fromRailClick:true})" data-tooltip="Websearch"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 8h18"/><circle cx="7" cy="6" r="0.75" fill="currentColor" stroke="none"/><circle cx="10" cy="6" r="0.75" fill="currentColor" stroke="none"/><path d="M12 11l4 4"/><path d="M14 11h2v2"/></svg></button>
       <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="appstore" data-label="Appstore" onclick="switchPanel('appstore',{fromRailClick:true})" data-tooltip="Appstore" aria-label="Appstore"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3 7h7l-5.5 4.3 2.1 7L12 16.2 5.4 20.3l2.1-7L2 9h7z"/><circle cx="12" cy="12" r="2" fill="currentColor" opacity=".4"/></svg></button>
       <!-- Settings button mirrored here for mobile (rail is desktop-only via @media >=768px). Keep in sync with rail entry. -->
       <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="settings" onclick="switchPanel('settings',{fromRailClick:true})" data-tooltip="Settings" data-i18n-title="tab_settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
@@ -619,9 +619,7 @@
     <div id="mainChat" class="main-view">
     <div id="chatSplitLayout" class="chat-split-layout mode-chat">
     <div class="chat-pane">
-      <div class="chat-pane-header" id="chatPaneHeader">
-      </div>
-    <!-- Conversation search bar (Ctrl+F) -->
+<!-- Conversation search bar (Ctrl+F) -->
     <div class="chat-search-bar" id="chatSearchBar" hidden>
       <div class="chat-search-inner">
         <svg class="chat-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -746,7 +744,18 @@
           </div>
         </div>
       </div>
-      <div id="handoffHintContainer" class="handoff-hint-container" style="display:none;"></div>
+<div id="handoffHintContainer" class="handoff-hint-container" style="display:none;"></div>
+      </div>
+      <!-- ── Goal Banner ── -->
+      <div id="goalBanner" class="goal-banner" style="display:none" role="status" aria-live="polite">
+        <span class="goal-banner-icon" id="goalBannerIcon">⊙</span>
+        <span class="goal-banner-text" id="goalBannerText"></span>
+        <span class="goal-banner-turns" id="goalBannerTurns"></span>
+        <span class="goal-banner-actions" id="goalBannerActions">
+          <button type="button" class="goal-banner-btn goal-btn-pause" id="goalBtnPause" onclick="cmdGoal('pause')" title="Pause goal" aria-label="Pause goal">⏸</button>
+          <button type="button" class="goal-banner-btn goal-btn-resume" id="goalBtnResume" onclick="cmdGoal('resume')" title="Resume goal" aria-label="Resume goal" style="display:none">▶</button>
+          <button type="button" class="goal-banner-btn goal-btn-clear" id="goalBtnClear" onclick="cmdGoal('clear')" title="Clear goal" aria-label="Clear goal">✕</button>
+        </span>
       </div>
       <!-- Queue pill outer: same positioning wrapper as .queue-card (max-width + padding) -->
       <div class="queue-pill-outer">
@@ -769,7 +778,20 @@
           <button type="button" class="action-chip" data-cmd="/test" onclick="actionChipClick('/test')" title="Run tests" data-tooltip="Run tests" aria-label="Run tests">Test</button>
           <button type="button" class="action-chip" data-cmd="/install" onclick="actionChipClick('/install')" title="Install packages" data-tooltip="Install packages" aria-label="Install packages">Install</button>
           <button type="button" class="action-chip" data-cmd="/deploy" onclick="actionChipClick('/deploy')" title="Deploy to production" data-tooltip="Deploy to production" aria-label="Deploy to production">Deploy</button>
-          <button type="button" class="action-chip" data-cmd="/plan" onclick="actionChipClick('/plan')" title="Create implementation plan" data-tooltip="Create implementation plan" aria-label="Create implementation plan">Plan</button>
+<button type="button" class="action-chip plan-mode-toggle" data-cmd="/plan" onclick="_togglePlanMode()" title="Toggle Plan Mode (prepends /plan)" data-tooltip="Toggle Plan Mode (prepends /plan)" aria-label="Toggle Plan Mode">&#129504; Plan</button>
+        </div>
+        <!-- -- Plan Mode Banner -- -->
+        <div class="plan-banner" id="planBanner" style="display:none">
+          <span class="plan-banner-icon">&#129504;</span>
+          <span class="plan-banner-label">Plan Mode &mdash; Nur Planung, keine Ausf&uuml;hrung. Schalte zur&uuml;ck f&uuml;r Action Mode.</span>
+          <button type="button" class="goal-exit-btn plan-banner-exit" onclick="_togglePlanMode()" title="Exit Plan Mode" aria-label="Exit Plan Mode">✕</button>
+        </div>
+        <!-- ── Goal Input Row (visible in goal-mode) ── -->
+        <div class="goal-input-row" id="goalInputRow">
+          <span class="goal-input-icon">🎯</span>
+          <textarea class="goal-input-field" id="goalInputField" rows="1" placeholder="Define a goal for Nova…" data-i18n-placeholder="goal_input_placeholder"></textarea>
+          <button type="button" class="goal-send-btn" id="goalSendBtn" onclick="_submitGoal()" title="Set goal and start" aria-label="Set goal and start">▶ Set Goal</button>
+          <button type="button" class="goal-exit-btn" id="goalExitBtn" onclick="_exitGoalMode()" title="Cancel goal mode" aria-label="Cancel goal mode">✕</button>
         </div>
         <textarea id="msg" rows="1" placeholder="Message Nova…"></textarea>
         <div class="msg-expand-bar is-collapsed" id="msgExpandBar">
@@ -803,6 +825,9 @@
                 <path d="M18 5v14"/>
                 <path d="M22 10v4"/>
               </svg>
+</button>
+            <button type="button" class="icon-btn has-tooltip goal-mode-toggle" id="btnGoalModeToggle" onclick="_toggleGoalMode()" title="Set a persistent goal" data-tooltip="Set a persistent goal" aria-label="Set a persistent goal">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
             </button>
             <div class="composer-divider" aria-hidden="true"></div>
             <button type="button" class="icon-btn has-tooltip browser-drawer-toggle-btn" id="btnBrowserDrawerToggle" onclick="browserToggleDrawer()" data-tooltip="Browser drawer" aria-label="Browser drawer" aria-expanded="false" aria-controls="browserDrawer">
@@ -1011,10 +1036,10 @@
         </div>
         <div class="upload-bar-wrap" id="uploadBarWrap"><div class="upload-bar" id="uploadBar"></div></div>
       </div>  <!-- /composer-box -->
-      <div class="browser-drawer" id="browserDrawer" aria-label="Live browser drawer">
+      <div class="browser-drawer" id="browserDrawer" aria-label="Live websearch drawer">
         <div class="browser-drawer-shell">
           <div class="panel-header browser-drawer-header">
-            <span>Browser</span>
+            <span>Websearch</span>
             <span class="browser-session-label" id="browserSessionLabel"></span>
             <span class="browser-permission-status" id="browserPermissionStatus">Agent locked</span>
             <div class="panel-actions">
@@ -1074,39 +1099,83 @@
     </div>
     </div><!-- /#chatSplitLayout -->
     </div><!-- /#mainChat -->
-    <div id="mainBrowser" class="main-view">
-      <div class="browser-research-panel browser-research-panel--main">
-        <div class="panel-header browser-research-header">
-          <div class="browser-research-header-copy">
-            <span class="browser-research-eyebrow">Browser</span>
-            <span class="browser-research-title">Slim research</span>
+<div id="mainBrowser" class="main-view websearch-panel">
+  <!-- Mode Toggle -->
+  <div class="websearch-mode-bar">
+    <button class="websearch-mode-btn is-active" data-mode="quick" onclick="websearchToggleMode('quick')">⚡ Quick Search</button>
+    <button class="websearch-mode-btn" data-mode="deep" onclick="websearchToggleMode('deep')">🧠 Deep Research</button>
+    <div class="websearch-mode-spacer"></div>
+    <button class="websearch-toggle-history" id="websearchToggleHistoryBtn" onclick="websearchToggleHistory()" data-tooltip="Toggle search history" title="Toggle search history">☰</button>
+    <span class="browser-session-label" id="browserResearchSessionLabel"></span>
+    <button class="websearch-ctrl-btn" id="websearchSplitBtn" onclick="websearchToggleSplit()" data-tooltip="Show browser preview" title="Show browser preview">□ Split</button>
+  </div>
+
+  <!-- Main content: flex row with sidebar + content -->
+  <div class="websearch-body">
+    <!-- History Sidebar -->
+    <div class="websearch-history" id="websearchHistory">
+      <div class="websearch-history-header">
+        <span>📋 Saved Searches</span>
+        <div class="websearch-history-actions">
+          <button class="websearch-history-clear" onclick="_websearchClearHistory()" title="Clear history">🗑</button>
+          <button class="websearch-history-close" onclick="websearchToggleHistory()">✕</button>
+        </div>
+      </div>
+      <div class="websearch-history-list" id="websearchHistoryList"></div>
+    </div>
+
+        <!-- Content Area -->
+        <div class="websearch-content">
+          <!-- Quick Search Pane (visible by default) -->
+          <div class="websearch-pane" id="websearchQuickPane">
+            <form class="websearch-quick-form" onsubmit="return websearchQuickSearch(event)">
+              <div class="websearch-quick-input-row">
+                <input id="websearchQuery" class="websearch-quick-input" type="text" placeholder="Ask anything or search the web…" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+                <button type="submit" class="websearch-go-btn">🔎 Search</button>
+              </div>
+            </form>
+            <div class="websearch-suggestion-chips" id="websearchSuggestionChips"></div>
+            <div class="websearch-quick-meta" id="websearchQuickMeta"></div>
+            <div class="websearch-results" id="websearchResults"></div>
+            <div class="websearch-quick-empty" id="websearchQuickEmpty">
+              <div class="websearch-empty-icon">🌐</div>
+              <div class="websearch-empty-text">Ask anything or search the web.</div>
+              <div class="websearch-empty-hints" id="websearchEmptyHints">
+                <button class="websearch-hint-chip" onclick="document.getElementById('websearchQuery').value='latest AI news 2026';websearchQuickSearch(new Event('submit'))">latest AI news 2026</button>
+                <button class="websearch-hint-chip" onclick="document.getElementById('websearchQuery').value='Python async programming best practices';websearchQuickSearch(new Event('submit'))">Python async best practices</button>
+                <button class="websearch-hint-chip" onclick="document.getElementById('websearchQuery').value='Docker compose production tips';websearchQuickSearch(new Event('submit'))">Docker compose tips</button>
+              </div>
+            </div>
           </div>
-          <span class="browser-session-label" id="browserResearchSessionLabel"></span>
-          <div class="panel-actions">
-            <button class="panel-icon-btn has-tooltip has-tooltip--bottom" id="browserResearchRefreshBtn" data-tooltip="Refresh research list" aria-label="Refresh research list" onclick="browserResearchPanelActivated()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+
+          <!-- Deep Research Pane (hidden by default) -->
+          <div class="websearch-pane" id="websearchDeepPane" style="display:none">
+            <form class="websearch-deep-form" onsubmit="return browserResearchSubmit(event)">
+              <div class="websearch-quick-input-row">
+                <textarea id="browserResearchTopic" class="websearch-deep-input" rows="2" placeholder="Enter a topic or question for deep research…"></textarea>
+                <button type="submit" class="websearch-go-btn" id="browserResearchStartBtn">🧠 Research</button>
+              </div>
+            </form>
+            <div class="websearch-deep-intake" id="browserResearchQuickAnswer"></div>
+            <div class="websearch-deep-chips" id="browserResearchQuestions"></div>
+            <div class="websearch-deep-actions">
+              <button type="button" class="websearch-ghost-btn" id="browserResearchContinueBtn" onclick="browserResearchContinue()">Continue research →</button>
+              <button type="button" class="websearch-ghost-btn" id="browserResearchResetBtn" onclick="browserResearchReset()">Reset</button>
+              <button class="websearch-ctrl-btn" id="browserResearchRefreshBtn" onclick="browserResearchPanelActivated()" title="Refresh">↻</button>
+            </div>
+            <div class="websearch-deep-status">
+              <span class="websearch-status-pill" id="browserResearchStatusPill">Idle</span>
+              <span class="websearch-status-url" id="browserResearchStatusUrl">Enter a topic to begin.</span>
+            </div>
+            <div class="websearch-deep-history">
+              <details class="websearch-deep-recent">
+                <summary id="browserResearchRecentToggle">Recent research</summary>
+                <div class="websearch-session-list" id="browserResearchSessions"></div>
+              </details>
+            </div>
+            <div class="websearch-deep-results" id="browserResearchBody"></div>
           </div>
         </div>
-        <form class="browser-research-form browser-research-intake" onsubmit="return browserResearchSubmit(event)">
-          <textarea id="browserResearchTopic" class="browser-research-input" rows="2" placeholder="Enter a topic or question"></textarea>
-          <div class="browser-research-form-actions">
-            <span class="browser-status-pill" id="browserResearchStatusPill">Idle</span>
-            <button type="submit" class="browser-go-btn" id="browserResearchStartBtn">Start research</button>
-          </div>
-          <div class="browser-research-quick-answer" id="browserResearchQuickAnswer" aria-live="polite"></div>
-          <div class="browser-research-question-chips" id="browserResearchQuestions" aria-label="Research directions"></div>
-          <div class="browser-research-intake-actions">
-            <button type="button" class="browser-go-btn browser-go-btn--ghost" id="browserResearchContinueBtn" onclick="browserResearchContinue()">Continue research</button>
-            <button type="button" class="browser-go-btn browser-go-btn--ghost" id="browserResearchResetBtn" onclick="browserResearchReset()">Reset</button>
-          </div>
-        </form>
-        <div class="browser-status-row browser-research-status-row">
-          <span class="browser-status-url" id="browserResearchStatusUrl">Enter a topic to begin.</span>
-        </div>
-        <details class="browser-research-recent">
-          <summary id="browserResearchRecentToggle">Recent research</summary>
-          <div class="browser-research-sessions" id="browserResearchSessions"></div>
-        </details>
-        <div class="browser-research-body" id="browserResearchBody"></div>
       </div>
     </div>
     <!-- Discord Full View (replaces chat area when Discord tab is active) -->
@@ -1534,9 +1603,12 @@
               </div>
             </div>
             <div class="settings-field">
-              <label for="settingsModel" data-i18n="settings_label_model">Default Model</label>
+              <label for="settingsModel" data-i18n="settings_label_model">Main Intelligence Model</label>
               <select id="settingsModel" style="width:100%;padding:8px;background:var(--code-bg);color:var(--text);border:1px solid var(--border2);border-radius:6px"></select>
               <div style="font-size:11px;color:var(--muted);margin-top:4px" data-i18n="settings_desc_model">Used for new conversations. Existing conversations keep their selected model.</div>
+              <div id="settingsModelRouteStatus" style="margin-top:10px;padding:10px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--panel);font-size:12px;line-height:1.5;color:var(--muted)">
+                Loading Nova worker routes...
+              </div>
             </div>
             <div class="settings-field">
               <label for="settingsSendKey" data-i18n="settings_label_send_key">Send Key</label>
@@ -1761,13 +1833,13 @@
               <label for="settingsPassword" data-i18n="settings_label_password">Access Password</label>
               <div style="font-size:11px;color:var(--muted);margin-bottom:6px" data-i18n="settings_desc_password">Enter a new password to set or change it. Leave blank to keep current setting.</div>
               <input type="password" id="settingsPassword" placeholder="Enter new password…" data-i18n-placeholder="password_placeholder" style="width:100%;padding:8px;background:var(--code-bg);color:var(--text);border:1px solid var(--border2);border-radius:6px;font-size:13px">
-              <div id="settingsPasswordEnvLock" data-i18n="password_env_var_locked" style="display:none;margin-top:6px;padding:8px 10px;font-size:11px;color:var(--muted);background:var(--code-bg);border:1px solid var(--border2);border-radius:6px;line-height:1.45">The SIDECKICK_WEBUI_PASSWORD environment variable is currently set and takes precedence. Unset it and restart the server to manage the password from here.</div>
+              <div id="settingsPasswordEnvLock" data-i18n="password_env_var_locked" style="display:none;margin-top:6px;padding:8px 10px;font-size:11px;color:var(--muted);background:var(--code-bg);border:1px solid var(--border2);border-radius:6px;line-height:1.45">The SIDEKICK_WEBUI_PASSWORD environment variable is currently set and takes precedence. Unset it and restart the server to manage the password from here.</div>
             </div>
             <button class="sm-btn" id="btnDisableAuth" onclick="disableAuth()" style="margin-top:6px;width:100%;padding:8px;font-weight:600;color:#e8a030;border-color:rgba(232,160,48,.3);display:none" data-i18n="disable_auth">Disable Auth</button>
             <button class="sm-btn" id="btnSignOut" onclick="signOut()" style="margin-top:6px;width:100%;padding:8px;font-weight:600;color:var(--accent);border-color:rgba(233,69,96,.3);display:none" data-i18n="sign_out">Sign Out</button>
             <div class="settings-field" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
               <label for="settingsDashboardMode">Official Nova Dashboard</label>
-              <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Show a nav-rail link when the official <code>hermes dashboard</code> is reachable. Overrides are restricted to loopback URLs.</div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Show a nav-rail link when the official <code>sidekick dashboard</code> is reachable. Overrides are restricted to loopback URLs.</div>
               <select id="settingsDashboardMode" style="width:100%;padding:8px;background:var(--code-bg);color:var(--text);border:1px solid var(--border2);border-radius:6px">
                 <option value="auto">Auto-detect</option>
                 <option value="always">Always show</option>

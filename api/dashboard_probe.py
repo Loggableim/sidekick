@@ -81,7 +81,7 @@ def probe_official_dashboard(
     timeout: float = DEFAULT_DASHBOARD_TIMEOUT,
     scheme: str = "http",
 ) -> dict:
-    """Best-effort check that `hermes dashboard` is running on host:port."""
+    """Best-effort check that `sidekick dashboard` is running on host:port."""
     try:
         normalized_host = str(host or "").strip().lower()
         if normalized_host not in _LOOPBACK_HOSTS:
@@ -94,7 +94,7 @@ def probe_official_dashboard(
         base = _base_url(normalized_host, port, scheme)
         request = urllib.request.Request(
             f"{base}/api/status",
-            headers={"Accept": "application/json", "User-Agent": "hermes-webui-dashboard-probe"},
+            headers={"Accept": "application/json", "User-Agent": "sidekick-webui-dashboard-probe"},
         )
         with urllib.request.urlopen(request, timeout=timeout) as response:
             if getattr(response, "status", None) != 200:
@@ -108,7 +108,7 @@ def probe_official_dashboard(
             result["version"] = version.strip()
         return result
     except Exception:
-        logger.debug("official Hermes dashboard probe failed", exc_info=True)
+        logger.debug("official Sidekick dashboard probe failed", exc_info=True)
         return {"running": False}
 
 

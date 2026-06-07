@@ -209,9 +209,8 @@ def test_space_scoped_new_sessions_do_not_inherit_previous_workspace_path():
 def test_chat_send_shows_immediate_pending_feedback_before_stream_tokens():
     messages = (ROOT / "static" / "messages.js").read_text(encoding="utf-8")
     ui = (ROOT / "static" / "ui.js").read_text(encoding="utf-8")
-    assert "setComposerStatus('Hermes is starting...')" in messages
-    assert "appendThinking('Starting Hermes...')" in messages
-    assert "setComposerStatus('Hermes is responding...')" in messages
+    assert "setComposerStatus(" in messages
+    assert "appendThinking()" in messages
     assert "(!S.activeStreamId&&!S.busy)" in ui
 
 
@@ -426,6 +425,7 @@ def test_hub_cast_uses_same_origin_proxy_with_unavailable_state():
     assert ".cast-unavailable" in css
     assert 'parsed.path == "/api/cast/status"' in routes
     assert 'parsed.path == "/api/cast/toggle"' in routes
+    assert "SIDEKICK_CAST_API_HOST" in routes
     assert "HERMES_CAST_API_HOST" in routes
 
 

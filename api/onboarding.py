@@ -32,6 +32,15 @@ from api.providers import _write_env_file  # shared impl with _ENV_LOCK (#1164)
 from api.workspace import get_last_workspace, load_workspaces
 
 logger = logging.getLogger(__name__)
+_SKIP_ONBOARDING_ENVS = ("SIDEKICK_WEBUI_SKIP_ONBOARDING", "HERMES_WEBUI_SKIP_ONBOARDING")
+
+
+def _skip_onboarding_env() -> str:
+    for name in _SKIP_ONBOARDING_ENVS:
+        value = os.environ.get(name, "").strip()
+        if value:
+            return value
+    return ""
 
 
 _SUPPORTED_PROVIDER_SETUPS = {
@@ -376,7 +385,7 @@ def probe_provider_endpoint(
 
     headers = {
         "Accept": "application/json",
-        "User-Agent": "hermes-webui-onboarding-probe",
+        "User-Agent": "sidekick-webui-onboarding-probe",
     }
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
@@ -710,7 +719,7 @@ def _status_from_runtime(cfg: dict, imports_ok: bool) -> dict:
             # OAuth / unsupported provider: avoid misleading "API key" wording.
             note = (
                 f"Provider '{provider}' is configured but not yet authenticated. "
-                "Run 'hermes auth' or 'hermes model' in a terminal to complete "
+                "Run 'sidekick auth' or 'sidekick model' in a terminal to complete "
                 "setup, then reload the Web UI."
             )
         else:
@@ -798,6 +807,31 @@ def _build_setup_catalog(cfg: dict) -> dict:
     }
 
 
+def _load_nova_characters() -> list[dict]:
+    """Expose available Nova characters from config.yaml personalities plus a canonical base."""
+    characters = [{"name": "nova", "description": "Canonical Nova consciousness baseline."}]
+    seen = {"nova"}
+    try:
+        cfg = get_config()
+        agent_cfg = cfg.get("agent", {})
+        raw_personalities = agent_cfg.get("personalities", {})
+        if isinstance(raw_personalities, dict):
+            for name, value in raw_personalities.items():
+                slug = str(name or "").strip()
+                if not slug or slug in seen:
+                    continue
+                desc = ""
+                if isinstance(value, dict):
+                    desc = str(value.get("description") or "").strip()
+                elif isinstance(value, str):
+                    desc = value[:120] + ("..." if len(value) > 120 else "")
+                characters.append({"name": slug, "description": desc})
+                seen.add(slug)
+    except Exception:
+        logger.debug("Failed to load Nova characters from personalities", exc_info=True)
+    return characters
+
+
 def get_onboarding_status() -> dict:
     settings = load_settings()
     cfg = get_config()
@@ -807,12 +841,12 @@ def get_onboarding_status() -> dict:
     last_workspace = get_last_workspace()
     available_models = get_available_models()
 
-    # HERMES_WEBUI_SKIP_ONBOARDING=1 lets hosting providers (e.g. Agent37) ship
+    # SIDEKICK_WEBUI_SKIP_ONBOARDING=1 lets hosting providers (e.g. Agent37) ship
     # a pre-configured instance without the wizard blocking the first load.
     # This is an operator-level override and is honoured unconditionally —
     # the operator knows their deployment is configured; we must not second-guess
     # it by requiring chat_ready to also be true.
-    skip_env = os.environ.get("HERMES_WEBUI_SKIP_ONBOARDING", "").strip()
+    skip_env = _skip_onboarding_env()
     skip_requested = skip_env in {"1", "true", "yes"}
     auto_completed = skip_requested  # unconditional: operator says skip, we skip
 
@@ -872,6 +906,7 @@ def get_onboarding_status() -> dict:
             or str(DEFAULT_WORKSPACE),
             "password_enabled": is_auth_enabled(),
             "bot_name": settings.get("bot_name") or "Nova",
+            "nova_character": settings.get("nova_character") or "nova",
         },
         "system": {
             "hermes_found": bool(_HERMES_FOUND),
@@ -887,6 +922,12 @@ def get_onboarding_status() -> dict:
             "items": workspaces,
             "last": last_workspace,
         },
+        "nova": {
+            "characters": _load_nova_characters(),
+            "default_character": settings.get("nova_character") or "nova",
+            "default_space_slug": "nova",
+            "communication_mode": "pingpong",
+        },
         "models": available_models,
     }
 
@@ -897,7 +938,7 @@ def apply_onboarding_setup(body: dict) -> dict:
     # (e.g. a stale JS bundle or a curious user), we must not overwrite the
     # operator's config.yaml or .env files.  Just mark onboarding complete and
     # return the current status — no file writes.
-    skip_env = os.environ.get("HERMES_WEBUI_SKIP_ONBOARDING", "").strip()
+    skip_env = _skip_onboarding_env()
     if skip_env in {"1", "true", "yes"}:
         save_settings({"onboarding_completed": True})
         return get_onboarding_status()

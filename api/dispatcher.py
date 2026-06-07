@@ -310,7 +310,7 @@ def _execute_task(space, agent_slug: str, task_id: str, board_slug: str, worker_
             from api.kanban_bridge import _conn as _kb_conn, _patch_task as _patch
             with _kb_conn(board=board_slug) as conn:
                 _patch(conn, task_id, {"status": "blocked",
-                                       "block_reason": "hermes binary not found on PATH"})
+                                       "block_reason": "sidekick binary not found on PATH"})
         except Exception:
             pass
         finally:
