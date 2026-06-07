@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.svg" alt="Sidekick Agent" width="100%">
+  <img src="assets/banner.png" alt="Sidekick Agent" width="100%">
 </p>
 
 # Sidekick Agent ☤
