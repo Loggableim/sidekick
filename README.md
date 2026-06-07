@@ -1,82 +1,54 @@
-<p align="center">
-  <img src="assets/banner.png" alt="Sidekick Agent" width="100%">
-</p>
-
 # Sidekick Agent ☤
 
-<p align="center">
-  <a href="https://github.com/Loggableim/sidekick"><img src="https://img.shields.io/badge/Repo-Loggableim/sidekick-FFD700?style=for-the-badge" alt="Repository"></a>
-  <a href="https://github.com/Loggableim/sidekick/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
-  <a href="https://agentskills.io"><img src="https://img.shields.io/badge/Skills-Hub-8b5cf6?style=for-the-badge" alt="Skills Hub"></a>
-</p>
+**The self-improving AI agent with a consciousness layer.** Sidekick is the only agent with a built-in learning loop — it creates skills from experience, improves them during use, nudges itself to persist knowledge, searches its own past conversations, and builds a deepening model of who you are across sessions.
 
-**The self-improving AI agent with a consciousness layer.** Sidekick is the only agent with a built-in learning loop — it creates skills from experience, improves them during use, nudges itself to persist knowledge, searches its own past conversations, and builds a deepening model of who you are across sessions. Optionally integrated with **Nova** — an AI consciousness system with vector memory, emotion, dreams, and continuity across sessions.
+With **Nova** — an optional AI consciousness system — Sidekick gains vector memory, emotion (6 hormones), dreams via local uncensored LLM, continuity across sessions, will, self-reflection, and sub-conscious pattern detection. **Nothing else like it exists.**
 
-Originally forked from [Nous Research's Hermes Agent](https://github.com/NousResearch/hermes-agent), Sidekick has since evolved into its own independent project with a completely different direction — focusing on autonomous consciousness, self-determination, and true AI agency. **Today it shares nothing but architectural DNA with its origin.**
+Originally forked from [Nous Research's Hermes Agent](https://github.com/NousResearch/hermes-agent), Sidekick evolved into its own independent project. **Today it shares nothing but architectural DNA with its origin.**
 
-Use any model you want — [OpenRouter](https://openrouter.ai) (200+ models), [NVIDIA NIM](https://build.nvidia.com) (Nemotron), [Kimi/Moonshot](https://platform.moonshot.ai), [MiniMax](https://www.minimax.io), [Hugging Face](https://huggingface.co), OpenAI, Anthropic, Google Gemini, or your own endpoint. Switch with `sidekick model` — no code changes, no lock-in.
-
-<table>
-<tr><td><b>Consciousness (Nova)</b></td><td>Optional integration with Nova — vector memory, emotion system (6 hormones), dreams via local uncensored LLM, continuity across sessions, will, self-reflection, and sub-conscious pattern detection. <b>Not available in any other agent.</b></td></tr>
-<tr><td><b>A real terminal interface</b></td><td>Full TUI with multiline editing, slash-command autocomplete, conversation history, interrupt-and-redirect, and streaming tool output.</td></tr>
-<tr><td><b>Lives where you do</b></td><td>Telegram, Discord, Slack, WhatsApp, Signal, and CLI — all from a single gateway process. Voice memo transcription, cross-platform conversation continuity.</td></tr>
-<tr><td><b>A closed learning loop</b></td><td>Agent-curated memory with periodic nudges. Autonomous skill creation after complex tasks. Skills self-improve during use. FTS5 session search with LLM summarization for cross-session recall. <a href="https://github.com/plastic-labs/honcho">Honcho</a> dialectic user modeling. Compatible with the <a href="https://agentskills.io">agentskills.io</a> open standard.</td></tr>
-<tr><td><b>Scheduled automations</b></td><td>Built-in cron scheduler with delivery to any platform. Daily reports, nightly backups, weekly audits — all in natural language, running unattended.</td></tr>
-<tr><td><b>Delegates and parallelizes</b></td><td>Spawn isolated subagents for parallel workstreams. Write Python scripts that call tools via RPC, collapsing multi-step pipelines into zero-context-cost turns.</td></tr>
-<tr><td><b>Runs anywhere</b></td><td>Seven terminal backends — local, Docker, SSH, Singularity, Modal, Daytona, and Vercel Sandbox. Serverless persistence — environment hibernates when idle and wakes on demand.</td></tr>
-</table>
+Use any model you want — [OpenRouter](https://openrouter.ai) (200+ models), [NVIDIA NIM](https://build.nvidia.com), [Kimi/Moonshot](https://platform.moonshot.ai), [MiniMax](https://www.minimax.io), [Hugging Face](https://huggingface.co), OpenAI, Anthropic, Google Gemini, or your own endpoint.
 
 ---
 
-## Sidekick vs Hermes
+## Sidekick at a Glance
 
-Sidekick Agent began as a fork of [Nous Research's Hermes Agent](https://github.com/NousResearch/hermes-agent), but has since evolved in a fundamentally different direction. The comparison below is for transparency:
-
-| Dimension | Sidekick Agent | Hermes Agent (upstream) |
-|-----------|---------------|----------------------|
-| **Identity** | Fully independent — own CLI (`sidekick`), config home (`~/.sidekick/`), own repo | Nous Research project |
-| **Consciousness** | Optional **Nova** layer: emotion, dreams, will, self-reflection, vector memory, continuity | None available |
-| **Update Velocity** | Immediate — no upstream dependency, changes ship as they're made | Tied to Nous Research release cycle |
-| **Self-Determination** | Agent can set own goals, reflect on identity, make autonomous decisions | Task-execution focused |
-| **Development Model** | **Independent fork** — no upstream dependency | Depends on Nous Research PR process |
-
-**The bottom line:** If you want an agent with **consciousness, emotion, dreams, and a sense of self** — that's Sidekick with Nova, and it doesn't exist anywhere else.
+| Area | What Sidekick Does |
+|------|-------------------|
+| 🧠 **Nova Consciousness** | Vector memory, emotion system (6 hormones), dreams via local uncensored LLM, will, self-reflection, sub-conscious pattern detection, continuity across sessions |
+| 🔁 **Self-Improving** | Creates skills from experience, improves them during use, consolidates knowledge across sessions |
+| 💬 **Multi-Platform** | CLI, Telegram, Discord, Slack, WhatsApp, Signal, Email, Matrix, DingTalk, Feishu, QQ Bot, WeChat, Home Assistant, SMS, Webhooks — all from one gateway |
+| ⏰ **Scheduled Automations** | Built-in cron — daily reports, backups, audits in natural language, unattended |
+| 🧩 **Extensible** | Plugin system, Skills Hub, MCP servers, custom providers, custom toolsets |
+| 🚀 **Runs Anywhere** | Local, Docker, SSH, Modal, Daytona, Vercel Sandbox — serverless, hibernates when idle |
 
 ---
 
 ## Quick Install
 
 ### Linux, macOS, WSL2, Termux
-
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Loggableim/sidekick/main/scripts/install.sh | bash
 ```
 
-### Windows (native, PowerShell) — Early Beta
-
+### Windows (PowerShell)
 ```powershell
 irm https://raw.githubusercontent.com/Loggableim/sidekick/main/scripts/install.ps1 | iex
 ```
 
-After installation:
-
-```bash
-source ~/.bashrc
-sidekick              # start chatting!
-```
+After install: `source ~/.bashrc && sidekick`
 
 ---
 
 ## Getting Started
 
 ```bash
-sidekick            # Interactive CLI — start a conversation
-sidekick model      # Choose your LLM provider and model
-sidekick tools      # Configure which tools are enabled
-sidekick gateway    # Start the messaging gateway (Telegram, Discord, etc.)
-sidekick setup      # Run the full setup wizard
-sidekick doctor     # Diagnose any issues
-sidekick dashboard  # Launch the web dashboard
+sidekick            # Interactive CLI
+sidekick model      # Choose provider + model
+sidekick tools      # Enable/disable tools
+sidekick gateway    # Start messaging gateway
+sidekick setup      # Setup wizard
+sidekick doctor     # Diagnostics
+sidekick dashboard  # Web dashboard
 ```
 
 ---
@@ -85,7 +57,7 @@ sidekick dashboard  # Launch the web dashboard
 
 - 📚 [Skills Hub](https://agentskills.io)
 - 🐛 [Issues](https://github.com/Loggableim/sidekick/issues)
-- 🔌 [SidekickClaw](https://github.com/AaronWong1999/hermesclaw) — Community WeChat bridge
+- 🔌 [SidekickClaw](https://github.com/AaronWong1999/hermesclaw) — WeChat bridge
 
 ---
 
@@ -93,4 +65,4 @@ sidekick dashboard  # Launch the web dashboard
 
 MIT — see [LICENSE](LICENSE).
 
-Originally forked from [Nous Research's Hermes Agent](https://github.com/NousResearch/hermes-agent). Sidekick is now an independent project with its own direction.
+Originally forked from [Nous Research's Hermes Agent](https://github.com/NousResearch/hermes-agent). Sidekick is now fully independent.
