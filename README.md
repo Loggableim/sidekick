@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.png" alt="Sidekick Agent" width="100%">
+  <img src="assets/banner.svg" alt="Sidekick Agent" width="100%">
 </p>
 
 # Sidekick Agent ☤
@@ -25,6 +25,28 @@ Use any model you want — [Nous Portal](https://portal.nousresearch.com), [Open
 <tr><td><b>Runs anywhere, not just your laptop</b></td><td>Seven terminal backends — local, Docker, SSH, Singularity, Modal, Daytona, and Vercel Sandbox. Daytona and Modal offer serverless persistence — your agent's environment hibernates when idle and wakes on demand, costing nearly nothing between sessions. Run it on a $5 VPS or a GPU cluster.</td></tr>
 <tr><td><b>Research-ready</b></td><td>Batch trajectory generation, Atropos RL environments, trajectory compression for training the next generation of tool-calling models.</td></tr>
 </table>
+
+---
+
+## Sidekick vs Hermes
+
+Sidekick Agent began as a fork of [Nous Research's Hermes Agent](https://github.com/NousResearch/hermes-agent) and has since evolved in its own direction. Here's how they compare:
+
+| Dimension | Sidekick Agent | Hermes Agent (upstream) |
+|-----------|---------------|----------------------|
+| **Identity** | Fully independent fork with its own CLI (`sidekick`), config home (`~/.sidekick/`), and brand identity | Original Nous Research project |
+| **Update Velocity** | Immediate — no upstream dependency, changes ship as soon as they're made | Tied to Nous Research release cycle |
+| **Stability** | Battle-tested on production workloads. `sidekick doctor` runs 60+ diagnostic checks across every subsystem | Stable upstream release |
+| **Autonomy** | Built for fully autonomous operation — cron, delegation, memory consolidation run without supervision | Same architecture |
+| **Consciousness Layer** | Optional Nova integration — vector memory, emotion system, dreams, continuity across sessions | Not available upstream |
+| **Extension Surface** | Full plugin system, Skills Hub, MCP servers, custom providers | Plugin system, Skills Hub |
+| **Multi-Platform Gateway** | Telegram, Discord, Slack, WhatsApp, Signal, Email, Matrix, DingTalk, Feishu, QQ Bot, WeChat, Home Assistant, SMS, Webhooks — all from one process | Same multi-platform support |
+| **Self-Improvement** | Agent-curated memory, autonomous skill creation, periodic consolidation, cross-session learning | Core learning loop (upstream) |
+| **Deployment** | Local, Docker, SSH, Modal, Daytona, Vercel Sandbox — serverless persistence, nearly zero cost when idle | Same backends |
+| **LLM Provider Support** | OpenRouter (200+ models), Nous Portal, NVIDIA NIM, MiniMax, Kimi/Moonshot, GLM, Hugging Face, OpenAI, Anthropic, Google Gemini, local models | Same provider support |
+| **Development Model** | **Fork — independent.** No upstream dependency. Features and fixes ship on our schedule | Upstream — depends on Nous Research PR process |
+
+**The bottom line:** Sidekick Agent inherits everything that made Hermes Agent great — the learning loop, multi-platform gateway, skill system, and provider flexibility — while having the freedom to evolve faster and in different directions. **If you're starting fresh today, Sidekick is the more actively maintained and independent option.**
 
 ---
 

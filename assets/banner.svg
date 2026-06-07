@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1145" height="196" viewBox="0 0 1145 196">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#07070d;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0a0a18;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#050510;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5C542;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D4961C;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldText" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFA500;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFD700;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="teal" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00d4aa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00b894;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- Circuit pattern -->
+    <pattern id="circuits" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M0 30 L20 30 L20 10 L40 10 L40 30 L60 30" fill="none" stroke="#1a1a2e" stroke-width="0.5" opacity="0.4"/>
+      <path d="M30 0 L30 20 L10 20 L10 40 L30 40 L30 60" fill="none" stroke="#1a1a2e" stroke-width="0.5" opacity="0.3"/>
+      <circle cx="20" cy="30" r="1.5" fill="#1a1a2e" opacity="0.3"/>
+      <circle cx="40" cy="10" r="1" fill="#1a1a2e" opacity="0.2"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1145" height="196" fill="url(#bg)"/>
+  <rect width="1145" height="196" fill="url(#circuits)"/>
+
+  <!-- Subtle glow orbs -->
+  <circle cx="200" cy="100" r="120" fill="#F5C542" opacity="0.03" filter="url(#glow)"/>
+  <circle cx="900" cy="80" r="80" fill="#00d4aa" opacity="0.02" filter="url(#glow)"/>
+
+  <!-- Divider line -->
+  <line x1="420" y1="20" x2="420" y2="176" stroke="url(#gold)" stroke-width="1" opacity="0.4"/>
+
+  <!-- Caduceus Staff SVG Icon -->
+  <g transform="translate(80, 20)" filter="url(#softGlow)">
+    <!-- Staff -->
+    <rect x="100" y="25" width="6" height="130" rx="3" fill="url(#gold)"/>
+    <!-- Wings left -->
+    <path d="M103 50 C80 40, 50 45, 40 55 C55 50, 75 48, 95 55" fill="#F5C542" opacity="0.85"/>
+    <path d="M103 58 C82 50, 58 53, 48 62 C62 57, 80 55, 97 61" fill="#D4961C" opacity="0.75"/>
+    <!-- Wings right -->
+    <path d="M109 50 C132 40, 162 45, 172 55 C157 50, 137 48, 117 55" fill="#F5C542" opacity="0.85"/>
+    <path d="M109 58 C130 50, 154 53, 164 62 C150 57, 132 55, 115 61" fill="#D4961C" opacity="0.75"/>
+    <!-- Left serpent -->
+    <path d="M106 130 C90 120, 85 110, 92 100 C85 104, 82 115, 88 122 C80 112, 86 95, 100 88 C92 95, 88 108, 95 115" fill="none" stroke="#F5C542" stroke-width="3.5" stroke-linecap="round"/>
+    <!-- Right serpent -->
+    <path d="M106 130 C122 120, 127 110, 120 100 C127 104, 130 115, 124 122 C132 112, 126 95, 112 88 C120 95, 124 108, 117 115" fill="none" stroke="#D4961C" stroke-width="3.5" stroke-linecap="round"/>
+    <!-- Orb at top -->
+    <circle cx="103" cy="25" r="8" fill="url(#gold)"/>
+    <circle cx="103" cy="25" r="4" fill="#FFF8E1" opacity="0.6"/>
+  </g>
+
+  <!-- Sidekick Agent Title -->
+  <text x="480" y="85" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="52" font-weight="800" fill="url(#goldText)" letter-spacing="3">SIDEKICK</text>
+  <text x="480" y="130" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="32" font-weight="300" fill="#b8b8c8" letter-spacing="6">AGENT</text>
+
+  <!-- Tagline -->
+  <text x="480" y="162" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="14" fill="#6a6a7a" letter-spacing="2">THE SELF-IMPROVING AI AGENT</text>
+
+  <!-- Right side accent -->
+  <g transform="translate(1040, 50)">
+    <rect x="0" y="0" width="1" height="96" fill="#F5C542" opacity="0.3"/>
+    <circle cx="0" cy="96" r="3" fill="#F5C542" opacity="0.5"/>
+  </g>
+
+  <!-- Bottom accent line -->
+  <line x1="0" y1="193" x2="1145" y2="193" stroke="url(#gold)" stroke-width="2" opacity="0.6"/>
+  <line x1="0" y1="195" x2="1145" y2="195" stroke="url(#teal)" stroke-width="1" opacity="0.3"/>
+</svg>
