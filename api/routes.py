@@ -5,6 +5,7 @@ Extracted from server.py (Sprint 11) so server.py is a thin shell.
 
 import html as _html
 import copy
+import importlib.util
 import json
 import logging
 import os
@@ -31,6 +32,11 @@ from api.agent_sessions import (
 from api.compression_anchor import visible_messages_for_anchor
 
 logger = logging.getLogger(__name__)
+
+_NOVA_ROUTE_STATUS_CACHE: dict[str, object] = {
+    "module": None,
+    "mtime": None,
+}
 
 # Treat stalled/closed HTTP clients as normal disconnects.  Long-lived SSE
 # connections often end this way when a browser tab sleeps, a phone switches
@@ -218,6 +224,47 @@ def _active_skill_search_dirs(skills_dir: Path) -> list[Path]:
     except Exception:
         pass
     return [p for p in dirs if p.exists()]
+
+
+def _load_nova_route_status() -> dict:
+    """Return Nova worker routing status for the active C: runtime.
+
+    Keep this loader self-contained and defensive so the WebUI never depends on
+    the Nova space being importable at process start.
+    """
+    root = Path(__file__).resolve().parents[2]
+    snapshot_path = root / "home" / "spaces" / "nova" / "state_snapshot.py"
+    nova_dir = str(snapshot_path.parent)
+    if not snapshot_path.exists():
+        return {"healthy": False, "reason": "state_snapshot_missing"}
+
+    try:
+        mtime = snapshot_path.stat().st_mtime
+        module = _NOVA_ROUTE_STATUS_CACHE.get("module")
+        if module is None or _NOVA_ROUTE_STATUS_CACHE.get("mtime") != mtime:
+            spec = importlib.util.spec_from_file_location("nova_state_snapshot_webui", snapshot_path)
+            if spec is None or spec.loader is None:
+                return {"healthy": False, "reason": "state_snapshot_unloadable"}
+            module = importlib.util.module_from_spec(spec)
+            sys.path.insert(0, nova_dir)
+            try:
+                spec.loader.exec_module(module)
+            finally:
+                if sys.path and sys.path[0] == nova_dir:
+                    sys.path.pop(0)
+            _NOVA_ROUTE_STATUS_CACHE["module"] = module
+            _NOVA_ROUTE_STATUS_CACHE["mtime"] = mtime
+
+        loader = getattr(module, "load_router_health", None)
+        if not callable(loader):
+            return {"healthy": False, "reason": "router_health_loader_missing"}
+
+        payload = loader() or {}
+        if not isinstance(payload, dict):
+            return {"healthy": False, "reason": "router_health_invalid"}
+        return payload
+    except Exception as exc:
+        return {"healthy": False, "reason": repr(exc)}
 
 
 def _worktree_retained_payload(session) -> dict:
@@ -1216,6 +1263,26 @@ def _catalog_model_id_matches(candidate: str, model: str) -> bool:
     return candidate.replace("-", ".").lower() == model.replace("-", ".").lower()
 
 
+def _catalog_provider_has_model(
+    catalog: dict,
+    provider_id: str,
+    model: str,
+) -> bool:
+    provider_id = str(provider_id or "").strip().lower()
+    if not provider_id or not model:
+        return False
+    for group in catalog.get("groups") or []:
+        group_provider = str(group.get("provider_id") or "").strip().lower()
+        if group_provider != provider_id:
+            continue
+        return any(
+            _catalog_model_id_matches(entry.get("id"), model)
+            for entry in group.get("models", [])
+            if isinstance(entry, dict)
+        )
+    return False
+
+
 def _clean_session_model_provider(value: str | None) -> str | None:
     provider = str(value or "").strip().lower()
     if not provider or provider == "default":
@@ -1293,7 +1360,34 @@ def _resolve_compatible_session_model_state(
 
     bare_for_context, explicit_provider = _split_provider_qualified_model(model)
     if requested_provider and not explicit_provider:
-        return model, requested_provider, False
+        requested_provider_clean = _clean_session_model_provider(requested_provider)
+        requested_provider_normalized = _normalize_provider_id(requested_provider_clean or "")
+        if requested_provider_clean and (
+            requested_provider_clean == raw_active_provider
+            or (
+                requested_provider_normalized
+                and active_provider
+                and requested_provider_normalized == active_provider
+            )
+            or requested_provider_normalized == raw_active_provider
+        ):
+            return model, requested_provider_clean, False
+        if raw_active_provider and _catalog_provider_has_model(
+            catalog,
+            raw_active_provider,
+            bare_for_context,
+        ):
+            provider_context = (
+                raw_active_provider
+                if _should_attach_codex_provider_context(
+                    bare_for_context,
+                    raw_active_provider,
+                    catalog,
+                )
+                else raw_active_provider
+            )
+            return model, provider_context, False
+        return model, requested_provider_clean or requested_provider, False
 
     if model.startswith("@") and ":" in model:
         provider_raw = explicit_provider or ""
@@ -3288,6 +3382,9 @@ def handle_get(handler, parsed) -> bool:
     if parsed.path == "/api/models/live":
         return _handle_live_models(handler, parsed)
 
+    if parsed.path == "/api/nova/routes":
+        return j(handler, _load_nova_route_status())
+
     if parsed.path == "/api/dashboard/status":
         from api import dashboard_probe
 
@@ -3335,7 +3432,8 @@ def handle_get(handler, parsed) -> bool:
         # precedence in api.auth.get_password_hash(), but until now the UI
         # had no way to know — see issue #1139 / #1560.
         settings["password_env_var"] = bool(
-            os.getenv("HERMES_WEBUI_PASSWORD", "").strip()
+            os.getenv("SIDEKICK_WEBUI_PASSWORD", "").strip()
+            or os.getenv("HERMES_WEBUI_PASSWORD", "").strip()
         )
         # Inject the running version so the UI badge stays in sync with git tags
         # without any manual release step.
@@ -4019,6 +4117,9 @@ def handle_get(handler, parsed) -> bool:
     if parsed.path == "/api/approval/pending":
         return _handle_approval_pending(handler, parsed)
 
+    if parsed.path == "/api/approval/pending-all":
+        return _handle_approval_pending_all(handler, parsed)
+
     if parsed.path == "/api/approval/stream":
         return _handle_approval_sse_stream(handler, parsed)
 
@@ -4523,7 +4624,10 @@ def _handle_window_control(handler, body):
 
 
 def _cast_api_host() -> str:
-    return os.getenv("HERMES_CAST_API_HOST", "http://192.168.1.110:8765").rstrip("/")
+    return (
+        os.getenv("SIDEKICK_CAST_API_HOST", "").strip()
+        or os.getenv("HERMES_CAST_API_HOST", "http://192.168.1.110:8765").strip()
+    ).rstrip("/")
 
 
 def _handle_cast_proxy(handler, endpoint: str, method: str = "GET"):
@@ -4569,6 +4673,33 @@ def handle_post(handler, parsed) -> bool:
             if diag:
                 diag.finish()
 
+    # CSP violation reports: browsers POST application/csp-report payloads
+    # automatically when Content-Security-Policy-Report-Only is violated.
+    # Accept them anonymously (no body parse, no auth) and log to stderr.
+    if parsed.path == "/api/csp-report":
+        try:
+            length = int(handler.headers.get("Content-Length", "0") or 0)
+        except ValueError:
+            length = 0
+        raw = b""
+        if 0 < length <= 64 * 1024:
+            try:
+                raw = handler.rfile.read(length)
+            except Exception:
+                raw = b""
+        # Log a one-line summary; full payload is in webui access log if needed.
+        try:
+            preview = raw[:512].decode("utf-8", errors="replace")
+        except Exception:
+            preview = ""
+        print(f"[csp-report] {preview}", flush=True)
+        # Always 204 No Content so the browser stops retrying.
+        handler.send_response(204)
+        handler.end_headers()
+        return True
+
+    if diag:
+        diag.stage("read_body")
     if parsed.path == "/api/upload":
         return handle_upload(handler)
     if parsed.path == "/api/upload/extract":
@@ -4733,13 +4864,21 @@ def handle_post(handler, parsed) -> bool:
         color = (body.get("color") or "").strip()
         emoji = (body.get("emoji") or "").strip()
         project_dir = (body.get("project_dir") or "").strip()
+        nova_instance = bool(body.get("nova_instance"))
+        nova_character = (body.get("nova_character") or "").strip()
         if not slug:
             return bad(handler, "slug is required")
         if not re.match(r'^[a-z0-9][a-z0-9_-]*$', slug):
             return bad(handler, "Invalid slug. Use a-z, 0-9, _, -")
-        from api.space_engine import create_workspace
+        from api.space_engine import SpaceExists, create_workspace
         try:
-            ws = create_workspace(slug, name, color)
+            ws = create_workspace(
+                slug,
+                name,
+                color,
+                nova_instance=nova_instance,
+                nova_character=nova_character,
+            )
             cfg = ws.load_config()
             if emoji:
                 cfg["emoji"] = emoji
@@ -4747,7 +4886,7 @@ def handle_post(handler, parsed) -> bool:
                 cfg["project_dir"] = project_dir
             ws.save_config(cfg)
             return j(handler, {"space": ws.to_dict()})
-        except ValueError as e:
+        except (ValueError, SpaceExists) as e:
             return bad(handler, str(e), status=409)
 
     if parsed.path == "/api/space/delete":
@@ -4769,7 +4908,7 @@ def handle_post(handler, parsed) -> bool:
             return bad(handler, "Space not found", status=404)
         # Only save the fields that were actually sent in the body
         patch_data = {}
-        for key in ("model", "reasoning_effort", "personality", "description", "project_dir", "color", "gmail", "discord", "emoji"):
+        for key in ("model", "reasoning_effort", "personality", "description", "project_dir", "color", "gmail", "discord", "emoji", "nova"):
             if key in body:
                 patch_data[key] = body[key]
         if patch_data:
@@ -5191,9 +5330,8 @@ def handle_post(handler, parsed) -> bool:
             return bad(handler, "Read-only imported sessions cannot be deleted from WebUI", 400)
         is_messaging_session = _is_messaging_session_id(sid)
         worktree_retained = _worktree_retained_payload_for_session_id(sid)
-        # Delete from WebUI session store
-        with LOCK:
-            SESSIONS.pop(sid, None)
+        # Delete from WebUI session store (single dict pop — GIL-safe)
+        SESSIONS.pop(sid, None)
         try:
             (get_session_dir() / "_index.json").unlink(missing_ok=True)
         except Exception:
@@ -5685,16 +5823,19 @@ def handle_post(handler, parsed) -> bool:
         )
         requested_clear_password = bool(body.get("_clear_password"))
 
-        # #1560: HERMES_WEBUI_PASSWORD env var takes precedence in
+        # #1560: SIDEKICK_WEBUI_PASSWORD / legacy HERMES_WEBUI_PASSWORD take precedence in
         # api.auth.get_password_hash(), so writing password_hash to settings.json
         # has no effect on auth. Refuse loudly with 409 instead of silently
         # succeeding — the previous behaviour returned 200 + a green save toast
         # while every subsequent login still required the env-var password.
         if requested_password or requested_clear_password:
-            if os.getenv("HERMES_WEBUI_PASSWORD", "").strip():
+            if (
+                os.getenv("SIDEKICK_WEBUI_PASSWORD", "").strip()
+                or os.getenv("HERMES_WEBUI_PASSWORD", "").strip()
+            ):
                 return bad(
                     handler,
-                    "HERMES_WEBUI_PASSWORD env var is set — it overrides the settings password. "
+                    "SIDEKICK_WEBUI_PASSWORD env var is set — it overrides the settings password. "
                     "Unset the env var and restart the server before changing the password here.",
                     409,
                 )
@@ -5734,7 +5875,9 @@ def handle_post(handler, parsed) -> bool:
     if parsed.path == "/api/onboarding/oauth/start":
         from api.auth import is_auth_enabled
         import os as _os
-        if not is_auth_enabled() and not _os.getenv("HERMES_WEBUI_ONBOARDING_OPEN"):
+        if not is_auth_enabled() and not (
+            _os.getenv("SIDEKICK_WEBUI_ONBOARDING_OPEN") or _os.getenv("HERMES_WEBUI_ONBOARDING_OPEN")
+        ):
             import ipaddress
             try:
                 _xff = handler.headers.get("X-Forwarded-For", "").split(",")[0].strip()
@@ -5745,7 +5888,7 @@ def handle_post(handler, parsed) -> bool:
             except ValueError:
                 is_local = False
             if not is_local:
-                return bad(handler, "Onboarding OAuth is only available from local networks when auth is not enabled. To bypass this on a remote server, set HERMES_WEBUI_ONBOARDING_OPEN=1.", 403)
+                return bad(handler, "Onboarding OAuth is only available from local networks when auth is not enabled. To bypass this on a remote server, set SIDEKICK_WEBUI_ONBOARDING_OPEN=1.", 403)
         try:
             return j(handler, start_onboarding_oauth_flow(body), extra_headers={"Cache-Control": "no-store"})
         except ValueError as e:
@@ -5765,11 +5908,13 @@ def handle_post(handler, parsed) -> bool:
         # even when the user accesses via localhost:8787 on the host.
         # Behind a reverse proxy (nginx/Caddy/Traefik) or SSH tunnel, X-Forwarded-For
         # carries the real origin IP — read it first before falling back to the raw socket addr.
-        # HERMES_WEBUI_ONBOARDING_OPEN=1 lets operators on remote servers explicitly bypass
+        # SIDEKICK_WEBUI_ONBOARDING_OPEN=1 lets operators on remote servers explicitly bypass
         # the check when they control network access themselves (e.g. firewall + VPN).
         from api.auth import is_auth_enabled
         import os as _os
-        if not is_auth_enabled() and not _os.getenv("HERMES_WEBUI_ONBOARDING_OPEN"):
+        if not is_auth_enabled() and not (
+            _os.getenv("SIDEKICK_WEBUI_ONBOARDING_OPEN") or _os.getenv("HERMES_WEBUI_ONBOARDING_OPEN")
+        ):
             import ipaddress
             try:
                 # Prefer forwarded headers set by reverse proxies
@@ -5782,7 +5927,7 @@ def handle_post(handler, parsed) -> bool:
             except ValueError:
                 is_local = False
             if not is_local:
-                return bad(handler, "Onboarding setup is only available from local networks when auth is not enabled. To bypass this on a remote server, set HERMES_WEBUI_ONBOARDING_OPEN=1.", 403)
+                return bad(handler, "Onboarding setup is only available from local networks when auth is not enabled. To bypass this on a remote server, set SIDEKICK_WEBUI_ONBOARDING_OPEN=1.", 403)
         try:
             return j(handler, apply_onboarding_setup(body))
         except ValueError as e:
@@ -5802,7 +5947,9 @@ def handle_post(handler, parsed) -> bool:
         # spirit because it carries an api_key the user typed).
         from api.auth import is_auth_enabled
         import os as _os
-        if not is_auth_enabled() and not _os.getenv("HERMES_WEBUI_ONBOARDING_OPEN"):
+        if not is_auth_enabled() and not (
+            _os.getenv("SIDEKICK_WEBUI_ONBOARDING_OPEN") or _os.getenv("HERMES_WEBUI_ONBOARDING_OPEN")
+        ):
             import ipaddress
             try:
                 _xff = handler.headers.get("X-Forwarded-For", "").split(",")[0].strip()
@@ -5814,7 +5961,7 @@ def handle_post(handler, parsed) -> bool:
             except ValueError:
                 is_local = False
             if not is_local:
-                return bad(handler, "Onboarding probe is only available from local networks when auth is not enabled. To bypass this on a remote server, set HERMES_WEBUI_ONBOARDING_OPEN=1.", 403)
+                return bad(handler, "Onboarding probe is only available from local networks when auth is not enabled. To bypass this on a remote server, set SIDEKICK_WEBUI_ONBOARDING_OPEN=1.", 403)
         provider = str((body or {}).get("provider") or "").strip().lower()
         base_url = str((body or {}).get("base_url") or "")
         api_key = str((body or {}).get("api_key") or "").strip() or None
@@ -6545,7 +6692,7 @@ def _handle_agents_post(handler, parsed, body):
                 "output": result.stdout.strip() or result.stderr.strip(),
             })
         except FileNotFoundError:
-            return bad(handler, "hermes CLI not found in PATH", status=500)
+            return bad(handler, "sidekick CLI not found in PATH", status=500)
         except Exception as e:
             return bad(handler, str(e), status=500)
 
@@ -7170,7 +7317,7 @@ def _parse_range_header(range_header: str, file_size: int) -> tuple[int, int] | 
         return None
 
 
-def _serve_file_bytes(handler, target: Path, mime: str, disposition: str, cache_control: str, *, csp: str | None = None):
+def _serve_file_bytes(handler, target: Path, mime: str, disposition: str, cache_control: str, *, csp: str | None = None, inject_doctype: bool = False):
     """Serve a file with correct MIME/disposition and optional byte-range support."""
     try:
         file_size = target.stat().st_size
@@ -7190,6 +7337,31 @@ def _serve_file_bytes(handler, target: Path, mime: str, disposition: str, cache_
 
     start, end = byte_range if byte_range else (0, max(0, file_size - 1))
     content_length = end - start + 1 if file_size else 0
+    # When injecting a DOCTYPE, the sent body will be 15 bytes longer than the
+    # raw file. We only do this for non-range requests (Range + DOCTYPE-injection
+    # is an edge case the workspace HTML preview iframe never triggers).
+    # Defense-in-depth: only inject for text/html — callers shouldn't pass
+    # inject_doctype=True for PDFs or other binary types, but if they do we
+    # refuse rather than corrupt the file.
+    #
+    # We must look at the file's first bytes *before* sending Content-Length,
+    # because if the file already has a DOCTYPE we will skip the injection and
+    # must NOT have added the 16 bytes to the announced length.
+    doctype_prefix = b""
+    inject_now = bool(
+        inject_doctype and not byte_range and content_length and mime == "text/html"
+    )
+    if inject_now:
+        try:
+            with target.open("rb") as _probe:
+                _head = _probe.read(512).lstrip().lower()
+            if _head.startswith(b"<!doctype") or _head.startswith(b"<html") or _head.startswith(b"<?xml"):
+                inject_now = False  # file already triggers Standards Mode
+            else:
+                doctype_prefix = b"<!doctype html>\n"
+                content_length += len(doctype_prefix)
+        except OSError:
+            inject_now = False
     handler.send_response(206 if byte_range else 200)
     handler.send_header("Content-Type", mime)
     handler.send_header("Content-Length", str(content_length))
@@ -7215,6 +7387,10 @@ def _serve_file_bytes(handler, target: Path, mime: str, disposition: str, cache_
     if content_length:
         try:
             with target.open("rb") as f:
+                if doctype_prefix:
+                    # We decided above to inject the DOCTYPE — the file did
+                    # not already trigger Standards Mode.
+                    handler.wfile.write(doctype_prefix)
                 f.seek(start)
                 remaining = content_length
                 while remaining:
@@ -7370,7 +7546,16 @@ def _handle_media(handler, parsed):
         )
     ) else "attachment"
     csp = "sandbox allow-scripts" if html_inline_ok else None
-    return _serve_file_bytes(handler, target, mime, disposition, "private, max-age=3600", csp=csp)
+    # Defense-in-depth: prepend a <!doctype html> to user HTML previews so the
+    # iframe renders in Standards Mode. Without a DOCTYPE, browsers fall back
+    # to Quirks Mode and warn in the console ("This page is in Quirks Mode").
+    # The sandbox already isolates the document, so injecting a DOCTYPE cannot
+    # change the security posture — it only fixes CSS box-model behavior.
+    inject_doctype = html_inline_ok
+    return _serve_file_bytes(
+        handler, target, mime, disposition, "private, max-age=3600",
+        csp=csp, inject_doctype=inject_doctype,
+    )
 
 
 def _handle_file_raw(handler, parsed):
@@ -7444,6 +7629,28 @@ def _handle_approval_pending(handler, parsed):
     if p:
         return j(handler, {"pending": dict(p), "pending_count": total})
     return j(handler, {"pending": None, "pending_count": 0})
+
+
+def _handle_approval_pending_all(handler, parsed):
+    """Returns ALL sessions that have pending approvals, for cross-session awareness.
+
+    Returns:
+        {"sessions": {sid: {"pending": {...}, "pending_count": N}, ...}}
+    """
+    result = {}
+    with _lock:
+        for sid, queue in _pending.items():
+            if isinstance(queue, list):
+                p = queue[0] if queue else None
+                total = len(queue)
+            elif queue:
+                p = queue
+                total = 1
+            else:
+                continue
+            if p:
+                result[sid] = {"pending": dict(p), "pending_count": total}
+    return j(handler, {"sessions": result})
 
 
 def _handle_approval_sse_stream(handler, parsed):
@@ -8464,8 +8671,7 @@ def _handle_sessions_cleanup(handler, body, zero_only=False):
             else:
                 should_delete = s and s.title == "Untitled" and len(s.messages) == 0
             if should_delete:
-                with LOCK:
-                    SESSIONS.pop(p.stem, None)
+                SESSIONS.pop(p.stem, None)  # single dict pop — GIL-safe
                 p.unlink(missing_ok=True)
                 cleaned += 1
         except Exception:

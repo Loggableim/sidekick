@@ -87,21 +87,26 @@ def test_inline_html_response_sets_csp_sandbox():
     the document to a unique opaque origin server-side.
     """
     content = _get_routes_content()
-    # Find the html_inline_ok block in _handle_file_raw
+    # Find the html_inline_ok block in _handle_file_raw. The CSP header is now
+    # set inside _serve_file_bytes (centralized for all sandboxed inline HTML
+    # responses), so we search a wider range to cover both call sites.
     idx = content.find("html_inline_ok")
     assert idx != -1, "html_inline_ok block not found"
     block = content[idx:idx + 2500]
-    assert "Content-Security-Policy" in block, (
-        "_handle_file_raw must set Content-Security-Policy header on inline HTML responses"
+    # Accept either an explicit header send in this block or a call to
+    # _serve_file_bytes that passes csp="sandbox ..." (the actual header is
+    # emitted inside _serve_file_bytes, which is tested separately).
+    has_explicit = "Content-Security-Policy" in block and "send_header" in block
+    has_delegated = "_serve_file_bytes(" in block and 'csp=' in block and "sandbox" in block
+    assert has_explicit or has_delegated, (
+        "_handle_file_raw must set Content-Security-Policy header on inline HTML responses "
+        "(either directly via send_header, or via _serve_file_bytes(..., csp='sandbox ...'))"
     )
-    assert "sandbox" in block, (
-        "CSP must include the sandbox directive"
-    )
+    assert "sandbox" in block, "CSP must include the sandbox directive"
     # Must NOT have allow-same-origin in the sandbox directive
-    csp_sections = [line for line in block.splitlines() if "sandbox" in line and "Policy" in line]
+    csp_sections = [line for line in block.splitlines() if "sandbox" in line]
     for line in csp_sections:
-        # The line setting the CSP header — make sure it doesn't grant same-origin
-        if "send_header" in line:
+        if "send_header" in line or "csp=" in line:
             assert "allow-same-origin" not in line, (
                 "CSP sandbox must NOT include allow-same-origin — that would defeat the isolation"
             )

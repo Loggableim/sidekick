@@ -70,8 +70,11 @@ def test_media_html_inline_keeps_csp_sandbox():
     """api/media may serve HTML inline only behind a CSP sandbox."""
     # Slice widened to 5000 (was 4000) after PR #2044 added MEDIA_ALLOWED_ROOTS
     # parsing earlier in _handle_media, which pushed the CSP block past the
-    # original window. The assertion is structural, not positional.
-    body = _slice_after(ROUTES_PY, "def _handle_media", 5000)
+    # original window. Widened again to 5800 after the DOCTYPE-injection PR
+    # (issue 1909 + Quirks-Mode fix) added comments and an inject_doctype kwarg
+    # before the csp=csp call into _serve_file_bytes. The assertion is
+    # structural, not positional.
+    body = _slice_after(ROUTES_PY, "def _handle_media", 5800)
     assert 'html_inline_ok = inline_preview and mime == "text/html"' in body
     assert 'csp = "sandbox allow-scripts" if html_inline_ok else None' in body
     assert "csp=csp" in body
@@ -80,7 +83,10 @@ def test_media_html_inline_keeps_csp_sandbox():
 
 def test_sandboxed_file_responses_do_not_send_x_frame_options():
     """X-Frame-Options: DENY would block the sandbox iframe preview."""
-    body = _slice_after(ROUTES_PY, "def _serve_file_bytes", 1800)
+    # Slice widened to 3000 (was 1800/2200) after the DOCTYPE-injection PR
+    # moved the csp branch ~2700 chars into the function (probe + content_length
+    # adjustments happen before send_header).
+    body = _slice_after(ROUTES_PY, "def _serve_file_bytes", 3000)
     csp_branch = body[body.find("if csp:") : body.find("else:", body.find("if csp:"))]
     assert "Content-Security-Policy" in csp_branch
     assert 'send_header("X-Frame-Options"' not in csp_branch

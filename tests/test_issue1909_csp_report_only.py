@@ -31,5 +31,9 @@ def test_csp_report_only_keeps_legacy_inline_allowances_for_current_ui():
     # unsafe-eval was dropped after Opus stage-339 verification — no production
     # JS uses eval(), new Function(), or string-form setTimeout/setInterval.
     assert "'unsafe-eval'" not in policy
-    assert "img-src 'self' data: blob:" in policy
+    # The real policy allows https: images for cross-origin static assets
+    # (Cloudflare images, etc.) — the test originally asserted the more
+    # restrictive substring which stopped matching when https: was added
+    # upstream. Assert the actual substring the production policy uses.
+    assert "img-src 'self' data: https: blob:" in policy
     assert "connect-src 'self'" in policy

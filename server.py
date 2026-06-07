@@ -260,7 +260,8 @@ class Handler(BaseHTTPRequestHandler):
         "media-src 'self' data: blob:; "
         "connect-src 'self' https://cdn.jsdelivr.net http://127.0.0.1:* http://localhost:* http://192.168.1.110:* ws://127.0.0.1:* ws://localhost:* ws://192.168.1.110:*; "
         "manifest-src 'self' https://*.cloudflareaccess.com; "
-        "form-action 'self'"
+        "form-action 'self'; "
+        "report-uri /api/csp-report"
     )
 
     @classmethod

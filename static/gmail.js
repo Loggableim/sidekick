@@ -567,7 +567,7 @@ async function saveGmailSetup() {
   try {
     // Get current workspace slug
     const params = new URLSearchParams((typeof getActiveSpaceQuery === 'function' ? getActiveSpaceQuery() : '').slice(1));
-    const slug = params.get('workspace') || 'default';
+    const slug = params.get('workspace') || window.DEFAULT_SPACE_SLUG || 'nova';
 
     // Save Gmail config for this space
     const accountName = email.split('@')[0].replace(/[^a-z0-9_]/gi, '_').toLowerCase() || 'gmail';
@@ -675,10 +675,6 @@ function gmailCloseSplash() {
   if (sidebar) sidebar.style.filter = '';
   if (mainGmail) mainGmail.style.filter = '';
   gmailShowUnavailable('Gmail-Zugriff nicht eingerichtet', 'Klicke erneut auf Gmail, um den App-Code einzugeben.');
-  return;
-  // Show empty state in sidebar
-  const content = document.getElementById('gmailContent');
-  if (content) content.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);padding:2rem;text-align:center;font-size:13px;">📧 Gmail-Zugriff nicht eingerichtet<br><span style="font-size:11px;">Klicke erneut auf Gmail um den App-Code einzugeben</span></div>';
 }
 
 async function saveGmailSplash() {
@@ -697,7 +693,7 @@ async function saveGmailSplash() {
 
   try {
     const params = new URLSearchParams((typeof getActiveSpaceQuery === 'function' ? getActiveSpaceQuery() : '').slice(1));
-    const slug = params.get('workspace') || 'default';
+    const slug = params.get('workspace') || window.DEFAULT_SPACE_SLUG || 'nova';
 
     // Save to space config (works for default workspace too)
     await fetchJson('api/space/config', {
