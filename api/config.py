@@ -31,7 +31,7 @@ REPO_ROOT = Path(__file__).parent.parent.resolve()
 
 # ── Network config (env-overridable) ─────────────────────────────────────────
 HOST = os.getenv("HERMES_WEBUI_HOST", "127.0.0.1")
-PORT = int(os.getenv("HERMES_WEBUI_PORT", "8787"))
+PORT = int(os.getenv("HERMES_WEBUI_PORT", "6666"))
 
 # ── TLS/HTTPS config (optional, env-overridable) ────────────────────────────
 TLS_CERT = os.getenv("HERMES_WEBUI_TLS_CERT", "").strip() or None
@@ -719,6 +719,8 @@ _PROVIDER_DISPLAY = {
     "deepseek": "DeepSeek",
     "minimax": "MiniMax",
     "minimax-cn": "MiniMax (China)",
+    "gemini-router": "Gemini Router",
+    "gemini-premium": "Gemini Premium",
     "google": "Google",
     "meta-llama": "Meta Llama",
     "huggingface": "HuggingFace",
@@ -733,6 +735,8 @@ _PROVIDER_DISPLAY = {
     "x-ai": "xAI",
     "nvidia": "NVIDIA NIM",
     "xiaomi": "Xiaomi",
+    "mega-router": "Mega Router",
+    "ollama-router": "Ollama Free Pool",
 }
 
 # Provider alias → canonical slug.  Users configure providers using the
@@ -1011,11 +1015,25 @@ _PROVIDER_MODELS = {
         {"id": "codex-mini-latest", "label": "Codex Mini (latest)"},
     ],
     "google": [
-        {"id": "gemini-3.1-pro-preview",            "label": "Gemini 3.1 Pro Preview"},
-        {"id": "gemini-3-flash-preview",            "label": "Gemini 3 Flash Preview"},
-        {"id": "gemini-3.1-flash-lite-preview",     "label": "Gemini 3.1 Flash Lite Preview"},
-        {"id": "gemini-2.5-pro",                    "label": "Gemini 2.5 Pro"},
-        {"id": "gemini-2.5-flash",                  "label": "Gemini 2.5 Flash"},
+        {"id": "gemini-router", "label": "Gemini Router (Free Tier)"},
+    ],
+    "gemini-premium": [
+        {"id": "gemini-2.5-flash-lite", "label": "Gemini 2.5 Flash Lite"},
+    ],
+    "gemini-router": [
+        {"id": "gemini-router", "label": "Gemini Router (Free Tier)"},
+    ],
+    "mistral-router": [
+        {"id": "mistral-router", "label": "Mistral Router (Free Tier)"},
+    ],
+    "cohere-router": [
+        {"id": "cohere-router", "label": "Cohere Router (Free Tier)"},
+    ],
+    "ollama-router": [
+        {"id": "ollama-router", "label": "Ollama Cloud Free Pool"},
+    ],
+    "mega-router": [
+        {"id": "mega-router", "label": "Mega Router (Qwen Pre-Selector)"},
     ],
     "deepseek": [
         {"id": "deepseek-v4-flash", "label": "DeepSeek V4 Flash"},
@@ -1047,9 +1065,6 @@ _PROVIDER_MODELS = {
     "minimax": [
         {"id": "MiniMax-M2.7", "label": "MiniMax M2.7"},
         {"id": "MiniMax-M2.7-highspeed", "label": "MiniMax M2.7 Highspeed"},
-        {"id": "MiniMax-M2.5", "label": "MiniMax M2.5"},
-        {"id": "MiniMax-M2.5-highspeed", "label": "MiniMax M2.5 Highspeed"},
-        {"id": "MiniMax-M2.1", "label": "MiniMax M2.1"},
     ],
     "minimax-cn": [
         {"id": "MiniMax-M2.7", "label": "MiniMax M2.7"},
@@ -1068,71 +1083,10 @@ _PROVIDER_MODELS = {
         {"id": "claude-sonnet-4.6", "label": "Claude Sonnet 4.6"},
         {"id": "gemini-3-flash-preview", "label": "Gemini 3 Flash Preview"},
     ],
-    # OpenCode Zen — curated models via opencode.ai/zen (pay-as-you-go credits)
-    "opencode-zen": [
-        {"id": "gpt-5.4-pro", "label": "GPT-5.4 Pro"},
-        {"id": "gpt-5.4", "label": "GPT-5.4"},
-        {"id": "gpt-5.4-mini", "label": "GPT-5.4 Mini"},
-        {"id": "gpt-5.4-nano", "label": "GPT-5.4 Nano"},
-        {"id": "gpt-5.3-codex", "label": "GPT-5.3 Codex"},
-        {"id": "gpt-5.3-codex-spark", "label": "GPT-5.3 Codex Spark"},
-        {"id": "gpt-5.2", "label": "GPT-5.2"},
-        {"id": "gpt-5.2-codex", "label": "GPT-5.2 Codex"},
-        {"id": "gpt-5.1", "label": "GPT-5.1"},
-        {"id": "gpt-5.1-codex", "label": "GPT-5.1 Codex"},
-        {"id": "gpt-5.1-codex-max", "label": "GPT-5.1 Codex Max"},
-        {"id": "gpt-5.1-codex-mini", "label": "GPT-5.1 Codex Mini"},
-        {"id": "gpt-5", "label": "GPT-5"},
-        {"id": "gpt-5-codex", "label": "GPT-5 Codex"},
-        {"id": "gpt-5-nano", "label": "GPT-5 Nano"},
-        {"id": "claude-opus-4-7", "label": "Claude Opus 4.7"},
-        {"id": "claude-opus-4-6", "label": "Claude Opus 4.6"},
-        {"id": "claude-opus-4-5", "label": "Claude Opus 4.5"},
-        {"id": "claude-opus-4-1", "label": "Claude Opus 4.1"},
-        {"id": "claude-sonnet-4-6", "label": "Claude Sonnet 4.6"},
-        {"id": "claude-sonnet-4-5", "label": "Claude Sonnet 4.5"},
-        {"id": "claude-sonnet-4", "label": "Claude Sonnet 4"},
-        {"id": "claude-haiku-4-5", "label": "Claude Haiku 4.5"},
-        {"id": "claude-3-5-haiku", "label": "Claude 3.5 Haiku"},
-        {"id": "gemini-3.1-pro-preview", "label": "Gemini 3.1 Pro Preview"},
-        {"id": "gemini-3-flash-preview", "label": "Gemini 3 Flash Preview"},
-        {"id": "gemini-3.1-flash-lite-preview", "label": "Gemini 3.1 Flash Lite Preview"},
-        {"id": "gemini-2.5-pro", "label": "Gemini 2.5 Pro"},
-        {"id": "gemini-2.5-flash", "label": "Gemini 2.5 Flash"},
-        {"id": "glm-5.1", "label": "GLM-5.1"},
-        {"id": "glm-5", "label": "GLM-5"},
-        {"id": "kimi-k2.5", "label": "Kimi K2.5"},
-        {"id": "minimax-m2.5", "label": "MiniMax M2.5"},
-        {"id": "minimax-m2.5-free", "label": "MiniMax M2.5 Free"},
-        {"id": "nemotron-3-super-free", "label": "Nemotron 3 Super Free"},
-        {"id": "big-pickle", "label": "Big Pickle"},
-    ],
     # OpenCode Go — flat-rate models via opencode.ai/go ($10/month)
     "opencode-go": [
-        {"id": "glm-5.1",          "label": "GLM-5.1"},
-        {"id": "glm-5",            "label": "GLM-5"},
-        {"id": "kimi-k2.5",        "label": "Kimi K2.5"},
-        {"id": "kimi-k2.6",        "label": "Kimi K2.6"},
-        {"id": "deepseek-v4-pro",  "label": "DeepSeek V4 Pro"},
-        {"id": "deepseek-v4-flash","label": "DeepSeek V4 Flash"},
-        {"id": "mimo-v2-pro",      "label": "MiMo V2 Pro"},
-        {"id": "mimo-v2-omni",     "label": "MiMo V2 Omni"},
-        {"id": "mimo-v2.5-pro",    "label": "MiMo V2.5 Pro"},
-        {"id": "mimo-v2.5",        "label": "MiMo V2.5"},
-        {"id": "minimax-m2.7",     "label": "MiniMax M2.7"},
-        {"id": "minimax-m2.5",     "label": "MiniMax M2.5"},
-        {"id": "qwen3.6-plus",     "label": "Qwen3.6 Plus"},
-        {"id": "qwen3.5-plus",     "label": "Qwen3.5 Plus"},
-    ],
-    # 'gemini' is the hermes_cli provider ID for Google AI Studio
-    # Model IDs are bare — sent directly to:
-    #   https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
-    "gemini": [
-        {"id": "gemini-3.1-pro-preview",            "label": "Gemini 3.1 Pro Preview"},
-        {"id": "gemini-3-flash-preview",            "label": "Gemini 3 Flash Preview"},
-        {"id": "gemini-3.1-flash-lite-preview",     "label": "Gemini 3.1 Flash Lite Preview"},
-        {"id": "gemini-2.5-pro",                    "label": "Gemini 2.5 Pro"},
-        {"id": "gemini-2.5-flash",                  "label": "Gemini 2.5 Flash"},
+        {"id": "deepseek-v4-flash", "label": "DeepSeek V4 Flash"},
+        {"id": "deepseek-v4-pro",   "label": "DeepSeek V4 Pro"},
     ],
     # Mistral — prefix used in OpenRouter model IDs (mistralai/mistral-large-latest)
     "mistralai": [
@@ -3075,6 +3029,7 @@ def get_available_models() -> dict:
                 "MINIMAX_CN_API_KEY",
                 "XAI_API_KEY",
                 "MISTRAL_API_KEY",
+                "COHERE_API_KEY",
             ):
                 val = os.getenv(k)
                 if val:
@@ -3093,7 +3048,9 @@ def get_available_models() -> dict:
             if all_env.get("GOOGLE_API_KEY"):
                 detected_providers.add("google")
             if all_env.get("GEMINI_API_KEY"):
-                detected_providers.add("gemini")
+                detected_providers.add("gemini-router")
+            if all_env.get("GEMINI_PREMIUM_KEY"):
+                detected_providers.add("gemini-premium")
             if all_env.get("GLM_API_KEY"):
                 detected_providers.add("zai")
             if all_env.get("KIMI_API_KEY"):
@@ -3110,6 +3067,8 @@ def get_available_models() -> dict:
                 detected_providers.add("x-ai")
             if all_env.get("MISTRAL_API_KEY"):
                 detected_providers.add("mistralai")
+            if all_env.get("COHERE_API_KEY"):
+                detected_providers.add("cohere-router")
             if all_env.get("OPENCODE_ZEN_API_KEY"):
                 detected_providers.add("opencode-zen")
             if all_env.get("OPENCODE_GO_API_KEY"):
@@ -3426,6 +3385,11 @@ def get_available_models() -> dict:
                 _c = _canonicalise_provider_id(_pid) or _pid
                 _canonicalised_detected.add(_c)
             detected_providers = _canonicalised_detected
+
+        # Gemini → gemini-router: Der Free Tier Router ersetzt den built-in Gemini Provider
+        if "gemini" in detected_providers and "gemini-router" not in detected_providers:
+            detected_providers.discard("gemini")
+            detected_providers.add("gemini-router")
 
         # 5. Build model groups
         if detected_providers:

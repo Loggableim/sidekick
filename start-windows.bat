@@ -5,7 +5,7 @@ cd /d "%ROOT%"
 
 set HERMES_WEBUI_AGENT_DIR=%ROOT%\cids-hermes-agent
 if not defined HERMES_WEBUI_STATE_DIR set "HERMES_WEBUI_STATE_DIR=%ROOT%\home\webui"
-set HERMES_WEBUI_PORT=8787
+set HERMES_WEBUI_PORT=6666
 set "PORTABLE_HOME=%ROOT%\home"
 if not defined HERMES_HOME (
     set "HERMES_HOME=%PORTABLE_HOME%"
